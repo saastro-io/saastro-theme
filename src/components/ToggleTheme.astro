@@ -1,0 +1,67 @@
+---
+/**
+ * ToggleTheme.astro
+ *
+ * Button component to toggle between light and dark mode.
+ *
+ * Features:
+ * - Simple button with icons
+ * - Icons from astro-icon (tabler:sun and tabler:moon)
+ * - Uses Tailwind dark: classes for automatic theme synchronization
+ * - No JavaScript needed for icon visibility (handled by Tailwind)
+ *
+ * Icon logic (UI best practice):
+ * - Light mode: shows moon 🌙 (action: switch to dark)
+ * - Dark mode: shows sun ☀️ (action: switch to light)
+ *
+ * The icon represents the ACTION the button will perform, not the current state.
+ *
+ * Dependencies:
+ * - ApplyColorMode.astro must be in the layout's <head>
+ * - Uses window.applyTheme() exposed by ApplyColorMode
+ *
+ * @see ApplyColorMode.astro - Script that applies initial theme
+ */
+
+import { Icon } from "astro-icon/components";
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  aria-label="Toggle theme"
+  class="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+>
+  <Icon
+    name="tabler:sun"
+    class="h-5 w-5 absolute inset-0 m-auto transition-opacity hidden dark:block"
+  />
+  <Icon
+    name="tabler:moon"
+    class="h-5 w-5 absolute inset-0 m-auto transition-opacity block dark:hidden"
+  />
+  <span class="sr-only">Toggle theme</span>
+</button>
+
+<script is:inline>
+  /**
+   * Configure click handler
+   *
+   * On click:
+   * 1. Reads current DOM state (more reliable than localStorage)
+   * 2. Determines new theme (toggle)
+   * 3. Calls window.applyTheme() which:
+   *    - Applies/removes 'dark' class on <html>
+   *    - Saves to localStorage
+   *    - Tailwind automatically updates icons via dark: classes
+   */
+  ;(function () {
+    const button = document.getElementById("theme-toggle")
+    if (button) {
+      button.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.contains("dark")
+        window.applyTheme(isDark ? "light" : "dark")
+      })
+    }
+  })()
+</script>

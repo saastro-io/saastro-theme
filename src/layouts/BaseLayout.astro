@@ -1,0 +1,101 @@
+---
+/**
+ * BaseLayout — pure HTML shell
+ *
+ * Handles: SEO meta, OG, Twitter, analytics, dark mode, View Transitions.
+ * Does NOT include Header, Footer, or Announcement — use SiteLayout for that.
+ *
+ * Use this directly when building custom layouts (blog, docs, minimal, etc.)
+ */
+import '../styles/global.css';
+import ApplyColorMode from '../scripts/ApplyColorMode.astro';
+import Favicons from '../head/Favicons.astro';
+import Analytics from '../components/Analytics.astro';
+import AnalyticsNoscript from '../components/AnalyticsNoscript.astro';
+import { ClientRouter } from 'astro:transitions';
+import { i18nConfig } from '../i18n/config';
+import { getHreflangEntries } from '../i18n/utils';
+
+export interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  canonicalUrl?: string;
+  lang?: string;
+  ogType?: string;
+  googleSiteVerificationId?: string;
+  analytics?: {
+    googleAnalyticsId?: string;
+    googleTagManagerId?: string;
+  };
+}
+
+// Use locale from middleware if i18n is enabled, fallback to prop
+const localsLang = i18nConfig.enabled ? Astro.locals.lang : undefined;
+
+const {
+  title,
+  description = 'A Saastro theme',
+  image = '/og-image.png',
+  canonicalUrl,
+  lang = localsLang ?? 'en',
+  ogType = 'website',
+  googleSiteVerificationId,
+  analytics = {},
+} = Astro.props;
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
+const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`;
+const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
+const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathname) : [];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={ogType} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {hreflangEntries.map(({ locale, href }) => (
+      <link rel="alternate" hreflang={locale} href={`${siteUrl}${href}`} />
+    ))}
+    {hreflangEntries.length > 0 && (
+      <link rel="alternate" hreflang="x-default" href={`${siteUrl}${Astro.url.pathname}`} />
+    )}
+
+    <Favicons />
+    {googleSiteVerificationId && (
+      <meta name="google-site-verification" content={googleSiteVerificationId} />
+    )}
+    <ApplyColorMode />
+    <Analytics
+      googleAnalyticsId={analytics.googleAnalyticsId}
+      googleTagManagerId={analytics.googleTagManagerId}
+    />
+    <ClientRouter fallback="swap" />
+
+    <slot name="head" />
+  </head>
+
+  <body>
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+    <AnalyticsNoscript googleTagManagerId={analytics.googleTagManagerId} />
+    <slot />
+  </body>
+</html>

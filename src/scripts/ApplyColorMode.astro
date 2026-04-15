@@ -1,0 +1,79 @@
+---
+/**
+ * ApplyColorMode.astro
+ * 
+ * Script that runs in the <head> to apply the theme (dark/light) BEFORE rendering.
+ * This prevents the "flash" of unstyled content (FOUT - Flash of Unstyled Content).
+ * 
+ * Functionality:
+ * - Reads theme preference from localStorage or system configuration
+ * - Applies the 'dark' class to the <html> element immediately
+ * - Exposes the global window.applyTheme() function for use in other components
+ * - Icons and logos use Tailwind dark: classes for automatic synchronization
+ * 
+ * Usage:
+ * - Included in BaseLayout.astro in the <head>
+ * - Executes before content is rendered
+ * 
+ * @see ToggleTheme.astro - Component that uses window.applyTheme()
+ */
+
+---
+
+<script is:inline define:vars={{ defaultTheme: 'system' }}>
+  /**
+   * Global function to apply theme
+   * 
+   * @param {string} theme - 'dark' | 'light'
+   * 
+   * Functionality:
+   * - Applies/removes the 'dark' class on <html>
+   * - Saves preference to localStorage
+   * - Automatically updates toggle icons
+   * - Dispatches 'themechange' event for other components
+   * 
+   * @example
+   * window.applyTheme('dark');  // Enable dark mode
+   * window.applyTheme('light'); // Enable light mode
+   */
+  window.applyTheme = function(theme) {
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', theme);
+    
+    // Icons and logos are handled automatically by Tailwind dark: classes
+    // No manual synchronization needed
+    
+    // Update other toggles if they exist
+    const matches = document.querySelectorAll('[data-ax-toggle-color-scheme] > input');
+    if (matches && matches.length) {
+      matches.forEach((elem) => {
+        elem.checked = !isDark;
+      });
+    }
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+  };
+
+  /**
+   * Apply initial theme according to priority:
+   * 1. defaultTheme with ':only' or if no localStorage and defaultTheme is not 'system'
+   * 2. localStorage.theme if it exists
+   * 3. System preference (prefers-color-scheme)
+   * 4. Default: 'light'
+   */
+  if ((defaultTheme && defaultTheme.endsWith(':only')) || (!localStorage.theme && defaultTheme !== 'system')) {
+    window.applyTheme(defaultTheme.replace(':only', ''));
+  } else if (
+    localStorage.theme === 'dark' ||
+    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  ) {
+    window.applyTheme('dark');
+  } else {
+    window.applyTheme('light');
+  }
+
+  // Icons and logos are handled automatically by Tailwind dark: classes
+  // No manual synchronization needed
+</script>

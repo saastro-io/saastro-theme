@@ -1,0 +1,91 @@
+---
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+interface Props {
+  eyebrow?: string;
+  title: string[];
+  subtitle: string;
+  image?: string;
+  imageAlt?: string;
+  stats?: { value: string; label: string }[];
+  primaryCta?: { label: string; href: string };
+  secondaryCta?: { label: string; href: string };
+}
+
+const {
+  eyebrow,
+  title,
+  subtitle,
+  image,
+  imageAlt = '',
+  stats,
+  primaryCta,
+  secondaryCta,
+} = Astro.props;
+---
+
+<section class="relative flex min-h-[85vh] flex-col justify-end overflow-hidden pb-16 pt-32 lg:pb-24">
+  {image ? (
+    <>
+      <img
+        src={image}
+        alt={imageAlt}
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="absolute inset-0 bg-foreground/60"></div>
+    </>
+  ) : (
+    <div class="absolute inset-0 bg-foreground"></div>
+  )}
+
+  <div class="relative z-10 container mx-auto px-6 lg:px-12">
+    {eyebrow && (
+      <Badge variant="secondary" className="mb-6 text-xs tracking-wider uppercase">
+        {eyebrow}
+      </Badge>
+    )}
+
+    <h1 class="font-bold tracking-tight text-primary-foreground leading-[1.05]">
+      {title.map((line) => (
+        <span class="block text-[clamp(2.5rem,8vw,5.5rem)]">{line}</span>
+      ))}
+    </h1>
+
+    <p class="mt-6 max-w-lg text-lg text-primary-foreground/70 leading-relaxed">
+      {subtitle}
+    </p>
+
+    {(primaryCta || secondaryCta) && (
+      <div class="mt-8 flex flex-wrap gap-3">
+        {primaryCta && (
+          <Button asChild size="lg">
+            <a href={primaryCta.href}>{primaryCta.label}</a>
+          </Button>
+        )}
+        {secondaryCta && (
+          <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+            <a href={secondaryCta.href}>{secondaryCta.label}</a>
+          </Button>
+        )}
+      </div>
+    )}
+
+    {stats && stats.length > 0 && (
+      <div class="mt-12 border-t border-primary-foreground/20 pt-10 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12">
+        {stats.map((stat) => (
+          <div>
+            <p class="text-3xl lg:text-4xl font-bold text-primary-foreground tracking-tight">
+              {stat.value}
+            </p>
+            <p class="mt-1 text-xs uppercase tracking-wider text-primary-foreground/60">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>

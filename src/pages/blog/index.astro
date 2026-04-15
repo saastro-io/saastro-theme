@@ -1,0 +1,72 @@
+---
+import { getCollection } from 'astro:content';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { Badge } from '@/components/ui/badge';
+import { i18nConfig } from '../../i18n/config';
+
+const lp = i18nConfig.enabled ? Astro.locals.localePath : (p: string) => p;
+
+const allPosts = await getCollection('blog');
+const posts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<SiteLayout title="Blog" description="Latest articles and guides.">
+  <div class="container mx-auto max-w-5xl px-4 py-16">
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold tracking-tight">Blog</h1>
+      <p class="mt-2 text-muted-foreground">Latest articles and guides.</p>
+    </div>
+
+    {posts.length === 0 ? (
+      <p class="text-center text-muted-foreground py-20">No posts yet.</p>
+    ) : (
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post) => (
+          <a
+            href={lp(`/blog/${post.id}`)}
+            class="group flex flex-col gap-3 rounded-lg border p-4 transition-colors hover:border-foreground/20 hover:bg-muted/50"
+          >
+            {post.data.image && (
+              <div class="aspect-video overflow-hidden rounded-md bg-muted">
+                <img
+                  src={post.data.image}
+                  alt={post.data.imageAlt}
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            <div class="flex items-center gap-2">
+              {post.data.featured && <Badge variant="secondary">Featured</Badge>}
+              {post.data.readingTime && (
+                <span class="text-xs text-muted-foreground">{post.data.readingTime} min read</span>
+              )}
+            </div>
+
+            <h2 class="font-semibold leading-snug group-hover:text-foreground transition-colors">
+              {post.data.title}
+            </h2>
+
+            <p class="text-sm text-muted-foreground line-clamp-2">
+              {post.data.description}
+            </p>
+
+            <div class="mt-auto flex items-center gap-2 pt-2">
+              <time class="text-xs text-muted-foreground" datetime={post.data.date.toISOString()}>
+                {new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(post.data.date)}
+              </time>
+              {post.data.tags && post.data.tags.length > 0 && (
+                <div class="flex gap-1">
+                  {post.data.tags.slice(0, 2).map((tag) => (
+                    <Badge variant="outline" className="text-xs">{tag}</Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</SiteLayout>

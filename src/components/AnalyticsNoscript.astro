@@ -1,0 +1,19 @@
+---
+export interface Props {
+  googleTagManagerId?: string;
+}
+
+const { googleTagManagerId } = Astro.props;
+---
+
+{/* Google Tag Manager (noscript) */}
+{googleTagManagerId && (
+  <noscript>
+    <iframe 
+      src={`https://www.googletagmanager.com/ns.html?id=${googleTagManagerId}`}
+      height="0" 
+      width="0" 
+      style="display:none;visibility:hidden">
+    </iframe>
+  </noscript>
+)}

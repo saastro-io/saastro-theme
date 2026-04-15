@@ -1,0 +1,129 @@
+---
+// Footer.astro — props-based footer component
+import { Icon } from "astro-icon/components";
+import Logo from "./Logo.astro";
+
+/**
+ * Single footer link
+ */
+export interface FooterLink {
+  text?: string;
+  href?: string;
+  icon?: string;
+  ariaLabel?: string;
+}
+
+/**
+ * Group of footer links with title
+ */
+export interface FooterLinksGroup {
+  title?: string;
+  links: FooterLink[];
+}
+
+export interface Props {
+  /** Site name for copyright */
+  siteName?: string;
+  /** Element ID */
+  id?: string;
+  /** Dark mode */
+  isDark?: boolean;
+  /** Full width container */
+  isFullWidth?: boolean;
+  /** Tagline text below logo */
+  tagline?: string;
+  /** Footer links groups */
+  links?: FooterLinksGroup[];
+  /** Social media links */
+  socialLinks?: FooterLink[];
+  /** Home URL for logo link */
+  homeUrl?: string;
+}
+
+const {
+  siteName = "Saastro",
+  id = "footer",
+  isDark = false,
+  isFullWidth = false,
+  tagline,
+  links = [],
+  socialLinks = [],
+  homeUrl = "/",
+} = Astro.props;
+
+const currentYear = new Date().getFullYear();
+const copyright = `© ${currentYear} ${siteName}. All rights reserved.`;
+---
+
+<footer
+  {...(id ? { id } : {})}
+  class:list={[
+    { dark: isDark },
+    "border-t bg-background text-muted-foreground",
+  ]}
+>
+  <div class:list={[
+    isFullWidth ? "w-full" : "container",
+    "mx-auto px-4 md:px-6",
+  ]}>
+    {/* Main section: Logo and links */}
+    <div class="flex flex-col gap-8 py-4 md:py-8 md:flex-row md:justify-between">
+      {/* Logo and tagline */}
+      <div class="flex flex-col gap-2">
+        <Logo href={homeUrl} siteName={siteName} logoClasses="w-10" nameClasses="" />
+        {tagline && (
+          <p class="text-xs font-bold text-foreground">{tagline}</p>
+        )}
+      </div>
+
+      {/* Link groups */}
+      {links.length > 0 && (
+        <nav class="flex flex-wrap gap-8 md:gap-16 text-xs md:text-sm" aria-label="Footer navigation">
+          {links.map((section) => (
+            <div>
+              {section.title && (
+                <h3 class="mb-4 font-bold text-foreground">{section.title}</h3>
+              )}
+              <ul class="space-y-4 text-muted-foreground">
+                {section.links.map((link) => (
+                  <li>
+                    {link.href && link.text && (
+                      <a
+                        href={link.href}
+                        class="hover:text-primary font-medium transition-colors"
+                        aria-label={link.ariaLabel || link.text}
+                      >
+                        {link.text}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      )}
+    </div>
+
+    {/* Bottom section: Copyright and social links */}
+    <div class="flex flex-col gap-2 md:gap-4 border-t py-2 md:flex-row md:items-center md:justify-between">
+      <p class="text-xs text-muted-foreground">{copyright}</p>
+
+      {socialLinks.length > 0 && (
+        <ul class="flex gap-2" role="list" aria-label="Social media links">
+          {socialLinks.map((link) => (
+            <li>
+              <a
+                href={link.href || "#"}
+                class="inline-flex items-center justify-center rounded-lg p-2.5 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label={link.ariaLabel || `Visit our ${link.icon?.replace("tabler:brand-", "") || "social"} page`}
+              >
+                {link.icon && <Icon name={link.icon} class="h-5 w-5" />}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</footer>

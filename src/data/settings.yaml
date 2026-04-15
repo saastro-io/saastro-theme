@@ -1,0 +1,55 @@
+site:
+  name: "TuMarca"
+  site: "https://tumarca.com"
+  base: "/"
+  trailingSlash: "never"
+  googleSiteVerificationId:
+  favicon:
+    colors:
+      icon: "#00a897"
+      theme: "#00a897"
+
+i18n:
+  language: "es"
+  textDirection: "ltr"
+
+metadata:
+  title:
+    default: "TuMarca"
+    template: "%s | TuMarca"
+  description: "Plantillas Astro rápidas con React + shadcn + Tailwind."
+  robots:
+    index: true
+    follow: true
+  openGraph:
+    type: "website"
+    site_name: "TuMarca"
+    images: []     # puedes poner una URL absoluta
+  twitter:
+    card: "summary_large_image"
+
+apps:
+  blog:
+    isEnabled: false
+    list:
+      pathname: "blog"
+      robots: { index: true, follow: true }
+    category: { pathname: "category" }
+    tag: { pathname: "tag" }
+    post:
+      permalink: "/blog/%slug%"
+      robots: { index: true, follow: true }
+    postsPerPage: 6
+ui:
+  theme: "system" # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
+
+analytics:
+  googleAnalytics:
+    id: "G-XXXXXXXXXX"
+  googleTagManager:
+    id: "GTM-XXXXXXX"
+
+cookieConsent:
+  privacyPolicyUrl: "/privacy"
+  position: "bottom"  # Values: "bottom" | "top" | "center"
+  theme: "auto"  # Values: "light" | "dark" | "auto"

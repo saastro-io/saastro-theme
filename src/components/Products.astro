@@ -1,0 +1,122 @@
+---
+/**
+ * Products grid section
+ */
+const products = [
+  {
+    name: "UI",
+    tagline: "Component Library",
+    description: "50+ accessible UI components for Astro. Vanilla JS, zero dependencies, copy-paste ready.",
+    href: "https://ui.saastro.io",
+    icon: "squares",
+    color: "from-blue-500 to-blue-600",
+    features: ["Vanilla JS", "Tailwind CSS", "Accessible", "Dark mode"],
+  },
+  {
+    name: "Forms",
+    tagline: "Form Builder",
+    description: "Visual form builder with validation, multi-step flows, and submission handling.",
+    href: "https://forms.saastro.io",
+    icon: "form",
+    color: "from-green-500 to-green-600",
+    features: ["Drag & drop", "Validation", "Multi-step", "Webhooks"],
+  },
+  {
+    name: "Themes",
+    tagline: "Theme Catalog",
+    description: "Production-ready Astro themes. Landing pages, blogs, portfolios, and more.",
+    href: "https://themes.saastro.io",
+    icon: "palette",
+    color: "from-purple-500 to-purple-600",
+    features: ["Free & Pro", "Responsive", "SEO ready", "Fast"],
+  },
+  {
+    name: "CMS",
+    tagline: "Headless CMS",
+    description: "Content management for Astro sites. Self-hosted or cloud, your choice.",
+    href: "https://cms.saastro.io",
+    icon: "database",
+    color: "from-orange-500 to-orange-600",
+    badge: "Coming Soon",
+    features: ["Markdown", "Media library", "API", "Plugins"],
+  },
+];
+---
+
+<section id="products" class="py-20 md:py-32">
+  <div class="container mx-auto px-4">
+    <!-- Section header -->
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">
+        Everything you need
+      </h2>
+      <p class="mt-4 text-lg text-muted-foreground">
+        A complete ecosystem of tools designed specifically for Astro developers.
+      </p>
+    </div>
+
+    <!-- Products grid -->
+    <div class="mt-16 grid gap-8 md:grid-cols-2">
+      {products.map((product) => (
+        <a
+          href={product.href}
+          class="group relative overflow-hidden rounded-2xl border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg"
+        >
+          {/* Badge */}
+          {product.badge && (
+            <div class="absolute right-4 top-4 rounded-full bg-muted px-3 py-1 text-xs font-medium">
+              {product.badge}
+            </div>
+          )}
+
+          {/* Icon */}
+          <div class={`mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${product.color} text-white`}>
+            {product.icon === "squares" && (
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            )}
+            {product.icon === "form" && (
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            )}
+            {product.icon === "palette" && (
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+            )}
+            {product.icon === "database" && (
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+              </svg>
+            )}
+          </div>
+
+          {/* Content */}
+          <div class="mb-4">
+            <span class="text-sm font-medium text-muted-foreground">{product.tagline}</span>
+            <h3 class="mt-1 text-2xl font-bold">{product.name}</h3>
+          </div>
+          <p class="mb-6 text-muted-foreground">{product.description}</p>
+
+          {/* Features */}
+          <div class="flex flex-wrap gap-2">
+            {product.features.map((feature) => (
+              <span class="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                {feature}
+              </span>
+            ))}
+          </div>
+
+          {/* Arrow */}
+          <div class="absolute bottom-8 right-8 opacity-0 transition-opacity group-hover:opacity-100">
+            <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

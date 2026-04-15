@@ -1,0 +1,76 @@
+---
+import Logo from './Logo.astro';
+import ToggleTheme from './ToggleTheme.astro';
+import { DesktopMenu } from './DesktopMenu';
+import { MobileMenu } from './MobileMenu';
+import { ContactSheetButton } from '../widgets/ContactSheet';
+import { LocaleSelector } from './LocaleSelector';
+import type { LocaleLink } from '../i18n/utils';
+
+export interface MenuItem {
+  title: string;
+  url: string;
+  description?: string;
+  items?: MenuItem[];
+}
+
+export interface Props {
+  siteName?: string;
+  logoLight?: string;
+  logoDark?: string;
+  homeUrl?: string;
+  menu?: MenuItem[];
+  isSticky?: boolean;
+  showToggleTheme?: boolean;
+  showContactButton?: boolean;
+  contactButtonLabel?: string;
+  localeLinks?: LocaleLink[];
+}
+
+const {
+  siteName = 'Saastro',
+  logoLight,
+  logoDark,
+  homeUrl = '/',
+  menu = [],
+  isSticky = true,
+  showToggleTheme = true,
+  showContactButton = true,
+  contactButtonLabel = 'Contact',
+  localeLinks = [],
+} = Astro.props;
+
+const currentPath = `/${new URL(Astro.url).pathname.replace(/^\//, '')}`;
+---
+
+<header
+  class:list={[
+    'z-50 h-16 px-4 border-b bg-background/80 backdrop-blur-md flex items-center',
+    { 'sticky top-0': isSticky, relative: !isSticky },
+  ]}
+>
+  <div class="container mx-auto flex items-center justify-between gap-4">
+    <Logo href={homeUrl} siteName={siteName} logoLight={logoLight} logoDark={logoDark} />
+
+    <div class="hidden flex-1 md:flex">
+      <DesktopMenu menu={menu} currentPath={currentPath} client:load />
+    </div>
+
+    <div class="flex items-center gap-2">
+      {localeLinks.length > 1 && (
+        <LocaleSelector localeLinks={localeLinks} client:load />
+      )}
+      {showToggleTheme && <ToggleTheme />}
+      {showContactButton && (
+        <ContactSheetButton
+          content={contactButtonLabel}
+          size="sm"
+          client:load
+        />
+      )}
+      <div class="flex md:hidden">
+        <MobileMenu menu={menu} currentPath={currentPath} client:load />
+      </div>
+    </div>
+  </div>
+</header>

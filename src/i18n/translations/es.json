@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "title": "Saastro Theme",
+    "description": "Un tema moderno para Astro con shadcn/ui"
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "blog": "Blog",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "eyebrow": "Codigo Abierto",
+    "title": ["Construye rapido", "con Saastro"],
+    "subtitle": "Un kit completo para desarrolladores web. Componentes UI, temas y CMS — todo disenado para Astro.",
+    "primaryCta": "Empezar",
+    "secondaryCta": "Ver en GitHub",
+    "stats": [
+      { "value": "10+", "label": "Componentes" },
+      { "value": "100%", "label": "TypeScript" },
+      { "value": "0kb", "label": "JS por defecto" },
+      { "value": "MIT", "label": "Licencia" }
+    ]
+  },
+  "footer": {
+    "copyright": "Todos los derechos reservados.",
+    "privacyLink": "Política de privacidad",
+    "termsLink": "Términos de servicio",
+    "cookiesLink": "Política de cookies",
+    "manageCookies": "Gestionar cookies"
+  },
+  "cookieBanner": {
+    "title": "Usamos cookies",
+    "description": "Usamos cookies para mejorar tu experiencia en nuestro sitio.",
+    "policyLinkText": "Política de cookies",
+    "acceptAll": "Aceptar todas",
+    "rejectAll": "Rechazar todas",
+    "customize": "Personalizar",
+    "savePreferences": "Guardar preferencias",
+    "essentialLabel": "Esenciales",
+    "essentialDescription": "Necesarias para el funcionamiento del sitio.",
+    "analyticsLabel": "Analíticas",
+    "analyticsDescription": "Nos ayudan a entender cómo los visitantes usan el sitio.",
+    "personalizationLabel": "Personalización",
+    "personalizationDescription": "Recuerdan tus preferencias y configuración.",
+    "alwaysActive": "Siempre activas"
+  }
+}

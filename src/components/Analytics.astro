@@ -1,0 +1,129 @@
+---
+export interface Props {
+  googleAnalyticsId?: string;
+  googleTagManagerId?: string;
+}
+
+const { googleAnalyticsId, googleTagManagerId } = Astro.props;
+---
+
+{/* Google Analytics - Only loads if user consented to analytics */}
+{googleAnalyticsId && (
+  <script is:inline define:vars={{ id: googleAnalyticsId }}>
+    (function() {
+      const STORAGE_PREFIX = "cookie-consent";
+      
+      function hasConsent(category) {
+        try {
+          if (category === "essential") return true;
+          const match = document.cookie.split('; ').find(c => c.startsWith('cookie_consent='));
+          if (!match) return false;
+          const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          return !!consent[category];
+        } catch {
+          return false;
+        }
+      }
+      
+      function loadGoogleAnalytics() {
+        if (!hasConsent("analytics")) {
+          // Listen for consent updates
+          window.addEventListener("cookie-consent-updated", function(e) {
+            if (e.detail.analytics && !window.gaLoaded) {
+              loadGoogleAnalyticsScript();
+            }
+          });
+          return;
+        }
+        
+        loadGoogleAnalyticsScript();
+      }
+      
+      function loadGoogleAnalyticsScript() {
+        if (window.gaLoaded) return;
+        window.gaLoaded = true;
+        
+        // Load gtag.js
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+        document.head.appendChild(script);
+        
+        // Initialize gtag
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+        gtag("js", new Date());
+        gtag("config", id);
+      }
+      
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadGoogleAnalytics);
+      } else {
+        loadGoogleAnalytics();
+      }
+    })();
+  </script>
+)}
+
+{/* Google Tag Manager - Only loads if user consented to analytics or marketing */}
+{googleTagManagerId && (
+  <script is:inline define:vars={{ id: googleTagManagerId }}>
+    (function() {
+      const STORAGE_PREFIX = "cookie-consent";
+      
+      function hasConsent(category) {
+        try {
+          if (category === "essential") return true;
+          const match = document.cookie.split('; ').find(c => c.startsWith('cookie_consent='));
+          if (!match) return false;
+          const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          return !!consent[category];
+        } catch {
+          return false;
+        }
+      }
+      
+      function loadGoogleTagManager() {
+        const hasAnalyticsConsent = hasConsent("analytics");
+        const hasMarketingConsent = hasConsent("marketing");
+        
+        if (!hasAnalyticsConsent && !hasMarketingConsent) {
+          // Listen for consent updates
+          window.addEventListener("cookie-consent-updated", function(e) {
+            if ((e.detail.analytics || e.detail.marketing) && !window.gtmLoaded) {
+              loadGoogleTagManagerScript();
+            }
+          });
+          return;
+        }
+        
+        loadGoogleTagManagerScript();
+      }
+      
+      function loadGoogleTagManagerScript() {
+        if (window.gtmLoaded) return;
+        window.gtmLoaded = true;
+        
+        (function(w,d,s,l,i){
+          w[l]=w[l]||[];
+          w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+          var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),
+              dl=l!='dataLayer'?'&l='+l:'';
+          j.async=true;
+          j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+          f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer',id);
+      }
+      
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadGoogleTagManager);
+      } else {
+        loadGoogleTagManager();
+      }
+    })();
+  </script>
+)}

@@ -1,0 +1,122 @@
+---
+/**
+ * SiteLayout — standard page layout
+ *
+ * Extends BaseLayout with Header, Footer, and optional Announcement banner.
+ * Use this for all normal site pages (home, about, services, blog index, etc.)
+ *
+ * To override header/footer per-page:
+ *   <SiteLayout ...>
+ *     <CustomHeader slot="header" />
+ *     Page content
+ *     <CustomFooter slot="footer" />
+ *   </SiteLayout>
+ */
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { Announcement } from '../widgets/Announcement/Announcement';
+import { CookieBanner } from '../widgets/CookieConsent/CookieBanner';
+import { ContactSheetProvider } from '../widgets/ContactSheet';
+import { i18nConfig } from '../i18n/config';
+import { getLocaleLinks } from '../i18n/utils';
+import type { Props as BaseProps } from './BaseLayout.astro';
+import type { AnnouncementProps } from '../widgets/Announcement/Announcement';
+
+export interface Props extends BaseProps {
+  showAnnouncement?: boolean;
+  announcement?: Partial<AnnouncementProps>;
+  cookiesPolicyHref?: string;
+}
+
+const {
+  showAnnouncement = false,
+  announcement = {},
+  cookiesPolicyHref = '/legal/cookies',
+  ...baseProps
+} = Astro.props;
+
+// i18n: read from middleware locals when enabled
+const i18nEnabled = i18nConfig.enabled;
+const lang = i18nEnabled ? Astro.locals.lang : i18nConfig.defaultLocale;
+const t = i18nEnabled ? Astro.locals.t : undefined;
+const lp = i18nEnabled ? Astro.locals.localePath : (p: string) => p;
+const pagePath = Astro.url.pathname;
+const localeLinks = i18nEnabled ? getLocaleLinks(pagePath, lang) : [];
+
+// Cookie banner translations: use i18n JSON if available, else English defaults
+const cookieT = t?.cookieBanner ?? {
+  title: 'We use cookies',
+  description: 'We use cookies to improve your experience on our site.',
+  policyLinkText: 'Cookie policy',
+  acceptAll: 'Accept all',
+  rejectAll: 'Reject all',
+  customize: 'Customize',
+  savePreferences: 'Save preferences',
+  essentialLabel: 'Essential',
+  essentialDescription: 'Required for the site to function correctly.',
+  analyticsLabel: 'Analytics',
+  analyticsDescription: 'Help us understand how visitors use the site.',
+  personalizationLabel: 'Personalization',
+  personalizationDescription: 'Remember your preferences and settings.',
+  alwaysActive: 'Always active',
+};
+
+// Nav menu: use translations if available
+const navMenu = [
+  { title: t?.nav?.home ?? 'Home', url: lp('/') },
+  { title: t?.nav?.about ?? 'About', url: lp('/about') },
+  { title: t?.nav?.blog ?? 'Blog', url: lp('/blog') },
+];
+
+// Footer legal links: use translations if available
+const footerLinks = [
+  {
+    title: 'Legal',
+    links: [
+      { text: t?.footer?.privacyLink ?? 'Privacy Policy', href: lp('/legal/privacy') },
+      { text: t?.footer?.termsLink ?? 'Terms of Service', href: lp('/legal/terms') },
+      { text: t?.footer?.cookiesLink ?? 'Cookie Policy', href: lp('/legal/cookies') },
+    ],
+  },
+];
+---
+
+<BaseLayout {...baseProps}>
+  <slot name="head" slot="head" />
+
+  {showAnnouncement && (
+    <slot name="announcement">
+      <Announcement {...announcement} client:load />
+    </slot>
+  )}
+
+  <slot name="header">
+    <Header menu={navMenu} localeLinks={localeLinks} />
+  </slot>
+
+  <main id="main-content" class="flex-1">
+    <slot />
+  </main>
+
+  <slot name="footer">
+    <Footer links={footerLinks} />
+  </slot>
+
+  <ContactSheetProvider client:only="react" />
+
+  <CookieBanner
+    cookiesPolicyHref={lp(cookiesPolicyHref)}
+    translations={cookieT}
+    client:idle
+  />
+</BaseLayout>
+
+<style>
+  /* Ensure body stretches full height for sticky footer */
+  :global(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+</style>

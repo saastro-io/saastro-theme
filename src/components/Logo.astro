@@ -1,0 +1,91 @@
+---
+export interface Props {
+  /** Site name to display */
+  siteName?: string;
+  /** Logo width Classes. Tailwind classes: w-8, w-12, w-16, w-20, etc. */
+  logoClasses?: string;
+  /** Site name text Classes. Tailwind classes: text-sm, text-base, text-lg, text-xl, text-2xl, etc. */
+  nameClasses?: string;
+  /** Container classes. Tailwind classes for layout: flex, items-center, gap-4, flex-row, flex-col, etc. */
+  containerClasses?: string;
+  /** Link URL. If not provided, renders as a span instead of a link */
+  href?: string;
+  /** Light mode logo URL */
+  logoLight?: string;
+  /** Dark mode logo URL */
+  logoDark?: string;
+}
+
+const {
+  siteName = "Saastro",
+  logoClasses = "w-8 h-8",
+  nameClasses = "text-xl font-bold",
+  containerClasses = "flex items-center gap-2",
+  href = "/",
+  logoLight,
+  logoDark,
+} = Astro.props;
+
+const hasLogos = logoLight || logoDark;
+---
+
+{href ? (
+  <a href={href} class={containerClasses}>
+    {hasLogos ? (
+      <>
+        {logoLight && (
+          <img
+            src={logoLight}
+            alt={siteName}
+            class={`${logoClasses} block dark:hidden`}
+          />
+        )}
+        {logoDark && (
+          <img
+            src={logoDark}
+            alt={siteName}
+            class={`${logoClasses} hidden dark:block`}
+          />
+        )}
+        {!logoDark && logoLight && (
+          <img
+            src={logoLight}
+            alt={siteName}
+            class={`${logoClasses} hidden dark:block`}
+          />
+        )}
+      </>
+    ) : (
+      <span class={`${logoClasses} flex items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold`}>
+        {siteName?.charAt(0) || "S"}
+      </span>
+    )}
+    <span class={nameClasses}>{siteName}</span>
+  </a>
+) : (
+  <span class={containerClasses}>
+    {hasLogos ? (
+      <>
+        {logoLight && (
+          <img
+            src={logoLight}
+            alt={siteName}
+            class={`${logoClasses} block dark:hidden`}
+          />
+        )}
+        {logoDark && (
+          <img
+            src={logoDark}
+            alt={siteName}
+            class={`${logoClasses} hidden dark:block`}
+          />
+        )}
+      </>
+    ) : (
+      <span class={`${logoClasses} flex items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold`}>
+        {siteName?.charAt(0) || "S"}
+      </span>
+    )}
+    <span class={nameClasses}>{siteName}</span>
+  </span>
+)}
