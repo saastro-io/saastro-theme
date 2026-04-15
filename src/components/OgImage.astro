@@ -1,0 +1,60 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string;
+  brandName?: string;
+}
+
+const { title, subtitle, brandName = 'Saastro' } = Astro.props;
+---
+
+<svg
+  width="1200"
+  height="630"
+  viewBox="0 0 1200 630"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b" />
+      <stop offset="50%" style="stop-color:#312e81" />
+      <stop offset="100%" style="stop-color:#4f46e5" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <text
+    x="80"
+    y="280"
+    fill="white"
+    font-family="system-ui, sans-serif"
+    font-size="56"
+    font-weight="bold"
+  >
+    {title.length > 40 ? `${title.slice(0, 40)}...` : title}
+  </text>
+
+  {subtitle && (
+    <text
+      x="80"
+      y="350"
+      fill="rgba(255,255,255,0.8)"
+      font-family="system-ui, sans-serif"
+      font-size="28"
+    >
+      {subtitle.length > 80 ? `${subtitle.slice(0, 80)}...` : subtitle}
+    </text>
+  )}
+
+  <text
+    x="80"
+    y="560"
+    fill="rgba(255,255,255,0.6)"
+    font-family="system-ui, sans-serif"
+    font-size="24"
+    font-weight="600"
+  >
+    {brandName}
+  </text>
+</svg>

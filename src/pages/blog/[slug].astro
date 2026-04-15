@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { i18nConfig } from '../../i18n/config';
+import { calculateReadingTime } from '../../lib/reading-time';
 
 const { slug } = Astro.params;
 const lp = i18nConfig.enabled ? Astro.locals.localePath : (p: string) => p;
@@ -18,6 +19,7 @@ if (!post) {
 }
 
 const { Content, headings } = await render(post);
+const readingTime = post.data.readingTime ?? calculateReadingTime(post.body ?? '');
 
 const toc = headings
   .filter((h) => h.depth === 2)
@@ -81,9 +83,7 @@ export async function getStaticPaths() {
             {post.data.tags?.map((tag) => (
               <Badge variant="outline">{tag}</Badge>
             ))}
-            {post.data.readingTime && (
-              <span class="text-xs text-muted-foreground">{post.data.readingTime} min read</span>
-            )}
+            <span class="text-xs text-muted-foreground">{readingTime} min read</span>
           </div>
           <h1 class="text-3xl font-bold tracking-tight sm:text-4xl mb-3">
             {post.data.title}

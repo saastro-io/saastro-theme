@@ -15,6 +15,9 @@ import AnalyticsNoscript from '../components/AnalyticsNoscript.astro';
 import { ClientRouter } from 'astro:transitions';
 import { i18nConfig } from '../i18n/config';
 import { getHreflangEntries } from '../i18n/utils';
+import { getSettings } from '../lib/settings';
+
+const settings = getSettings();
 
 export interface Props {
   title: string;
@@ -35,7 +38,7 @@ const localsLang = i18nConfig.enabled ? Astro.locals.lang : undefined;
 
 const {
   title,
-  description = 'A Saastro theme',
+  description = settings.metadata.description ?? 'A Saastro theme',
   image = '/og-image.png',
   canonicalUrl,
   lang = localsLang ?? 'en',
@@ -43,6 +46,14 @@ const {
   googleSiteVerificationId,
   analytics = {},
 } = Astro.props;
+
+const resolvedGoogleSiteVerificationId =
+  googleSiteVerificationId ?? settings.site.googleSiteVerificationId;
+const resolvedAnalytics = {
+  googleAnalyticsId: analytics.googleAnalyticsId ?? settings.analytics.googleAnalytics.id,
+  googleTagManagerId: analytics.googleTagManagerId ?? settings.analytics.googleTagManager.id,
+};
+const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
 const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`;
@@ -79,14 +90,18 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
       <link rel="alternate" hreflang="x-default" href={`${siteUrl}${Astro.url.pathname}`} />
     )}
 
+    <link rel="preconnect" href="/" crossorigin />
+    <meta name="theme-color" content={themeColor} />
+    <link rel="manifest" href="/manifest.json" />
+
     <Favicons />
-    {googleSiteVerificationId && (
-      <meta name="google-site-verification" content={googleSiteVerificationId} />
+    {resolvedGoogleSiteVerificationId && (
+      <meta name="google-site-verification" content={resolvedGoogleSiteVerificationId} />
     )}
     <ApplyColorMode />
     <Analytics
-      googleAnalyticsId={analytics.googleAnalyticsId}
-      googleTagManagerId={analytics.googleTagManagerId}
+      googleAnalyticsId={resolvedAnalytics.googleAnalyticsId}
+      googleTagManagerId={resolvedAnalytics.googleTagManagerId}
     />
     <ClientRouter fallback="swap" />
 
@@ -95,7 +110,7 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
 
   <body>
     <a href="#main-content" class="skip-to-content">Skip to content</a>
-    <AnalyticsNoscript googleTagManagerId={analytics.googleTagManagerId} />
+    <AnalyticsNoscript googleTagManagerId={resolvedAnalytics.googleTagManagerId} />
     <slot />
   </body>
 </html>

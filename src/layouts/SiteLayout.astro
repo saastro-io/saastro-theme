@@ -20,8 +20,11 @@ import { CookieBanner } from '../widgets/CookieConsent/CookieBanner';
 import { ContactSheetProvider } from '../widgets/ContactSheet';
 import { i18nConfig } from '../i18n/config';
 import { getLocaleLinks } from '../i18n/utils';
+import { getSettings } from '../lib/settings';
 import type { Props as BaseProps } from './BaseLayout.astro';
 import type { AnnouncementProps } from '../widgets/Announcement/Announcement';
+
+const settings = getSettings();
 
 export interface Props extends BaseProps {
   showAnnouncement?: boolean;
@@ -35,6 +38,17 @@ const {
   cookiesPolicyHref = '/legal/cookies',
   ...baseProps
 } = Astro.props;
+
+// Merge settings-based analytics as defaults; props override via BaseLayout
+const basePropsWithDefaults = {
+  analytics: {
+    googleAnalyticsId: settings.analytics.googleAnalytics.id,
+    googleTagManagerId: settings.analytics.googleTagManager.id,
+  },
+  ...baseProps,
+};
+
+const footerSiteName = settings.site.name ?? 'Saastro';
 
 // i18n: read from middleware locals when enabled
 const i18nEnabled = i18nConfig.enabled;
@@ -82,7 +96,7 @@ const footerLinks = [
 ];
 ---
 
-<BaseLayout {...baseProps}>
+<BaseLayout {...basePropsWithDefaults}>
   <slot name="head" slot="head" />
 
   {showAnnouncement && (
@@ -100,7 +114,7 @@ const footerLinks = [
   </main>
 
   <slot name="footer">
-    <Footer links={footerLinks} />
+    <Footer links={footerLinks} siteName={footerSiteName} />
   </slot>
 
   <ContactSheetProvider client:only="react" />
