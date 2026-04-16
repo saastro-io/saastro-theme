@@ -32,7 +32,7 @@
     "tailwind-variants": "^3.1.1",
     "yaml": "^2.8.3",
     "zustand": "^5.0.12",
-    "@saastro/cms": "^0.2.0",
+    "@saastro/cms": "^0.2.1",
     "@saastro/editor": "^0.1.0"
   },
   "devDependencies": {
