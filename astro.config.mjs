@@ -9,11 +9,10 @@ import saastrocms from '@saastro/cms';
 import cmsConfig from './saastrocms.config.ts';
 
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://saastro-theme.pages.dev/',
   output: 'server',
   adapter: cloudflare({
-    imageService: 'compile',
-    platformProxy: { enabled: false },
+    imageService: 'passthrough',
   }),
 
   integrations: [react(), sitemap(), icon(), saastrocms(cmsConfig)],

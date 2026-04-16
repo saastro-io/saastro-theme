@@ -1,0 +1,15 @@
+{
+  "name": "saastro-theme",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "observability": { "enabled": true },
+
+  // KV namespaces — también configurar en CF Pages dashboard
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "0cc779887b184a408d613734444af9cb",
+      "preview_id": "83150128e609418590675b17ea34b75e"
+    }
+  ]
+}
