@@ -15,6 +15,15 @@ export default defineConfig({
     imageService: 'passthrough',
   }),
 
+  // Disable Astro sessions — auth is handled by @saastro/cms via cookies.
+  // Without this, @astrojs/cloudflare injects a SESSION KV binding that
+  // doesn't exist in CF Pages and causes a 500 on every request.
+  session: {
+    driver: {
+      entrypoint: 'unstorage/drivers/null',
+    },
+  },
+
   integrations: [react(), sitemap(), icon(), saastrocms(cmsConfig)],
   vite: {
     plugins: [tailwindcss()],
