@@ -11,16 +11,25 @@ import cmsConfig from './saastrocms.config.ts';
 export default defineConfig({
   site: 'https://example.com',
   output: 'server',
-  adapter: cloudflare(),
-
-  build: {
-    client: './',
-    server: './_worker.js',
-  },
+  adapter: cloudflare({
+    imageService: 'compile',
+    platformProxy: { enabled: false },
+  }),
 
   integrations: [react(), sitemap(), icon(), saastrocms(cmsConfig)],
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        'use-sync-external-store/shim/index.js',
+        'use-sync-external-store/shim/with-selector.js',
+      ],
+      exclude: [
+        'virtual:saastrocms/config',
+        'virtual:saastrocms/admin-css',
+        'virtual:saastrocms/visual-editor',
+      ],
+    },
     resolve: {
       alias: {
         '@': '/src',

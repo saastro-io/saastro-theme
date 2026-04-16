@@ -8,6 +8,8 @@
 @source "../layouts/**/*.astro";
 @source "../widgets/**/*.{astro,tsx,ts}";
 @source "../pages/**/*.astro";
+@source "../../node_modules/@saastro/cms/dist/**/*.js";
+@source "../../node_modules/@saastro/ui-kit/dist/**/*.js";
 
 @custom-variant dark (&:is(.dark *));
 

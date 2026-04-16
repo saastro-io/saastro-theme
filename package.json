@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev --port 4930",
-    "build": "astro build && echo 'export { default } from \"./entry.mjs\";' > dist/_worker.js/index.js",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -19,6 +19,8 @@
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@saastro/cms": "0.2.3",
+    "@saastro/editor": "^0.1.0",
     "astro": "^6.1.6",
     "astro-icon": "^1.1.5",
     "class-variance-authority": "^0.7.1",
@@ -31,9 +33,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwind-variants": "^3.1.1",
     "yaml": "^2.8.3",
-    "zustand": "^5.0.12",
-    "@saastro/cms": "^0.2.2",
-    "@saastro/editor": "^0.1.0"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
