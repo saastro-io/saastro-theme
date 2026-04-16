@@ -1,0 +1,56 @@
+---
+interface ValueItem {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  title: string;
+  subtitle: string;
+  missionTitle: string;
+  missionDescription: string;
+  valuesTitle: string;
+  valuesItems: ValueItem[];
+  fieldPrefix?: string;
+}
+
+const {
+  title,
+  subtitle,
+  missionTitle,
+  missionDescription,
+  valuesTitle,
+  valuesItems,
+  fieldPrefix,
+} = Astro.props;
+---
+
+<section class="container mx-auto px-4 py-20 md:py-32" data-cms-section={fieldPrefix}>
+  <div class="mx-auto max-w-3xl">
+    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl mb-6">{title}</h1>
+    <p class="text-lg text-muted-foreground leading-relaxed">{subtitle}</p>
+  </div>
+</section>
+
+<section class="border-t py-20 md:py-28 bg-secondary/40">
+  <div class="container mx-auto px-4">
+    <div class="mx-auto max-w-3xl">
+      <h2 class="text-3xl font-bold tracking-tight mb-6">{missionTitle}</h2>
+      <p class="text-lg text-muted-foreground leading-relaxed">{missionDescription}</p>
+    </div>
+  </div>
+</section>
+
+<section class="py-20 md:py-28">
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold tracking-tight text-center mb-12">{valuesTitle}</h2>
+    <div class="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
+      {valuesItems.map((item) => (
+        <div class="rounded-2xl border bg-card p-8">
+          <h3 class="text-xl font-bold mb-3">{item.title}</h3>
+          <p class="text-muted-foreground">{item.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

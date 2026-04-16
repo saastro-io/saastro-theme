@@ -25,6 +25,7 @@ export interface Props {
   showContactButton?: boolean;
   contactButtonLabel?: string;
   localeLinks?: LocaleLink[];
+  fieldPrefix?: string;
 }
 
 const {
@@ -38,6 +39,7 @@ const {
   showContactButton = true,
   contactButtonLabel = 'Contact',
   localeLinks = [],
+  fieldPrefix,
 } = Astro.props;
 
 const currentPath = `/${new URL(Astro.url).pathname.replace(/^\//, '')}`;

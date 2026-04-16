@@ -106,7 +106,7 @@ const footerLinks = [
   )}
 
   <slot name="header">
-    <Header menu={navMenu} localeLinks={localeLinks} />
+    <Header menu={navMenu} localeLinks={localeLinks} fieldPrefix="nav" />
   </slot>
 
   <main id="main-content" class="flex-1">
@@ -114,7 +114,7 @@ const footerLinks = [
   </main>
 
   <slot name="footer">
-    <Footer links={footerLinks} siteName={footerSiteName} />
+    <Footer links={footerLinks} siteName={footerSiteName} fieldPrefix="footer" />
   </slot>
 
   <ContactSheetProvider client:only="react" />

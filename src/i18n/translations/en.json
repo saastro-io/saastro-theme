@@ -22,6 +22,22 @@
       { "value": "MIT", "label": "License" }
     ]
   },
+  "about": {
+    "title": "About",
+    "subtitle": "We're building the tools that make the web better for everyone.",
+    "mission": {
+      "title": "Our Mission",
+      "description": "We believe in open-source software that empowers developers to build beautiful, performant websites without compromise."
+    },
+    "values": {
+      "title": "Our Values",
+      "items": [
+        { "title": "Open Source", "description": "We build in public and share our work freely." },
+        { "title": "Developer First", "description": "Every decision starts with the developer experience." },
+        { "title": "Performance", "description": "Ship less JavaScript, load faster, rank higher." }
+      ]
+    }
+  },
   "footer": {
     "copyright": "All rights reserved.",
     "privacyLink": "Privacy Policy",

@@ -1,6 +1,6 @@
 # Saastro Theme
 
-Standalone Astro template with shadcn/ui. Zero private dependencies — works out of the box for any project.
+Standalone Astro template with shadcn/ui and optional CMS integration. Zero private dependencies — works out of the box for any project.
 
 ## Tech Stack
 
@@ -10,6 +10,7 @@ Standalone Astro template with shadcn/ui. Zero private dependencies — works ou
 - **shadcn/ui** (Nova preset, Geist font, Radix primitives)
 - **Zustand** (lightweight state for widgets)
 - **astro-icon** + Tabler + Lucide icons
+- **@saastro/cms** (optional — admin panel, visual editor, translation management)
 
 ## Quick Start
 
@@ -27,6 +28,9 @@ src/
 ├── components/
 │   ├── Header.astro              # Sticky header: logo, nav, locale selector, contact button
 │   ├── Footer.astro              # Props-driven footer with link groups, socials, copyright
+│   ├── Hero.astro                # Hero section with eyebrow, title array, stats, CTAs
+│   ├── AboutContent.astro        # About page sections (mission, values grid)
+│   ├── Products.astro            # Product showcase grid (4 cards)
 │   ├── Logo.astro                # Light/dark logo with fallback initials
 │   ├── ToggleTheme.astro         # Light/dark/system toggle (anti-FOUC)
 │   ├── DesktopMenu.tsx           # shadcn NavigationMenu with dropdowns
@@ -185,9 +189,10 @@ export const i18nConfig = {
 
 1. **Middleware** detects locale from URL prefix (`/es/about` -> `lang=es`)
 2. Loads translation JSON with deep-merge fallback to default locale
-3. Injects `lang`, `t`, `localePath` into `Astro.locals`
-4. Rewrites URL to strip prefix (`/es/about` -> `/about`)
-5. Pages access translations via `Astro.locals.t`
+3. Applies stega encoding if visual editor session is active (see [CMS Integration](#stega-encoding-and-the-visual-editor))
+4. Injects `lang`, `t`, `localePath` into `Astro.locals`
+5. Rewrites URL to strip prefix (`/es/about` -> `/about`)
+6. Pages access translations via `Astro.locals.t`
 
 **One folder of pages** — no duplication per locale. The middleware handles routing.
 
@@ -207,6 +212,101 @@ Set `enabled: false`. Pages work as plain static pages. No middleware, no transl
 Legal pages use locale subfolders: `content/legal/en/cookies.md`, `content/legal/es/cookies.md`. The dynamic page `[slug].astro` filters by the current locale from the middleware.
 
 Blog posts are single-language (flat folder). For translated blog posts, add locale subfolders following the same pattern as legal.
+
+## CMS Integration
+
+This theme includes `@saastro/cms` for content management with an admin panel, visual editor, and translation management.
+
+### What you get
+
+- **Admin panel** at `/admin` — manage blog posts, legal pages, and translations
+- **Visual editor** at `/admin/visual` — click any text on the live site to edit it
+- **Translation singletons** — auto-generated admin forms for every page's translations
+- **Media library** — upload and manage images through the admin panel
+
+### How it works
+
+The CMS is configured in `saastrocms.config.ts`:
+
+```ts
+const config = {
+  github: { owner: 'your-user', repo: 'your-site' },
+  i18n: {
+    locales: ['en', 'es'],
+    defaultLocale: 'en',
+    translationsPath: 'src/i18n/translations',
+    format: 'json',
+    singletonPages: true,
+    sharedPrefixes: ['nav', 'footer', 'cookieBanner'],
+  },
+  collections: {
+    blog: { name: 'Blog', icon: 'pen-line' },
+    legal: { name: 'Legal Pages', icon: 'scale', i18n: true },
+  },
+  visualEditor: { enabled: true },
+};
+```
+
+### Stega encoding and the visual editor
+
+The visual editor uses **stega encoding** — invisible Unicode characters embedded in translated strings — to identify which translation key each text element belongs to. This means:
+
+- **No data attributes** needed on your HTML elements
+- **No component wrappers** — translations carry their own identity
+- **Zero cost for visitors** — encoding only happens during editor sessions
+- **Works through any rendering** — React islands, SSR, hydration
+
+The middleware in `src/middleware.ts` handles this automatically:
+
+```ts
+import { encodeTranslations, shouldEncodeForRequest } from '@saastro/cms/stega';
+
+// Only encode when the visual editor is active
+const isEditorSession =
+  shouldEncodeForRequest(cookieHeader) ||
+  context.url.searchParams.has('__saastrocms_visual');
+
+const t = isEditorSession
+  ? encodeTranslations(rawTranslations, lang)
+  : rawTranslations;
+```
+
+When an editor clicks text in the visual editor, the bridge script decodes the invisible characters to find the translation key (e.g., `hero.title`), opens a property panel, and stages the edit. All changes are committed to GitHub in a single batch on save.
+
+### The `fieldPrefix` prop
+
+Components accept a `fieldPrefix` prop that tells the CMS page scanner which translation keys they use. This drives automatic singleton generation:
+
+```astro
+<!-- index.astro -->
+<Hero
+  title={hero.title}
+  subtitle={hero.subtitle}
+  fieldPrefix="hero"
+/>
+```
+
+The scanner reads all `.astro` pages, finds `fieldPrefix` props, cross-references them with the translation JSON, and generates admin forms with the correct field types (text, textarea, array, etc.).
+
+Components that appear on every page (Header, Footer) use `sharedPrefixes` in the config to avoid duplicating their fields across every page singleton.
+
+| Component | `fieldPrefix` | Singleton |
+|-----------|--------------|-----------|
+| Hero | `"hero"` | Home (page-specific) |
+| AboutContent | `"about"` | About (page-specific) |
+| Header | `"nav"` | Shared (via `sharedPrefixes`) |
+| Footer | `"footer"` | Shared (via `sharedPrefixes`) |
+
+### Without the CMS
+
+To use this theme without the CMS:
+
+1. Remove `@saastro/cms` and `@saastro/editor` from `package.json`
+2. Remove the `saastrocms()` integration from `astro.config.mjs`
+3. Remove the stega import from `src/middleware.ts`
+4. Delete `saastrocms.config.ts`
+
+The theme continues to work — translations still load from JSON, pages still render, i18n still works. You just lose the admin panel and visual editor.
 
 ## Content Collections
 

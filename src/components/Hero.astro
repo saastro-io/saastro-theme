@@ -11,6 +11,7 @@ interface Props {
   stats?: { value: string; label: string }[];
   primaryCta?: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
+  fieldPrefix?: string;
 }
 
 const {
@@ -22,6 +23,7 @@ const {
   stats,
   primaryCta,
   secondaryCta,
+  fieldPrefix,
 } = Astro.props;
 ---
 

@@ -1,6 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { i18nConfig } from './i18n/config';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
+import { encodeTranslations, shouldEncodeForRequest } from '@saastro/cms/stega';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // If i18n is disabled, pass through without locale detection
@@ -10,7 +11,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (context.locals.lang) return next();
 
   const lang = getLocaleFromUrl(context.url.pathname);
-  const t = getTranslations(lang);
+  const rawTranslations = getTranslations(lang);
+
+  // Apply stega encoding when visual editor session is active.
+  // Invisible Unicode chars encode the field path — no markup changes needed.
+  const cookieHeader = context.request.headers.get('cookie');
+  const isEditorSession =
+    shouldEncodeForRequest(cookieHeader) ||
+    context.url.searchParams.has('__saastrocms_visual');
+  const t = isEditorSession ? encodeTranslations(rawTranslations, lang) : rawTranslations;
 
   context.locals.lang = lang;
   context.locals.t = t;

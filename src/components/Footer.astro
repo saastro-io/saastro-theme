@@ -38,6 +38,8 @@ export interface Props {
   socialLinks?: FooterLink[];
   /** Home URL for logo link */
   homeUrl?: string;
+  /** CMS field prefix for page scanner */
+  fieldPrefix?: string;
 }
 
 const {
@@ -49,6 +51,7 @@ const {
   links = [],
   socialLinks = [],
   homeUrl = "/",
+  fieldPrefix,
 } = Astro.props;
 
 const currentYear = new Date().getFullYear();
