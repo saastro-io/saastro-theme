@@ -35,5 +35,24 @@ const i18n = defineMiddleware(async (context, next) => {
   return next();
 });
 
+// @saastro/cms uses Astro.locals.runtime.env which throws in @astrojs/cloudflare v13.
+// Patch the throwing getter to return null so the CMS auth falls back gracefully
+// (session = null, proceeds as unauthenticated) until the CMS is updated for v6.
+const cmsAuthCompat = defineMiddleware(async (context, next) => {
+  const runtime = context.locals.runtime as Record<string, unknown> | null | undefined;
+  if (runtime) {
+    try {
+      Object.defineProperty(runtime, 'env', {
+        configurable: true,
+        enumerable: true,
+        get: () => null,
+      });
+    } catch {
+      // already patched or non-configurable — ignore
+    }
+  }
+  return cmsAuth(context, next);
+});
+
 // CMS auth runs first (protects /admin/* and /api/cms/*), then i18n
-export const onRequest = sequence(cmsAuth, i18n);
+export const onRequest = sequence(cmsAuthCompat, i18n);

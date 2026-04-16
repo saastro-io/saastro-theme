@@ -24,9 +24,10 @@ const workerDir = resolve(root, 'dist/client/_worker.js');
 rmSync(workerDir, { recursive: true, force: true });
 mkdirSync(workerDir, { recursive: true });
 
-// Copy all worker files except wrangler.json (bindings are in CF Pages dashboard)
+// Copy only JS worker files — exclude config and dev secrets
+const EXCLUDE = new Set(['wrangler.json', '.wrangler', '.dev.vars', '.prerender']);
 for (const name of readdirSync(serverDir)) {
-  if (name === 'wrangler.json' || name === '.wrangler') continue;
+  if (EXCLUDE.has(name)) continue;
   cpSync(resolve(serverDir, name), resolve(workerDir, name), { recursive: true });
 }
 
