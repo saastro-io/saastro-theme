@@ -435,78 +435,77 @@ Pass a `menu` prop to Header (auto-set when using SiteLayout with a custom Heade
 
 ## Deploy to Cloudflare Pages
 
-This project is configured for **Cloudflare Pages with SSR** (server-rendered routes via `_worker.js`). Pages that can be static (blog posts, legal pages) are prerendered at build time. The rest (home, about, etc.) go through the middleware for i18n.
+This project uses **`@astrojs/cloudflare` v13** which outputs a Workers model (`dist/server/` + `dist/client/`). CF Pages git integration cannot deploy this — it requires **GitHub Actions** with `wrangler pages deploy`.
 
-### Setup
+### How it works
 
-1. Connect the GitHub repo (`saastro-io/saastro-theme`) to Cloudflare Pages
-2. Configure the following settings:
-
-#### Build configuration
-
-| Field | Value |
-|-------|-------|
-| Build command | `bun install && bun run build` |
-| Build output directory | `dist` |
-| Root directory | `/` |
-
-#### Environment variables
-
-| Variable | Value | Why |
-|----------|-------|-----|
-| `NODE_VERSION` | `22` | Astro 6 requires Node 18+ |
-| `BUN_VERSION` | `1.3.11` | **Must match the lockfile format.** Without this, CF Pages uses npm, ignores `bun.lock`, and resolves different dependency versions — causing `require_dist is not a function` errors in the workerd module runner |
-
-#### Runtime settings (Settings > Functions)
-
-| Field | Value |
-|-------|-------|
-| Compatibility date | `2025-04-01` (or later) |
-| Compatibility flags | `nodejs_compat` |
-
-### Known issues and gotchas
-
-#### `require_dist is not a function`
-
-**Cause**: CF Pages defaulted to npm for dependency installation. npm without a lockfile resolves different dependency versions than bun. The different dependency tree produces a broken CJS bundle for the workerd SSR runner.
-
-**Fix**: Set `BUN_VERSION` environment variable so CF Pages uses `bun install` with your `bun.lock`. This ensures the dependency tree is identical to local.
-
-#### `The name 'ASSETS' is reserved in Pages projects`
-
-**Cause**: The `@astrojs/cloudflare` adapter generates an internal `wrangler.json` with an `ASSETS` binding. If your `wrangler.toml` contains `pages_build_output_dir`, wrangler validates bindings with Pages-specific rules and rejects `ASSETS`.
-
-**Fix**: Do **not** commit a `wrangler.toml` to the repo. The adapter generates its own config at build time. Set compatibility flags via the CF Pages dashboard instead. The `.gitignore` already excludes `wrangler.toml`.
-
-#### `module is not defined` in dev mode
-
-**Cause**: The Cloudflare adapter's workerd runner conflicts with Vite's dev server.
-
-**Fix**: Already handled — `astro.config.mjs` only loads the Cloudflare adapter in production builds. In dev, Astro uses its default Node server.
-
-#### CF Pages ignores `wrangler.toml` without `pages_build_output_dir`
-
-CF Pages logs: `A Wrangler configuration file was found but it does not appear to be valid`. This is expected — the adapter's internal `wrangler.json` in `dist/_worker.js/` is what CF Pages actually uses for deployment. Your repo does not need a `wrangler.toml`.
-
-#### bun lockfile version mismatch
-
-If you see `Unknown lockfile version` in the CF Pages build log, your `BUN_VERSION` is too old. `bun.lock` (text format) was introduced in bun 1.2+. Versions below 1.2 use `bun.lockb` (binary). Set `BUN_VERSION` to match your local bun version (`bun --version`).
-
-### How the build works
+Every push to `main` triggers `.github/workflows/deploy.yml`:
 
 ```
-bun install          → installs deps using bun.lock (exact versions)
-astro build          → compiles Astro, generates dist/ with:
-                        - Static HTML for prerendered pages (/blog/*, /legal/*)
-                        - _worker.js/ for SSR routes (middleware, dynamic pages)
-echo '...' > index.js → creates _worker.js/index.js entry point for CF Pages
+git push → GitHub Actions
+  → bun install
+  → bun run build         (generates dist/server/ + dist/client/)
+  → wrangler pages deploy dist/client   (deploys worker + assets to CF Pages)
 ```
 
-CF Pages detects `_worker.js/` in the output and deploys it as a Pages Function. Static files are served directly from the CDN. SSR routes go through the worker.
+The adapter generates `dist/server/wrangler.json` at build time. Wrangler reads it automatically when deploying `dist/client`.
+
+### First-time setup
+
+#### 1. Create a Cloudflare API token
+
+Cloudflare Dashboard → My Profile → API Tokens → Create Token → **"Edit Cloudflare Workers"** template:
+
+- Account Resources: select your account
+- Zone Resources: All zones
+
+Copy the token.
+
+#### 2. Get your Cloudflare Account ID
+
+Cloudflare Dashboard → any page → right sidebar → **Account ID**.
+
+#### 3. Add secrets to GitHub
+
+GitHub → repo → Settings → Secrets and variables → Actions → New repository secret:
+
+| Secret | Value |
+|--------|-------|
+| `CLOUDFLARE_API_TOKEN` | Token from step 1 |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID from step 2 |
+
+#### 4. Pause CF Pages git integration
+
+CF Pages → `saastro-theme` → Settings → Builds & deployments → **Pause deployments**.
+
+This prevents CF Pages from trying to build via git integration (it would fail without the worker).
+
+#### 5. Configure KV bindings in CF Pages
+
+CF Pages → `saastro-theme` → Settings → Functions → KV namespace bindings:
+
+| Variable name | KV namespace |
+|---------------|-------------|
+| `KV` | your KV namespace |
+
+### Why not CF Pages git integration?
+
+`@astrojs/cloudflare` v13 generates a Workers-model output (`main` + `assets` binding). CF Pages git integration only uploads static assets — it has no way to deploy the worker. Without the worker, all HTML routes return 404.
+
+See [withastro/astro#15802](https://github.com/withastro/astro/issues/15802) for a related known issue (SESSION KV binding injected even when sessions are unused — fixed in v13.1.10 by setting `session.driver` to null in `astro.config.mjs`).
+
+### Manual deploy (emergency)
+
+```bash
+bun run build
+npx wrangler pages deploy dist/client --project-name saastro-theme --branch main
+```
+
+Requires `wrangler login` first.
 
 ### Deploy to other hosts
 
-For non-Cloudflare hosts, swap the adapter in `astro.config.mjs`:
+Swap the adapter in `astro.config.mjs`:
 
 ```bash
 npx astro add vercel    # Vercel
