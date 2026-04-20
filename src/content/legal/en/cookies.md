@@ -1,7 +1,8 @@
 ---
 title: Cookie Policy
 description: How we use cookies on this site.
-lastUpdated: 2026-04-15
+lastUpdated: '2026-04-15T00:00:00.000Z'
+draft: true
 ---
 
 ## What are cookies?
@@ -12,7 +13,8 @@ Cookies are small text files stored on your device when you visit a website. The
 
 These are required for the site to function correctly. They cannot be disabled.
 
-- **cookie_consent** — stores your cookie preferences (1 year)
+-   **cookie\\\_consent** — stores your cookie preferences (1 year)
+    
 
 ## Analytics cookies
 
