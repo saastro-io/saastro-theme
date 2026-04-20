@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev --port 4930",
-    "build": "astro build && node scripts/cf-pages-bundle.mjs",
+    "build": "astro build",
+    "deploy": "bun run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -19,7 +20,7 @@
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@saastro/cms": "0.2.3",
+    "@saastro/cms": "link:@saastro/cms",
     "@saastro/editor": "^0.1.0",
     "astro": "^6.1.6",
     "astro-icon": "^1.1.5",

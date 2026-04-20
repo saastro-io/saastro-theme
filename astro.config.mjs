@@ -45,6 +45,7 @@ export default defineConfig({
         'debug': '/src/lib/debug-shim.ts',
       },
       dedupe: ['react', 'react-dom'],
+      preserveSymlinks: true,
     },
   },
 });

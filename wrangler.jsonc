@@ -1,10 +1,19 @@
 {
   "name": "saastro-theme",
+  "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2024-09-23",
-  "compatibility_flags": ["nodejs_compat_v2"],
-  "observability": { "enabled": true },
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 
-  // KV namespaces — también configurar en CF Pages dashboard
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  // KV namespace for @saastro/cms content storage
   "kv_namespaces": [
     {
       "binding": "KV",

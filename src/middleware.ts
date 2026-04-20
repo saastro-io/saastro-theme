@@ -1,5 +1,5 @@
-import { sequence } from 'astro:middleware';
-import { defineMiddleware } from 'astro:middleware';
+import { sequence, defineMiddleware } from 'astro:middleware';
+import { env } from 'cloudflare:workers';
 import { onRequest as cmsAuth } from '@saastro/cms/middleware';
 import { i18nConfig } from './i18n/config';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
@@ -45,7 +45,7 @@ const cmsAuthCompat = defineMiddleware(async (context, next) => {
       Object.defineProperty(runtime, 'env', {
         configurable: true,
         enumerable: true,
-        get: () => null,
+        get: () => env,
       });
     } catch {
       // already patched or non-configurable — ignore
