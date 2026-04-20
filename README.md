@@ -299,14 +299,94 @@ Components that appear on every page (Header, Footer) use `sharedPrefixes` in th
 
 ### Without the CMS
 
-To use this theme without the CMS:
+To remove the CMS and run the theme as a fully static site:
 
-1. Remove `@saastro/cms` and `@saastro/editor` from `package.json`
-2. Remove the `saastrocms()` integration from `astro.config.mjs`
-3. Remove the stega import from `src/middleware.ts`
-4. Delete `saastrocms.config.ts`
+#### 1. Remove CMS dependencies
 
-The theme continues to work — translations still load from JSON, pages still render, i18n still works. You just lose the admin panel and visual editor.
+```bash
+bun remove @saastro/cms @saastro/editor @astrojs/cloudflare
+```
+
+#### 2. Update `astro.config.mjs`
+
+Remove the cloudflare adapter, session config, and CMS integration:
+
+```js
+// @ts-check
+import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
+import tailwindcss from '@tailwindcss/vite';
+import icon from 'astro-icon';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  site: 'https://your-site.com/',
+  output: 'static',  // back to static
+  integrations: [react(), sitemap(), icon()],
+  vite: {
+    plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        'use-sync-external-store/shim/index.js',
+        'use-sync-external-store/shim/with-selector.js',
+      ],
+    },
+    resolve: {
+      alias: { '@': '/src' },
+      dedupe: ['react', 'react-dom'],
+    },
+  },
+});
+```
+
+#### 3. Simplify `src/middleware.ts`
+
+Remove the CMS auth and stega encoding — keep only i18n:
+
+```ts
+import { defineMiddleware } from 'astro:middleware';
+import { i18nConfig } from './i18n/config';
+import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (!i18nConfig.enabled) return next();
+  if (context.locals.lang) return next();
+
+  const lang = getLocaleFromUrl(context.url.pathname);
+  context.locals.lang = lang;
+  context.locals.t = getTranslations(lang);
+  context.locals.localePath = (path: string) => localePath(lang, path);
+
+  if (lang !== i18nConfig.defaultLocale) {
+    const stripped = context.url.pathname.replace(`/${lang}`, '') || '/';
+    return context.rewrite(stripped);
+  }
+
+  return next();
+});
+```
+
+#### 4. Delete CMS-specific files
+
+```bash
+rm saastrocms.config.ts
+rm wrangler.jsonc
+rm -rf .github/workflows/deploy.yml   # if using CF Pages git integration instead
+```
+
+#### 5. Update `package.json` scripts
+
+```json
+{
+  "scripts": {
+    "dev": "astro dev --port 4930",
+    "build": "astro build",
+    "preview": "astro preview"
+  }
+}
+```
+
+That's it. Translations still load from JSON, i18n still works, all pages render normally. You can deploy the `dist/` output to any static host (Cloudflare Pages git integration, Netlify, Vercel, GitHub Pages).
 
 ## Content Collections
 
