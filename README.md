@@ -574,6 +574,20 @@ CF Pages → `saastro-theme` → Settings → Functions → KV namespace binding
 
 See [withastro/astro#15802](https://github.com/withastro/astro/issues/15802) for a related known issue (SESSION KV binding injected even when sessions are unused — fixed in v13.1.10 by setting `session.driver` to null in `astro.config.mjs`).
 
+### Can I skip GitHub Actions and deploy straight from GitHub?
+
+Not with the CMS enabled. Here's why:
+
+| Deployment option | Works without CMS (static) | Works with CMS (SSR/Workers) |
+|---|---|---|
+| CF Pages git integration | ✅ Yes | ❌ No |
+| GitHub Actions + Wrangler | ✅ Yes | ✅ Yes |
+| CF Workers Builds (beta) | ✅ Yes | ⚠️ Possible but experimental |
+
+The CMS requires SSR (`output: 'server'`), which means `@astrojs/cloudflare` outputs a Workers model. CF Pages git integration only handles static assets — it cannot deploy the worker, so all HTML routes return 404.
+
+**GitHub Actions is the supported path when the CMS is active.** If you remove the CMS and go static (see [Without the CMS](#without-the-cms)), you can use CF Pages git integration directly with no Actions required.
+
 ### Manual deploy (emergency)
 
 ```bash
