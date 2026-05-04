@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev --port 4930",
     "build": "astro build",
-    "deploy": "bun run build && wrangler deploy --config dist/server/wrangler.json",
+    "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",
     "astro": "astro"
   },
