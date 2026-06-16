@@ -1,0 +1,51 @@
+---
+import { i18nConfig, locales } from '../../i18n/config';
+import type { Locale } from '../../i18n/config';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import Hero from '../../components/Hero.astro';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return locales
+    .filter((l) => l !== i18nConfig.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params as { locale: Locale };
+const t = Astro.locals.t;
+const lp = Astro.locals.localePath;
+
+const hero = (t as any)?.hero ?? {
+  eyebrow: 'Open Source',
+  title: ['Build faster', 'with Saastro'],
+  subtitle: 'A complete toolkit for web developers. UI components, themes, and CMS — all designed for Astro.',
+  primaryCta: 'Get Started',
+  secondaryCta: 'View on GitHub',
+  stats: [
+    { value: '10+', label: 'Components' },
+    { value: '100%', label: 'TypeScript' },
+    { value: '0kb', label: 'Default JS' },
+    { value: 'MIT', label: 'License' },
+  ],
+};
+
+const meta = t?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
+---
+
+<SiteLayout
+  title={meta.title}
+  description={meta.description}
+  showAnnouncement
+  announcement={{ text: 'Saastro Theme is now available', badge: 'NEW', href: '#' }}
+>
+  <Hero
+    eyebrow={hero.eyebrow}
+    title={hero.title}
+    subtitle={hero.subtitle}
+    primaryCta={{ label: hero.primaryCta, href: lp('/blog') }}
+    secondaryCta={{ label: hero.secondaryCta, href: 'https://github.com/saastro-io/saastro-hub' }}
+    stats={hero.stats}
+    fieldPrefix="hero"
+  />
+</SiteLayout>

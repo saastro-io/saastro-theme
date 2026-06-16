@@ -26,12 +26,6 @@ const i18n = defineMiddleware(async (context, next) => {
   context.locals.t = t;
   context.locals.localePath = (path: string) => localePath(lang, path);
 
-  // For non-default locales, rewrite the URL to strip the locale prefix
-  if (lang !== i18nConfig.defaultLocale) {
-    const stripped = context.url.pathname.replace(`/${lang}`, '') || '/';
-    return context.rewrite(stripped);
-  }
-
   return next();
 });
 

@@ -56,7 +56,11 @@ const lang = i18nEnabled ? Astro.locals.lang : i18nConfig.defaultLocale;
 const t = i18nEnabled ? Astro.locals.t : undefined;
 const lp = i18nEnabled ? Astro.locals.localePath : (p: string) => p;
 const pagePath = Astro.url.pathname;
-const localeLinks = i18nEnabled ? getLocaleLinks(pagePath, lang) : [];
+const normalizedPath =
+  i18nEnabled && lang !== i18nConfig.defaultLocale
+    ? pagePath.replace(`/${lang}`, '') || '/'
+    : pagePath;
+const localeLinks = i18nEnabled ? getLocaleLinks(normalizedPath, lang) : [];
 
 // Cookie banner translations: use i18n JSON if available, else English defaults
 const cookieT = t?.cookieBanner ?? {
