@@ -3,9 +3,11 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
     "dev": "astro dev --port 4930",
     "build": "astro build",
+    "typecheck": "astro check",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",
     "astro": "astro"
