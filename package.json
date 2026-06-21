@@ -21,8 +21,6 @@
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@saastro/cms": "^0.2.3",
-    "@saastro/editor": "^0.1.0",
     "astro": "^6.1.6",
     "astro-icon": "^1.1.5",
     "class-variance-authority": "^0.7.1",
@@ -40,6 +38,8 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@saastro/studio": "^0.6.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.16",
     "@types/react": "^19.1.6",

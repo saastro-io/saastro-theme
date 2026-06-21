@@ -27,7 +27,10 @@ const {
 } = Astro.props;
 ---
 
-<section class="relative flex min-h-[85vh] flex-col justify-end overflow-hidden pb-16 pt-32 lg:pb-24">
+<section
+  class="relative flex min-h-[85vh] flex-col justify-end overflow-hidden pb-16 pt-32 lg:pb-24"
+  data-saastro={`sec:${fieldPrefix ?? 'hero'}`}
+>
   {image ? (
     <>
       <img

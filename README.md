@@ -1,24 +1,24 @@
 # Saastro Theme
 
-Standalone Astro template with shadcn/ui and optional CMS integration. Zero private dependencies — works out of the box for any project.
+Standalone Astro template with shadcn/ui, **pre-instrumented for [Saastro Studio](https://hub.saastro.io)**. Use it as the base for new client projects: create from this template, connect it in the Saastro Hub, and every section is editable from day one — no instrumentation work needed.
 
 ## Tech Stack
 
-- **Astro 6** (static + SSR-ready)
+- **Astro 6** (SSR on Cloudflare Workers)
 - **React 19** (interactive islands)
 - **Tailwind CSS 4** (oklch tokens, dark mode)
 - **shadcn/ui** (Nova preset, Geist font, Radix primitives)
 - **Zustand** (lightweight state for widgets)
 - **astro-icon** + Tabler + Lucide icons
-- **@saastro/cms** (optional — admin panel, visual editor, translation management)
+- **@saastro/studio** (build-time instrumentation — visual editing happens in the Saastro Hub, not inside the site)
 
 ## Quick Start
 
 ```bash
-bun install
-bun run dev       # http://localhost:4930
-bun run build     # Static output to dist/
-bun run preview   # Preview production build
+pnpm install
+pnpm dev          # http://localhost:4930
+pnpm build        # Cloudflare Workers output to dist/
+pnpm preview      # Preview production build
 ```
 
 ## Project Structure
@@ -54,16 +54,13 @@ src/
 │   ├── BaseLayout.astro          # HTML shell: SEO, OG, analytics, dark mode, hreflang
 │   └── SiteLayout.astro          # Extends BaseLayout + Header + Footer + widgets
 ├── pages/
-│   ├── index.astro               # Home page
-│   ├── about.astro               # About page
+│   ├── index.astro               # Home page (default locale, root)
+│   ├── about.astro               # About page (default locale, root)
+│   ├── [locale]/                 # Non-default locales (e.g. /es/*)
 │   ├── 404.astro                 # Not found page
 │   ├── 500.astro                 # Server error page
-│   ├── rss.xml.ts                # RSS feed endpoint
-│   ├── blog/
-│   │   ├── index.astro           # Blog listing (paginated, grid with badges)
-│   │   └── [slug].astro          # Blog post (prose, TOC sidebar, related posts)
-│   └── legal/
-│       └── [slug].astro          # Legal pages from content collection (TOC sidebar)
+│   ├── blog/                     # Blog listing + post
+│   └── legal/                    # Legal pages from content collection
 ├── content/
 │   ├── blog/                     # Markdown blog posts (flat, single-language)
 │   │   ├── getting-started.md
@@ -81,7 +78,7 @@ src/
 │   ├── Announcement/
 │   │   └── Announcement.tsx      # Top banner: badge, dismiss, localStorage persist
 │   ├── ContactSheet/
-│   │   ├── ContactSheet.tsx      # Slide-out contact panel (lazy-loaded)
+│   │   ├── ContactSheet.tsx      # Slide-out contact panel (lazy-loaded; form is a placeholder)
 │   │   ├── ContactSheetButton.tsx # Opens ContactSheet from anywhere
 │   │   ├── ContactSheetProvider.tsx # Mounted once in SiteLayout
 │   │   ├── store.ts              # Zustand store for open/close state
@@ -96,6 +93,8 @@ src/
 │   └── translations/
 │       ├── en.json               # English (base)
 │       └── es.json               # Spanish (falls back to English for missing keys)
+├── integrations/
+│   └── strip-studio-meta-middleware.ts  # Strips Studio meta tags from prod HTML
 ├── lib/
 │   ├── cookies.ts                # getConsent, setConsent, hasConsent (cookie-based)
 │   ├── reading-time.ts           # Auto reading time calculation from markdown
@@ -107,9 +106,12 @@ src/
 │   └── ApplyColorMode.astro      # Inline script preventing dark mode FOUC
 ├── styles/
 │   └── global.css                # Tailwind 4 + shadcn tokens + dark mode + print styles
-├── middleware.ts                  # i18n locale detection + URL rewriting
+├── middleware.ts                 # i18n locale detection (populates Astro.locals)
 ├── content.config.ts             # Astro content collections (legal, blog)
 └── env.d.ts                      # Astro.locals types (lang, t, localePath)
+
+saastrocms.config.ts              # Collections + i18n shape (read by the Hub)
+studio.config.json                # Studio: global sections (nav, footer)
 ```
 
 ## Layouts
@@ -156,11 +158,12 @@ GDPR-compliant cookie consent with granular control. Uses shadcn Button, Switch,
 
 ### Contact Sheet
 
-Lazy-loaded slide-out panel for contact forms. Uses Zustand for state management.
+Lazy-loaded slide-out panel for a contact form. Uses Zustand for state management.
 
 - `ContactSheetButton` can be placed anywhere (Header has it by default)
 - `ContactSheetProvider` mounted once in SiteLayout — no duplicates
 - Sheet only loads on first click (code-split via `React.lazy`)
+- **The form body is a placeholder** ("Form coming soon"). Drop in your form per project — e.g. `@saastro/forms`' `HubForm` — and wire submit in the Hub.
 
 ### Announcement
 
@@ -171,7 +174,7 @@ Dismissible top banner. Uses shadcn Badge and Button.
 
 ## i18n
 
-Opt-in internationalization. Disabled by default.
+Opt-in internationalization. Default locale (`en`) is served at the root; non-default locales (`es`) are prefixed (`/es/...`) via the `[locale]/` routes.
 
 ### Enable
 
@@ -185,16 +188,14 @@ export const i18nConfig = {
 };
 ```
 
+Keep the `i18n` block in `astro.config.mjs` (`routing: 'manual'`) in sync — it's the signal the Saastro Hub reads to detect locales.
+
 ### How it works
 
 1. **Middleware** detects locale from URL prefix (`/es/about` -> `lang=es`)
 2. Loads translation JSON with deep-merge fallback to default locale
-3. Applies stega encoding if visual editor session is active (see [CMS Integration](#stega-encoding-and-the-visual-editor))
-4. Injects `lang`, `t`, `localePath` into `Astro.locals`
-5. Rewrites URL to strip prefix (`/es/about` -> `/about`)
-6. Pages access translations via `Astro.locals.t`
-
-**One folder of pages** — no duplication per locale. The middleware handles routing.
+3. Injects `lang`, `t`, `localePath` into `Astro.locals`
+4. Pages access translations via `Astro.locals.t`
 
 ### Without i18n
 
@@ -202,7 +203,7 @@ Set `enabled: false`. Pages work as plain static pages. No middleware, no transl
 
 ### Adding a locale
 
-1. Add the locale to `config.ts` (locales array + label)
+1. Add the locale to `config.ts` (locales array + label) and to the `i18n` block in `astro.config.mjs`
 2. Create `translations/{locale}.json` (copy from `en.json`)
 3. Import it in `utils.ts` and add to `translationMap`
 4. Add locale subfolder to `content/legal/{locale}/` for legal pages
@@ -213,180 +214,60 @@ Legal pages use locale subfolders: `content/legal/en/cookies.md`, `content/legal
 
 Blog posts are single-language (flat folder). For translated blog posts, add locale subfolders following the same pattern as legal.
 
-## CMS Integration
+## Studio Integration
 
-This theme includes `@saastro/cms` for content management with an admin panel, visual editor, and translation management.
+This theme ships **pre-instrumented for Saastro Studio**. Unlike a traditional CMS, there is **no admin panel inside the site** — content editing happens in the **Saastro Hub**, which renders this site in a live preview and writes edits back to your repo.
 
-### What you get
+The site's only job is to be *instrumented*: the `@saastro/studio` Vite plugin plus a few `data-saastro` markers tell the Hub which sections are editable and which translation keys they map to.
 
-- **Admin panel** at `/admin` — manage blog posts, legal pages, and translations
-- **Visual editor** at `/admin/visual` — click any text on the live site to edit it
-- **Translation singletons** — auto-generated admin forms for every page's translations
-- **Media library** — upload and manage images through the admin panel
+### What's wired
 
-### How it works
+| Piece | Where | Purpose |
+|---|---|---|
+| `@saastro/studio` plugin | `astro.config.mjs` — `saastroStudio({ autoWrap: true, autoWrapPages: true })` | Build-time instrumentation; injects the Studio handshake in dev |
+| `stripStudioMeta` integration | `astro.config.mjs` + `src/integrations/strip-studio-meta-middleware.ts` | Removes Studio's dev-only `<meta>` tags from prod HTML |
+| `data-saastro="sec:<key>"` markers | section components (Hero, AboutContent, Header, Footer) | Mark each editable section + bind it to an i18n namespace |
+| `studio.config.json` | repo root | Declares global sections (`nav`, `footer`) that appear on every page |
+| `saastrocms.config.ts` | repo root | Collections + i18n shape, read by the Hub via static parsing (no runtime import) |
+| i18n JSON | `src/i18n/translations/*.json` | The editable content itself |
 
-The CMS is configured in `saastrocms.config.ts`:
+### The `fieldPrefix` → marker → i18n chain
 
-```ts
-const config = {
-  github: { owner: 'your-user', repo: 'your-site' },
-  i18n: {
-    locales: ['en', 'es'],
-    defaultLocale: 'en',
-    translationsPath: 'src/i18n/translations',
-    format: 'json',
-    singletonPages: true,
-    sharedPrefixes: ['nav', 'footer', 'cookieBanner'],
-  },
-  collections: {
-    blog: { name: 'Blog', icon: 'pen-line' },
-    legal: { name: 'Legal Pages', icon: 'scale', i18n: true },
-  },
-  visualEditor: { enabled: true },
-};
+Each section component takes a `fieldPrefix` prop and emits it as a `data-saastro` marker on its root element:
+
+```astro
+<!-- Hero.astro -->
+<section data-saastro={`sec:${fieldPrefix ?? 'hero'}`}>…</section>
 ```
 
-### Stega encoding and the visual editor
-
-The visual editor uses **stega encoding** — invisible Unicode characters embedded in translated strings — to identify which translation key each text element belongs to. This means:
-
-- **No data attributes** needed on your HTML elements
-- **No component wrappers** — translations carry their own identity
-- **Zero cost for visitors** — encoding only happens during editor sessions
-- **Works through any rendering** — React islands, SSR, hydration
-
-The middleware in `src/middleware.ts` handles this automatically:
-
-```ts
-import { encodeTranslations, shouldEncodeForRequest } from '@saastro/cms/stega';
-
-// Only encode when the visual editor is active
-const isEditorSession =
-  shouldEncodeForRequest(cookieHeader) ||
-  context.url.searchParams.has('__saastrocms_visual');
-
-const t = isEditorSession
-  ? encodeTranslations(rawTranslations, lang)
-  : rawTranslations;
-```
-
-When an editor clicks text in the visual editor, the bridge script decodes the invisible characters to find the translation key (e.g., `hero.title`), opens a property panel, and stages the edit. All changes are committed to GitHub in a single batch on save.
-
-### The `fieldPrefix` prop
-
-Components accept a `fieldPrefix` prop that tells the CMS page scanner which translation keys they use. This drives automatic singleton generation:
+The page (or layout) passes the prefix, and it must match a top-level namespace in the translation JSON:
 
 ```astro
 <!-- index.astro -->
-<Hero
-  title={hero.title}
-  subtitle={hero.subtitle}
-  fieldPrefix="hero"
-/>
+<Hero title={hero.title} subtitle={hero.subtitle} fieldPrefix="hero" />
 ```
 
-The scanner reads all `.astro` pages, finds `fieldPrefix` props, cross-references them with the translation JSON, and generates admin forms with the correct field types (text, textarea, array, etc.).
+The Hub's section scanner ("doctor") reads every `.astro`/`.tsx` file, finds the markers, cross-references them with the translation JSON, and renders an edit form for each section.
 
-Components that appear on every page (Header, Footer) use `sharedPrefixes` in the config to avoid duplicating their fields across every page singleton.
+| Component | `fieldPrefix` | i18n namespace |
+|-----------|--------------|----------------|
+| Hero | `"hero"` | `hero` |
+| AboutContent | `"about"` | `about` |
+| Header | `"nav"` | `nav` (global) |
+| Footer | `"footer"` | `footer` (global) |
 
-| Component | `fieldPrefix` | Singleton |
-|-----------|--------------|-----------|
-| Hero | `"hero"` | Home (page-specific) |
-| AboutContent | `"about"` | About (page-specific) |
-| Header | `"nav"` | Shared (via `sharedPrefixes`) |
-| Footer | `"footer"` | Shared (via `sharedPrefixes`) |
+> **Adding a new editable section:** give the component a `fieldPrefix` prop, emit `` data-saastro={`sec:${fieldPrefix ?? '<key>'}`} `` on its root tag, pass `fieldPrefix="<key>"` from the page, and add a `<key>` namespace to `src/i18n/translations/*.json`. Lowercase-tag sections that render `t.<key>` directly are auto-marked by `autoWrap`; PascalCase components like these carry the marker by hand.
 
-### Without the CMS
+## Using as a base for new projects
 
-To remove the CMS and run the theme as a fully static site:
+This repo is a **GitHub Template repository**. To start a new client site:
 
-#### 1. Remove CMS dependencies
+1. **GitHub → "Use this template" → Create a new repository.**
+2. In the **Saastro Hub**, open the workspace → **New site → "Connect existing"** and pick the new repo.
+3. Open the site's **Setup** page. Because the template already ships Studio + config + i18n + marked components, every step validates green — nothing to install or auto-mark.
+4. Set the **deploy URL** (your Cloudflare Pages project — unique per project) and start editing content from the Hub.
 
-```bash
-bun remove @saastro/cms @saastro/editor @astrojs/cloudflare
-```
-
-#### 2. Update `astro.config.mjs`
-
-Remove the cloudflare adapter, session config, and CMS integration:
-
-```js
-// @ts-check
-import react from '@astrojs/react';
-import sitemap from '@astrojs/sitemap';
-import tailwindcss from '@tailwindcss/vite';
-import icon from 'astro-icon';
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  site: 'https://your-site.com/',
-  output: 'static',  // back to static
-  integrations: [react(), sitemap(), icon()],
-  vite: {
-    plugins: [tailwindcss()],
-    optimizeDeps: {
-      include: [
-        'use-sync-external-store/shim/index.js',
-        'use-sync-external-store/shim/with-selector.js',
-      ],
-    },
-    resolve: {
-      alias: { '@': '/src' },
-      dedupe: ['react', 'react-dom'],
-    },
-  },
-});
-```
-
-#### 3. Simplify `src/middleware.ts`
-
-Remove the CMS auth and stega encoding — keep only i18n:
-
-```ts
-import { defineMiddleware } from 'astro:middleware';
-import { i18nConfig } from './i18n/config';
-import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
-
-export const onRequest = defineMiddleware(async (context, next) => {
-  if (!i18nConfig.enabled) return next();
-  if (context.locals.lang) return next();
-
-  const lang = getLocaleFromUrl(context.url.pathname);
-  context.locals.lang = lang;
-  context.locals.t = getTranslations(lang);
-  context.locals.localePath = (path: string) => localePath(lang, path);
-
-  if (lang !== i18nConfig.defaultLocale) {
-    const stripped = context.url.pathname.replace(`/${lang}`, '') || '/';
-    return context.rewrite(stripped);
-  }
-
-  return next();
-});
-```
-
-#### 4. Delete CMS-specific files
-
-```bash
-rm saastrocms.config.ts
-rm wrangler.jsonc
-rm -rf .github/workflows/deploy.yml   # if using CF Pages git integration instead
-```
-
-#### 5. Update `package.json` scripts
-
-```json
-{
-  "scripts": {
-    "dev": "astro dev --port 4930",
-    "build": "astro build",
-    "preview": "astro preview"
-  }
-}
-```
-
-That's it. Translations still load from JSON, i18n still works, all pages render normally. You can deploy the `dist/` output to any static host (Cloudflare Pages git integration, Netlify, Vercel, GitHub Pages).
+What's left per project is only what's inherently per-project: the repo, the deploy target, and the real content/branding. The instrumentation travels with the template.
 
 ## Content Collections
 
@@ -465,7 +346,7 @@ Pass IDs via SiteLayout or BaseLayout:
 ## Adding shadcn Components
 
 ```bash
-npx shadcn@latest add card dialog dropdown-menu table
+pnpm dlx shadcn@latest add card dialog dropdown-menu table
 ```
 
 Components install to `src/components/ui/`. Import with the `@/` alias:
@@ -507,15 +388,15 @@ Pass a `menu` prop to Header (auto-set when using SiteLayout with a custom Heade
 
 | Command | Action |
 |---------|--------|
-| `bun install` | Install dependencies |
-| `bun run dev` | Dev server at localhost:4930 |
-| `bun run build` | Build to `dist/` |
-| `bun run preview` | Preview production build |
-| `npx shadcn@latest add [component]` | Add shadcn components |
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Dev server at localhost:4930 |
+| `pnpm build` | Build to `dist/` |
+| `pnpm preview` | Preview production build |
+| `pnpm dlx shadcn@latest add [component]` | Add shadcn components |
 
-## Deploy to Cloudflare Pages
+## Deploy to Cloudflare
 
-This project uses **`@astrojs/cloudflare` v13** which outputs a Workers model (`dist/server/` + `dist/client/`). CF Pages git integration cannot deploy this — it requires **GitHub Actions** with `wrangler pages deploy`.
+This project uses **`@astrojs/cloudflare` v13**, which outputs a Workers model (`dist/server/` + `dist/client/`). Studio runs on SSR (`output: 'server'`), so deploy via **GitHub Actions + Wrangler** — CF Pages git integration alone can't deploy the worker.
 
 ### How it works
 
@@ -523,8 +404,8 @@ Every push to `main` triggers `.github/workflows/deploy.yml`:
 
 ```
 git push → GitHub Actions
-  → bun install
-  → bun run build         (generates dist/server/ + dist/client/)
+  → pnpm install
+  → pnpm build            (generates dist/server/ + dist/client/)
   → wrangler pages deploy dist/client   (deploys worker + assets to CF Pages)
 ```
 
@@ -556,43 +437,15 @@ GitHub → repo → Settings → Secrets and variables → Actions → New repos
 
 #### 4. Pause CF Pages git integration
 
-CF Pages → `saastro-theme` → Settings → Builds & deployments → **Pause deployments**.
+CF Pages → `your-project` → Settings → Builds & deployments → **Pause deployments**.
 
 This prevents CF Pages from trying to build via git integration (it would fail without the worker).
-
-#### 5. Configure KV bindings in CF Pages
-
-CF Pages → `saastro-theme` → Settings → Functions → KV namespace bindings:
-
-| Variable name | KV namespace |
-|---------------|-------------|
-| `KV` | your KV namespace |
-
-### Why not CF Pages git integration?
-
-`@astrojs/cloudflare` v13 generates a Workers-model output (`main` + `assets` binding). CF Pages git integration only uploads static assets — it has no way to deploy the worker. Without the worker, all HTML routes return 404.
-
-See [withastro/astro#15802](https://github.com/withastro/astro/issues/15802) for a related known issue (SESSION KV binding injected even when sessions are unused — fixed in v13.1.10 by setting `session.driver` to null in `astro.config.mjs`).
-
-### Can I skip GitHub Actions and deploy straight from GitHub?
-
-Not with the CMS enabled. Here's why:
-
-| Deployment option | Works without CMS (static) | Works with CMS (SSR/Workers) |
-|---|---|---|
-| CF Pages git integration | ✅ Yes | ❌ No |
-| GitHub Actions + Wrangler | ✅ Yes | ✅ Yes |
-| CF Workers Builds (beta) | ✅ Yes | ⚠️ Possible but experimental |
-
-The CMS requires SSR (`output: 'server'`), which means `@astrojs/cloudflare` outputs a Workers model. CF Pages git integration only handles static assets — it cannot deploy the worker, so all HTML routes return 404.
-
-**GitHub Actions is the supported path when the CMS is active.** If you remove the CMS and go static (see [Without the CMS](#without-the-cms)), you can use CF Pages git integration directly with no Actions required.
 
 ### Manual deploy (emergency)
 
 ```bash
-bun run build
-npx wrangler pages deploy dist/client --project-name saastro-theme --branch main
+pnpm build
+pnpm dlx wrangler pages deploy dist/client --project-name your-project --branch main
 ```
 
 Requires `wrangler login` first.
@@ -602,9 +455,9 @@ Requires `wrangler login` first.
 Swap the adapter in `astro.config.mjs`:
 
 ```bash
-npx astro add vercel    # Vercel
-npx astro add netlify   # Netlify
-npx astro add node      # Any Node.js server
+pnpm dlx astro add vercel    # Vercel
+pnpm dlx astro add netlify   # Netlify
+pnpm dlx astro add node      # Any Node.js server
 ```
 
 ## License

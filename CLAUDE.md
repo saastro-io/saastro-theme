@@ -1,3 +1,42 @@
+# saastro-theme — Studio-ready base template
+
+This repo is the **canonical base template for new Saastro client sites**: a standalone Astro 6 + React 19 + Tailwind 4 + shadcn/ui marketing site, **pre-instrumented for Saastro Studio** (the editor lives in the Saastro Hub, not in this site).
+
+It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — it's a separate `saastro-io/saastro-theme` repo, consumed via GitHub *"Use this template"* → Hub *"Connect existing"*.
+
+## Model (why this exists)
+
+- New projects start from this template (GitHub *Use this template*), then connect in the Hub.
+- The template already ships everything the Hub's Setup detectors look for, so **the Setup page validates green with zero instrumentation work** (Install Studio / Generate config / Auto-mark find nothing to do). Setup's role becomes validation, not setup.
+- The Hub's `@saastro/scaffold` engine is a *separate* path (blank greenfield site from the wizard) — it is **not** this repo.
+- `enlolab/dorjoiers` is a production descendant of this theme (its `package.json` is still named `saastro-theme`) — use it as the reference for any Studio-wiring question.
+
+## Studio instrumentation (the contract)
+
+| Piece | File |
+|---|---|
+| `@saastro/studio` Vite plugin (`autoWrap` + `autoWrapPages`) | `astro.config.mjs` |
+| `stripStudioMeta` integration (strips dev meta tags in prod) | `astro.config.mjs` + `src/integrations/strip-studio-meta-middleware.ts` |
+| `data-saastro="sec:<key>"` markers on section roots | `src/components/{Hero,AboutContent,Header,Footer}.astro` |
+| Global sections (nav/footer) | `studio.config.json` |
+| Collections + i18n shape (parsed by the Hub) | `saastrocms.config.ts` (interface inlined — no `@saastro/cms` dep) |
+| Editable content | `src/i18n/translations/{en,es}.json` |
+
+**Editable = what's in i18n.** A section is editable when its component emits a `data-saastro="sec:<key>"` marker on its root tag (built from the `fieldPrefix` prop the page/layout passes) AND `<key>` is a top-level namespace in the translation JSON. Marked keys: `hero`, `about`, `nav`, `footer`. `Products.astro` is hardcoded English (not yet editable) — move its copy to a `products` i18n namespace + add a marker to make it editable.
+
+## i18n routing
+
+Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `src/pages/[locale]/*`. `src/middleware.ts` only resolves the locale into `Astro.locals` (no auth, no stega). The native `i18n` block in `astro.config.mjs` uses `routing: 'manual'` — purely a detection signal; Astro does not own routing here.
+
+## Commands / deploy
+
+- Package manager: **pnpm**. `pnpm dev` (port 4930) · `pnpm build` · `pnpm preview`.
+- SSR on Cloudflare Workers (`@astrojs/cloudflare` v13). Deploy via GitHub Actions `.github/workflows/deploy.yml` (`wrangler pages deploy dist/client`).
+
+## History
+
+Migrated from `@saastro/cms` (deprecated embedded CMS) to `@saastro/studio` on branch `chore/migrate-cms-to-studio`. The old `/admin` panel + stega visual editor were removed.
+
 <claude-mem-context>
 # Recent Activity
 
