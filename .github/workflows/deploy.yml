@@ -8,15 +8,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+      # Install pnpm before setup-node so `cache: pnpm` can find the store.
+      # Version comes from the `packageManager` field in package.json.
+      - uses: pnpm/action-setup@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
-          version: latest
+          node-version: 24
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -25,7 +26,7 @@ jobs:
         run: pnpm run build
 
       - name: Deploy to Cloudflare Workers
-        run: npx wrangler deploy --config dist/server/wrangler.json
+        run: pnpm dlx wrangler deploy --config dist/server/wrangler.json
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -1,0 +1,9 @@
+# pnpm 11 reads package-level settings from here (the `pnpm` field in
+# package.json is no longer honored). Approve the native/postinstall build
+# scripts this Astro + Cloudflare stack needs so `pnpm install` doesn't fail
+# with ERR_PNPM_IGNORED_BUILDS in CI (where ignore-scripts isn't set).
+allowBuilds:
+  esbuild: true
+  msw: true
+  sharp: true
+  workerd: true
