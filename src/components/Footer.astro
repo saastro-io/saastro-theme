@@ -60,6 +60,7 @@ const copyright = `© ${currentYear} ${siteName}. All rights reserved.`;
 
 <footer
   {...(id ? { id } : {})}
+  data-saastro={`sec:${fieldPrefix ?? 'footer'}`}
   class:list={[
     { dark: isDark },
     "border-t bg-background text-muted-foreground",
