@@ -70,6 +70,13 @@ export interface SiteSettings {
     readonly googleTagManager: {
       readonly id: string;
     };
+    readonly cloudflareWebAnalytics?: {
+      readonly token: string;
+    };
+  };
+  readonly forms: {
+    readonly siteId: string;
+    readonly contactFormSlug: string;
   };
   readonly cookieConsent: {
     readonly privacyPolicyUrl: string;

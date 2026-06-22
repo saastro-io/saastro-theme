@@ -54,6 +54,7 @@ const resolvedAnalytics = {
   googleTagManagerId: analytics.googleTagManagerId ?? settings.analytics.googleTagManager.id,
 };
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
+const cfWebAnalyticsToken = settings.analytics.cloudflareWebAnalytics?.token ?? '';
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
 const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`;
@@ -106,6 +107,47 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     <ClientRouter fallback="swap" />
 
     <slot name="head" />
+
+    {/* Cloudflare Web Analytics — recommended over GA/GTM. Loads on real
+        deployments but is BLOCKED on the Studio preview proxy + local dev
+        (where it would fire under the Hub origin and trip the Hub's CSP).
+        Only renders when a token is set. The onload shim normalizes
+        same-origin URLs to root-relative so the beacon's SPA tracker doesn't
+        emit `https:://` on ClientRouter anchor navigations. */}
+    {cfWebAnalyticsToken && (
+      <script is:inline define:vars={{ token: cfWebAnalyticsToken }}>
+        {
+          const h = location.hostname
+          const blocked =
+            h === 'localhost' ||
+            h === '127.0.0.1' ||
+            h.endsWith('.saastro.io') ||
+            h.endsWith('.saastro.test') ||
+            h.endsWith('.local')
+          if (!blocked) {
+            const s = document.createElement('script')
+            s.defer = true
+            s.src = 'https://static.cloudflareinsights.com/beacon.min.js'
+            s.setAttribute('data-cf-beacon', JSON.stringify({ token }))
+            s.onload = () => {
+              const norm = (u) => {
+                if (u == null) return u
+                try {
+                  const abs = u instanceof URL ? u : new URL(String(u), location.href)
+                  if (abs.origin === location.origin) return abs.pathname + abs.search + abs.hash
+                } catch (_) {}
+                return u
+              }
+              for (const k of ['pushState', 'replaceState']) {
+                const orig = history[k].bind(history)
+                history[k] = (state, title, url) => orig(state, title, norm(url))
+              }
+            }
+            document.head.appendChild(s)
+          }
+        }
+      </script>
+    )}
   </head>
 
   <body>

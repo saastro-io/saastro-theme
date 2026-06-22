@@ -44,10 +44,25 @@ ui:
   theme: "system" # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
 
 analytics:
+  # Empty = disabled. GA/GTM are consent-gated; set a REAL id to enable.
+  # Recommended for Saastro sites: use Cloudflare Web Analytics below instead.
   googleAnalytics:
-    id: "G-XXXXXXXXXX"
+    id: ""
   googleTagManager:
-    id: "GTM-XXXXXXX"
+    id: ""
+  cloudflareWebAnalytics:
+    # CF Web Analytics beacon token (Hub → Audiencia gives you the site TOKEN).
+    # Empty = disabled. Host-blocked in the Studio preview + local dev.
+    token: ""
+
+forms:
+  # Saastro Hub form integration. `siteId` is the Hub site slug this
+  # template is connected to (Hub → Setup shows it). Leave empty until
+  # connected — the contact form then shows a "configure me" placeholder
+  # instead of erroring. `contactFormSlug` is the form designed in Hub
+  # that the slide-out ContactSheet renders.
+  siteId: ""
+  contactFormSlug: "contact"
 
 cookieConsent:
   privacyPolicyUrl: "/privacy"

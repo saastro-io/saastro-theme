@@ -1,7 +1,7 @@
 {
   "name": "saastro-theme",
   "main": "@astrojs/cloudflare/entrypoints/server",
-  "compatibility_date": "2024-09-23",
+  "compatibility_date": "2026-04-15",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 
   "assets": {
@@ -11,14 +11,5 @@
 
   "observability": {
     "enabled": true
-  },
-
-  // KV namespace for @saastro/cms content storage
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "0cc779887b184a408d613734444af9cb",
-      "preview_id": "83150128e609418590675b17ea34b75e"
-    }
-  ]
+  }
 }
