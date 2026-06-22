@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@saastro/studio": "^0.6.0",
+    "@saastro/studio": "^0.7.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.16",
     "@types/react": "^19.1.6",
