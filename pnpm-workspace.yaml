@@ -7,3 +7,5 @@ allowBuilds:
   msw: true
   sharp: true
   workerd: true
+minimumReleaseAgeExclude:
+  - '@saastro/studio@0.7.0'

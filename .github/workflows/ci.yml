@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  studio-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Install pnpm before setup-node so `cache: pnpm` can find the store.
+      # Version comes from the `packageManager` field in package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The Studio contract gate: runs the SAME validator as the Hub Setup doctor
+      # (@saastro/studio/doctor) — missing markers, i18n EN/ES parity, hardcoded
+      # hex vs tokens, raw <form> vs HubForm, allowlist — then `astro build`.
+      # Green here ⇒ green "Connect existing" in the Hub.
+      - name: Studio check
+        run: pnpm studio:check

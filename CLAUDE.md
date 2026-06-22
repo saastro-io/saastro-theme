@@ -24,6 +24,22 @@ It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — 
 
 **Editable = what's in i18n.** A section is editable when its component emits a `data-saastro="sec:<key>"` marker on its root tag (built from the `fieldPrefix` prop the page/layout passes) AND `<key>` is a top-level namespace in the translation JSON. Marked keys: `hero`, `products`, `about`, `nav`, `footer`. Every section component now follows this contract (prop-driven + i18n + marker) — no hardcoded sections remain.
 
+## Claude Design handoff
+
+When a design from **Claude Design** arrives (a `.dc.html` / the `claude_design` MCP),
+follow **`docs/claude-design-handoff.md`**. Golden rule: **port, never paste**.
+**Nav/Footer are not regenerated** — they carry behavior (mobile menu, locale switcher,
+the "Manage cookies" reopen, contact sheet); take the new look, keep the wiring.
+
+**Naming convention:** a section's `key = fieldPrefix = top-level i18n namespace` (the
+marker is `data-saastro="sec:<key>"`). There's no canonical key list — sections are
+per-project; `pnpm studio:check` validates internal coherence (marker ↔ i18n ↔ page),
+not membership in a fixed list.
+
+**Tokens SSOT:** `src/styles/global.css` — oklch variables mapped via `@theme inline`.
+The base palette is neutral (chroma 0); a brand color means giving `--primary`/`--accent`
+real chroma or adding `--brand` in `:root` + `.dark`, never an inline hex.
+
 ## UI blocks — `ui.saastro.io` compatibility (the methodology)
 
 `ui.saastro.io` (repo `saastro-ui`) is a **shadcn-style registry** (`@saastro/ui-registry`, ~15 blocks: hero-01/02/03, features-01/02, pricing-01, cta-01, faq-01, testimonials-01, navbar-01, footer-01, blog-grid-01, newsletter-01, stats-01, logos-01). Every block is a **pure presentational React `.tsx`**: typed props, content **only** via props (never hardcoded), `cn` + `@/components/ui/*` + `asChild`. Blocks are served as JSON at `https://ui.saastro.io/r/<name>.json` and pulled with `npx shadcn add @saastro/<block>` (configure the `@saastro` registry in `components.json`; the CLI also pulls each block's `registryDependencies` primitives, filling this theme's primitive set on demand — it ships ~13 of the registry's ~43). This theme already has the matching stack — Tailwind 4 + `cn` (`@/lib/utils`) + `@/*` alias + the shadcn tokens (`--primary`, `--muted-foreground`, …) — so registry blocks drop in unchanged.

@@ -8,6 +8,7 @@
     "dev": "astro dev --port 4930",
     "build": "astro build",
     "typecheck": "astro check",
+    "studio:check": "node scripts/studio-check.mjs && astro build",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",
     "astro": "astro"
@@ -23,7 +24,7 @@
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@saastro/forms": "^0.7.0",
+    "@saastro/forms": "^0.14.0",
     "astro": "^6.3.1",
     "astro-icon": "^1.1.5",
     "class-variance-authority": "^0.7.1",
@@ -44,7 +45,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@saastro/studio": "^0.6.0",
+    "@saastro/studio": "^0.7.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.16",
     "@types/react": "^19.1.6",
