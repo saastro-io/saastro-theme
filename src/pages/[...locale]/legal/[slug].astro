@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { defaultLocale } from '../../../i18n/config';
+import { locales, defaultLocale } from '../../../i18n/config';
+import { pageOverride, pageKeyFromPath } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export const prerender = true;
@@ -17,6 +18,9 @@ export async function getStaticPaths() {
 
 const slug = Astro.params.slug as string;
 const locale = Astro.locals.lang;
+// Optional per-page SEO override from i18n (editable in the Hub Studio SEO
+// panel); falls back to the legal entry's own title/description.
+const seo = pageOverride(Astro.locals.t, pageKeyFromPath(Astro.url.pathname, locales));
 
 const allLegal = await getCollection('legal');
 const entry = allLegal.find((e) => {
@@ -40,7 +44,11 @@ const lastUpdated = new Intl.DateTimeFormat(locale, {
 }).format(entry.data.lastUpdated);
 ---
 
-<SiteLayout title={entry.data.title} description={entry.data.description}>
+<SiteLayout
+  title={seo.title ?? entry.data.title}
+  description={seo.description ?? entry.data.description}
+  image={seo.ogImage}
+>
   <div class="container mx-auto max-w-5xl px-4 py-16">
     <div class="grid lg:grid-cols-[220px_1fr] gap-12">
       {toc.length > 0 && (
