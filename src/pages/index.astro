@@ -22,13 +22,14 @@ const hero = (t as any)?.hero ?? {
 };
 
 const meta = (t as any)?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
+const announcement = (t as any)?.announcement ?? { text: 'Saastro Theme is now available', badge: 'NEW' };
 ---
 
 <SiteLayout
   title={meta.title}
   description={meta.description}
   showAnnouncement
-  announcement={{ text: 'Saastro Theme is now available', badge: 'NEW', href: '#' }}
+  announcement={{ text: announcement.text, badge: announcement.badge, href: '#' }}
 >
   <Hero
     eyebrow={hero.eyebrow}

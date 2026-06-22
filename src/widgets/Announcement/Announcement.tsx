@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,9 @@ export interface AnnouncementProps {
   buttonHref?: string;
   persistClose?: boolean;
   className?: string;
+  /** Studio section key — the marker maps fields to the `<fieldPrefix>` i18n
+      namespace (text → `<fieldPrefix>.text`, badge → `<fieldPrefix>.badge`). */
+  fieldPrefix?: string;
 }
 
 export function Announcement({
@@ -22,15 +25,17 @@ export function Announcement({
   buttonHref,
   persistClose = true,
   className,
+  fieldPrefix = 'announcement',
 }: AnnouncementProps) {
-  const uid = useId();
-  const storageKey = `announcement-${uid}`;
+  // Stable key so the dismissed state actually persists across loads. (The
+  // previous `useId()` key changed every render → dismiss never stuck.)
+  const storageKey = 'announcement-dismissed';
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (persistClose && localStorage.getItem(storageKey) === 'hidden') return;
     setVisible(true);
-  }, [storageKey, persistClose]);
+  }, [persistClose]);
 
   const dismiss = () => {
     if (persistClose) localStorage.setItem(storageKey, 'hidden');
@@ -42,6 +47,7 @@ export function Announcement({
   return (
     <div
       role="banner"
+      data-saastro={`sec:${fieldPrefix}`}
       className={cn(
         'flex items-center justify-center gap-3 border-b bg-muted/60 px-4 py-2 text-sm',
         className,
@@ -50,12 +56,12 @@ export function Announcement({
       <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 
       {badge && (
-        <Badge variant="secondary" className="shrink-0 text-xs">
+        <Badge variant="secondary" className="shrink-0 text-xs" data-saastro-field="badge">
           {badge}
         </Badge>
       )}
 
-      <span className="text-muted-foreground truncate">
+      <span className="text-muted-foreground truncate" data-saastro-field="text">
         {href ? (
           <a href={href} className="hover:text-foreground underline underline-offset-4 transition-colors">
             {text}
