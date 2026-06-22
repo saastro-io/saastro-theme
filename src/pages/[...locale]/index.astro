@@ -1,5 +1,6 @@
 ---
 import { locales, defaultLocale } from '../../i18n/config';
+import { resolveMeta } from '../../i18n/meta';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import Hero from '../../components/Hero.astro';
 import Products from '../../components/Products.astro';
@@ -37,13 +38,14 @@ const products = (t as any)?.products ?? {
   items: [],
 };
 
-const meta = t?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
+const meta = resolveMeta(t, 'home');
 const announcement = t?.announcement ?? { text: 'Saastro Theme is now available', badge: 'NEW' };
 ---
 
 <SiteLayout
-  title={meta.title}
+  title={meta.title ?? 'Saastro Theme'}
   description={meta.description}
+  image={meta.ogImage}
   showAnnouncement
   announcement={{ text: announcement.text, badge: announcement.badge, href: '#' }}
 >

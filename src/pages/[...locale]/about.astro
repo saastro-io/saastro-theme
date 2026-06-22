@@ -1,5 +1,6 @@
 ---
 import { locales, defaultLocale } from '../../i18n/config';
+import { resolveMeta } from '../../i18n/meta';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import AboutContent from '../../components/AboutContent.astro';
 
@@ -31,10 +32,14 @@ const about = (t as any)?.about ?? {
   },
 };
 
-const meta = t?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
+const meta = resolveMeta(t, 'about');
 ---
 
-<SiteLayout title={`${about.title} | ${meta.title}`} description={about.subtitle}>
+<SiteLayout
+  title={meta.title ?? about.title}
+  description={meta.description ?? about.subtitle}
+  image={meta.ogImage}
+>
   <AboutContent
     title={about.title}
     subtitle={about.subtitle}

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { locales, defaultLocale } from '../../../i18n/config';
+import { resolveMeta } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ export function getStaticPaths() {
 
 const locale = Astro.locals.lang;
 const lp = Astro.locals.localePath;
+const seo = resolveMeta(Astro.locals.t, 'blog');
 
 const allPosts = await getCollection('blog');
 const posts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
@@ -26,7 +28,11 @@ const page = Math.min(currentPage, totalPages);
 const paginatedPosts = posts.slice((page - 1) * postsPerPage, page * postsPerPage);
 ---
 
-<SiteLayout title="Blog" description="Latest articles and guides.">
+<SiteLayout
+  title={seo.title ?? 'Blog'}
+  description={seo.description ?? 'Latest articles and guides.'}
+  image={seo.ogImage}
+>
   <div class="container mx-auto max-w-5xl px-4 py-16">
     <div class="mb-12">
       <h1 class="text-4xl font-bold tracking-tight">Blog</h1>

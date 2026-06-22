@@ -57,7 +57,7 @@ const config: SaastroCMSConfig = {
     translationsPath: 'src/i18n/translations',
     format: 'json',
     singletonPages: true,
-    sharedPrefixes: ['nav', 'footer', 'cookieBanner'],
+    sharedPrefixes: ['meta', 'nav', 'footer', 'cookieBanner'],
   },
 
   collections: {
