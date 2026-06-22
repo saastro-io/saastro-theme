@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import { locales, defaultLocale } from '../../../i18n/config';
+import { pageOverride, pageKeyFromPath } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,9 @@ export async function getStaticPaths() {
 const slug = Astro.params.slug as string;
 const locale = Astro.locals.lang;
 const lp = Astro.locals.localePath;
+// Optional per-page SEO override from i18n (Hub Studio SEO panel); falls back
+// to the post's own title/description/cover image.
+const seo = pageOverride(Astro.locals.t, pageKeyFromPath(Astro.url.pathname, locales));
 
 const allPosts = await getCollection('blog');
 const post = allPosts.find((p) => p.id === slug);
@@ -49,8 +53,9 @@ const related = allPosts
 ---
 
 <SiteLayout
-  title={post.data.title}
-  description={post.data.description}
+  title={seo.title ?? post.data.title}
+  description={seo.description ?? post.data.description}
+  image={seo.ogImage ?? post.data.image}
   ogType="article"
 >
   <div class="container mx-auto max-w-5xl px-4 py-16">
