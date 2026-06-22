@@ -4,9 +4,11 @@
     "description": "Un tema moderno para Astro con shadcn/ui"
   },
   "nav": {
-    "home": "Inicio",
-    "about": "Acerca de",
-    "blog": "Blog",
+    "menu": [
+      { "key": "home", "title": "Inicio" },
+      { "key": "about", "title": "Acerca de" },
+      { "key": "blog", "title": "Blog" }
+    ],
     "contact": "Contacto"
   },
   "hero": {
@@ -40,10 +42,19 @@
   },
   "footer": {
     "copyright": "Todos los derechos reservados.",
-    "privacyLink": "Política de privacidad",
-    "termsLink": "Términos de servicio",
-    "cookiesLink": "Política de cookies",
+    "legalLabel": "Legal",
+    "legal": [
+      { "key": "privacy", "title": "Política de privacidad" },
+      { "key": "terms", "title": "Términos de servicio" },
+      { "key": "cookies", "title": "Política de cookies" }
+    ],
     "manageCookies": "Gestionar cookies"
+  },
+  "contactForm": {
+    "sheetTitle": "Contacto",
+    "sheetDescription": "Rellena el formulario y te responderemos lo antes posible.",
+    "privacyNotice": "Usaremos tus datos por interés legítimo según nuestra ",
+    "privacyPolicyLinkText": "Política de privacidad"
   },
   "cookieBanner": {
     "title": "Usamos cookies",

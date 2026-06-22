@@ -80,22 +80,50 @@ const cookieT = t?.cookieBanner ?? {
   alwaysActive: 'Always active',
 };
 
-// Nav menu: use translations if available
-const navMenu = [
-  { title: t?.nav?.home ?? 'Home', url: lp('/') },
-  { title: t?.nav?.about ?? 'About', url: lp('/about') },
-  { title: t?.nav?.blog ?? 'Blog', url: lp('/blog') },
-];
+// Contact slide-out translations: use i18n JSON if available, else English defaults
+const contactT = t?.contactForm ?? {
+  sheetTitle: 'Contact us',
+  sheetDescription: "Fill in the form below and we'll get back to you as soon as possible.",
+  privacyNotice: "We'll use your details based on legitimate interest as set out in our ",
+  privacyPolicyLinkText: 'Privacy Policy',
+};
 
-// Footer legal links: use translations if available
+// Nav menu: editable i18n array of { key, title }; href resolved from key
+// so Studio can add/reorder/rename items without code changes. Unknown
+// keys fall back to `/<key>` (e.g. a new "services" item → /services).
+const navHrefByKey: Record<string, string> = {
+  home: '/',
+  about: '/about',
+  blog: '/blog',
+};
+const navItems = t?.nav?.menu ?? [
+  { key: 'home', title: 'Home' },
+  { key: 'about', title: 'About' },
+  { key: 'blog', title: 'Blog' },
+];
+const navMenu = navItems.map((item) => ({
+  title: item.title,
+  url: lp(navHrefByKey[item.key] ?? `/${item.key}`),
+}));
+
+// Footer legal links: same editable-array pattern, resolved to /legal/* routes.
+const legalHrefByKey: Record<string, string> = {
+  privacy: '/legal/privacy',
+  terms: '/legal/terms',
+  cookies: '/legal/cookies',
+};
+const legalItems = t?.footer?.legal ?? [
+  { key: 'privacy', title: 'Privacy Policy' },
+  { key: 'terms', title: 'Terms of Service' },
+  { key: 'cookies', title: 'Cookie Policy' },
+];
 const footerLinks = [
   {
-    title: 'Legal',
-    links: [
-      { text: t?.footer?.privacyLink ?? 'Privacy Policy', href: lp('/legal/privacy') },
-      { text: t?.footer?.termsLink ?? 'Terms of Service', href: lp('/legal/terms') },
-      { text: t?.footer?.cookiesLink ?? 'Cookie Policy', href: lp('/legal/cookies') },
-    ],
+    title: t?.footer?.legalLabel ?? 'Legal',
+    links: legalItems.map((link) => ({
+      text: link.title,
+      href: lp(legalHrefByKey[link.key] ?? `/${link.key}`),
+    })),
   },
 ];
 ---
@@ -121,7 +149,12 @@ const footerLinks = [
     <Footer links={footerLinks} siteName={footerSiteName} fieldPrefix="footer" />
   </slot>
 
-  <ContactSheetProvider client:only="react" />
+  <ContactSheetProvider
+    client:only="react"
+    locale={lang}
+    t={contactT}
+    privacyHref={lp('/legal/privacy')}
+  />
 
   <CookieBanner
     cookiesPolicyHref={lp(cookiesPolicyHref)}

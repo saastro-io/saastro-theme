@@ -14,18 +14,22 @@ export interface Translations {
     description: string;
   };
   nav: {
-    home: string;
-    about: string;
+    /** Editable nav items — `key` resolves to a route in SiteLayout. */
+    menu: { key: string; title: string }[];
     contact: string;
-    [key: string]: string;
   };
   footer: {
     copyright: string;
-    privacyLink: string;
-    termsLink: string;
-    cookiesLink: string;
+    legalLabel: string;
+    /** Editable footer legal links — `key` resolves to a route in SiteLayout. */
+    legal: { key: string; title: string }[];
     manageCookies: string;
-    [key: string]: string;
+  };
+  contactForm: {
+    sheetTitle: string;
+    sheetDescription: string;
+    privacyNotice: string;
+    privacyPolicyLinkText: string;
   };
   cookieBanner: {
     title: string;
