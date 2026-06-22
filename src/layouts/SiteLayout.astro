@@ -146,7 +146,12 @@ const footerLinks = [
   </main>
 
   <slot name="footer">
-    <Footer links={footerLinks} siteName={footerSiteName} fieldPrefix="footer" />
+    <Footer
+      links={footerLinks}
+      siteName={footerSiteName}
+      fieldPrefix="footer"
+      manageCookiesLabel={t?.footer?.manageCookies ?? 'Manage cookies'}
+    />
   </slot>
 
   <ContactSheetProvider
