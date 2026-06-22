@@ -25,6 +25,10 @@ export interface Translations {
     legal: { key: string; title: string }[];
     manageCookies: string;
   };
+  announcement: {
+    text: string;
+    badge: string;
+  };
   contactForm: {
     sheetTitle: string;
     sheetDescription: string;

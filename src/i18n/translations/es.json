@@ -50,6 +50,10 @@
     ],
     "manageCookies": "Gestionar cookies"
   },
+  "announcement": {
+    "text": "Saastro Theme ya está disponible",
+    "badge": "NUEVO"
+  },
   "contactForm": {
     "sheetTitle": "Contacto",
     "sheetDescription": "Rellena el formulario y te responderemos lo antes posible.",
