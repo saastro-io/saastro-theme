@@ -48,7 +48,10 @@ const basePropsWithDefaults = {
   ...baseProps,
 };
 
-const footerSiteName = settings.site.name ?? 'Saastro';
+const footerSiteName =
+  (i18nConfig.enabled ? Astro.locals.t?.meta?.siteName : undefined) ??
+  settings.site.name ??
+  'Saastro';
 
 // i18n: read from middleware locals when enabled
 const i18nEnabled = i18nConfig.enabled;

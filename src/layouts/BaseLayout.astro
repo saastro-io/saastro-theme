@@ -55,6 +55,12 @@ const resolvedAnalytics = {
 };
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 const cfWebAnalyticsToken = settings.analytics.cloudflareWebAnalytics?.token ?? '';
+// Brand name for og:site_name — from i18n `meta.siteName` (Hub-editable),
+// falling back to the build-time settings value.
+const siteName =
+  (i18nConfig.enabled ? Astro.locals.t?.meta?.siteName : undefined) ??
+  settings.site.name ??
+  'Saastro';
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
 const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`;
@@ -78,6 +84,7 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     <meta property="og:image" content={ogImage} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteName} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />

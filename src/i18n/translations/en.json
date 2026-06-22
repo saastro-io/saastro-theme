@@ -1,7 +1,23 @@
 {
   "meta": {
     "title": "Saastro Theme",
-    "description": "A modern Astro theme with shadcn/ui"
+    "description": "A modern Astro theme with shadcn/ui",
+    "siteName": "Saastro",
+    "ogImage": "/og-image.png",
+    "pages": {
+      "home": {
+        "title": "Saastro Theme — Astro + React + shadcn/ui",
+        "description": "A fast, modern Astro starter with React islands, shadcn/ui and i18n — fully editable in the Saastro Studio."
+      },
+      "about": {
+        "title": "About · Saastro Theme",
+        "description": "We build open-source tools that make the web better for everyone."
+      },
+      "blog": {
+        "title": "Blog · Saastro Theme",
+        "description": "Latest articles and guides from the Saastro team."
+      }
+    }
   },
   "nav": {
     "menu": [

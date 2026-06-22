@@ -12,6 +12,13 @@ export interface Translations {
   meta: {
     title: string;
     description: string;
+    /** Site-wide brand name (og:site_name + footer). Editable from the Hub. */
+    siteName?: string;
+    /** Default OG/social image (absolute URL or site-root path). */
+    ogImage?: string;
+    /** Per-page SEO overrides, keyed by page (`home`, `about`, `blog`).
+     *  Each field falls back to the global `meta.*` default. */
+    pages?: Record<string, { title?: string; description?: string; ogImage?: string }>;
   };
   nav: {
     /** Editable nav items — `key` resolves to a route in SiteLayout. */
