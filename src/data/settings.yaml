@@ -1,47 +1,21 @@
+# Theme-only site config, read at build time by src/lib/settings.ts.
+# NOTE: the Saastro Hub does NOT read or edit this file — it's the site's own
+# build config (SEO, analytics, forms wiring). Editable content lives in i18n
+# (src/i18n/translations/*), structural config in saastrocms.config.ts.
+
 site:
   name: "TuMarca"
-  site: "https://tumarca.com"
-  base: "/"
-  trailingSlash: "never"
+  # Google Search Console verification (leave empty to omit the meta tag).
   googleSiteVerificationId:
   favicon:
     colors:
       icon: "#00a897"
       theme: "#00a897"
 
-i18n:
-  language: "es"
-  textDirection: "ltr"
-
 metadata:
-  title:
-    default: "TuMarca"
-    template: "%s | TuMarca"
+  # Fallback <meta description> when a page doesn't pass one. Per-page/per-locale
+  # titles + descriptions come from the i18n `meta` namespace, not here.
   description: "Plantillas Astro rápidas con React + shadcn + Tailwind."
-  robots:
-    index: true
-    follow: true
-  openGraph:
-    type: "website"
-    site_name: "TuMarca"
-    images: []     # puedes poner una URL absoluta
-  twitter:
-    card: "summary_large_image"
-
-apps:
-  blog:
-    isEnabled: false
-    list:
-      pathname: "blog"
-      robots: { index: true, follow: true }
-    category: { pathname: "category" }
-    tag: { pathname: "tag" }
-    post:
-      permalink: "/blog/%slug%"
-      robots: { index: true, follow: true }
-    postsPerPage: 6
-ui:
-  theme: "system" # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
 
 analytics:
   # Empty = disabled. GA/GTM are consent-gated; set a REAL id to enable.
@@ -51,20 +25,15 @@ analytics:
   googleTagManager:
     id: ""
   cloudflareWebAnalytics:
-    # CF Web Analytics beacon token (Hub → Audiencia gives you the site TOKEN).
+    # CF Web Analytics beacon TOKEN (Hub → Audiencia gives you the site token).
+    # This is the client-side beacon token — NOT the Hub's GraphQL "site tag".
     # Empty = disabled. Host-blocked in the Studio preview + local dev.
     token: ""
 
 forms:
-  # Saastro Hub form integration. `siteId` is the Hub site slug this
-  # template is connected to (Hub → Setup shows it). Leave empty until
-  # connected — the contact form then shows a "configure me" placeholder
-  # instead of erroring. `contactFormSlug` is the form designed in Hub
-  # that the slide-out ContactSheet renders.
+  # Saastro Hub form integration. `siteId` is the Hub site this template is
+  # connected to (Hub → Setup shows it; copied by hand today). Leave empty until
+  # connected — the contact form then shows a "configure me" placeholder instead
+  # of erroring. `contactFormSlug` is the form the slide-out ContactSheet renders.
   siteId: ""
   contactFormSlug: "contact"
-
-cookieConsent:
-  privacyPolicyUrl: "/privacy"
-  position: "bottom"  # Values: "bottom" | "top" | "center"
-  theme: "auto"  # Values: "light" | "dark" | "auto"

@@ -3,6 +3,10 @@
  *
  * Reads the YAML at build time via Vite's ?raw import + yaml parser.
  * All values are exposed through getSettings() which returns a frozen object.
+ *
+ * This shape is trimmed to exactly what the theme consumes (SEO meta, analytics,
+ * favicon color, site name, forms wiring). It is NOT read by the Saastro Hub —
+ * content is edited via i18n, structural config via saastrocms.config.ts.
  */
 import settingsRaw from '../data/settings.yaml?raw';
 import { parse } from 'yaml';
@@ -10,9 +14,6 @@ import { parse } from 'yaml';
 export interface SiteSettings {
   readonly site: {
     readonly name: string;
-    readonly site: string;
-    readonly base: string;
-    readonly trailingSlash: string;
     readonly googleSiteVerificationId?: string;
     readonly favicon: {
       readonly colors: {
@@ -21,47 +22,8 @@ export interface SiteSettings {
       };
     };
   };
-  readonly i18n: {
-    readonly language: string;
-    readonly textDirection: string;
-  };
   readonly metadata: {
-    readonly title: {
-      readonly default: string;
-      readonly template: string;
-    };
     readonly description: string;
-    readonly robots: {
-      readonly index: boolean;
-      readonly follow: boolean;
-    };
-    readonly openGraph: {
-      readonly type: string;
-      readonly site_name: string;
-      readonly images: readonly string[];
-    };
-    readonly twitter: {
-      readonly card: string;
-    };
-  };
-  readonly apps: {
-    readonly blog: {
-      readonly isEnabled: boolean;
-      readonly list: {
-        readonly pathname: string;
-        readonly robots: { readonly index: boolean; readonly follow: boolean };
-      };
-      readonly category: { readonly pathname: string };
-      readonly tag: { readonly pathname: string };
-      readonly post: {
-        readonly permalink: string;
-        readonly robots: { readonly index: boolean; readonly follow: boolean };
-      };
-      readonly postsPerPage: number;
-    };
-  };
-  readonly ui: {
-    readonly theme: string;
   };
   readonly analytics: {
     readonly googleAnalytics: {
@@ -77,11 +39,6 @@ export interface SiteSettings {
   readonly forms: {
     readonly siteId: string;
     readonly contactFormSlug: string;
-  };
-  readonly cookieConsent: {
-    readonly privacyPolicyUrl: string;
-    readonly position: string;
-    readonly theme: string;
   };
 }
 

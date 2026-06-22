@@ -26,3 +26,7 @@ pnpm-debug.log*
 # wrangler
 .wrangler/
 .dev.vars
+
+# claude-mem per-directory memory — internal only. Never let these become Astro
+# routes (any CLAUDE.md under src/pages/ would be served as a page + sitemapped).
+src/pages/**/CLAUDE.md

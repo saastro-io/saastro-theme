@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { i18nConfig, locales } from '../../../i18n/config';
-import type { Locale } from '../../../i18n/config';
+import { locales, defaultLocale } from '../../../i18n/config';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,13 +11,15 @@ export const prerender = true;
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  const nonDefaultLocales = locales.filter((l) => l !== i18nConfig.defaultLocale);
-  return nonDefaultLocales.flatMap((locale) =>
-    posts.map((post) => ({ params: { locale, slug: post.id } }))
+  return locales.flatMap((locale) =>
+    posts.map((post) => ({
+      params: { locale: locale === defaultLocale ? undefined : locale, slug: post.id },
+    })),
   );
 }
 
-const { locale, slug } = Astro.params as { locale: Locale; slug: string };
+const slug = Astro.params.slug as string;
+const locale = Astro.locals.lang;
 const lp = Astro.locals.localePath;
 
 const allPosts = await getCollection('blog');

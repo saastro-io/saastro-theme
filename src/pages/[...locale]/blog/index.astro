@@ -1,11 +1,20 @@
 ---
 import { getCollection } from 'astro:content';
-import SiteLayout from '../../layouts/SiteLayout.astro';
+import { locales, defaultLocale } from '../../../i18n/config';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { i18nConfig } from '../../i18n/config';
 
-const lp = i18nConfig.enabled ? Astro.locals.localePath : (p: string) => p;
+export const prerender = true;
+
+export function getStaticPaths() {
+  return locales.map((locale) => ({
+    params: { locale: locale === defaultLocale ? undefined : locale },
+  }));
+}
+
+const locale = Astro.locals.lang;
+const lp = Astro.locals.localePath;
 
 const allPosts = await getCollection('blog');
 const posts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
@@ -62,7 +71,7 @@ const paginatedPosts = posts.slice((page - 1) * postsPerPage, page * postsPerPag
 
               <div class="mt-auto flex items-center gap-2 pt-2">
                 <time class="text-xs text-muted-foreground" datetime={post.data.date.toISOString()}>
-                  {new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(post.data.date)}
+                  {new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(post.data.date)}
                 </time>
                 {post.data.tags && post.data.tags.length > 0 && (
                   <div class="flex gap-1">

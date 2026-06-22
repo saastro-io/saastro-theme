@@ -24,6 +24,49 @@
       { "value": "MIT", "label": "License" }
     ]
   },
+  "products": {
+    "title": "Everything you need",
+    "subtitle": "A complete ecosystem of tools designed specifically for Astro developers.",
+    "items": [
+      {
+        "name": "UI",
+        "tagline": "Component Library",
+        "description": "50+ accessible UI components for Astro. Vanilla JS, zero dependencies, copy-paste ready.",
+        "href": "https://ui.saastro.io",
+        "icon": "squares",
+        "color": "from-blue-500 to-blue-600",
+        "features": ["Vanilla JS", "Tailwind CSS", "Accessible", "Dark mode"]
+      },
+      {
+        "name": "Forms",
+        "tagline": "Form Builder",
+        "description": "Visual form builder with validation, multi-step flows, and submission handling.",
+        "href": "https://forms.saastro.io",
+        "icon": "form",
+        "color": "from-green-500 to-green-600",
+        "features": ["Drag & drop", "Validation", "Multi-step", "Webhooks"]
+      },
+      {
+        "name": "Themes",
+        "tagline": "Theme Catalog",
+        "description": "Production-ready Astro themes. Landing pages, blogs, portfolios, and more.",
+        "href": "https://themes.saastro.io",
+        "icon": "palette",
+        "color": "from-purple-500 to-purple-600",
+        "features": ["Free & Pro", "Responsive", "SEO ready", "Fast"]
+      },
+      {
+        "name": "CMS",
+        "tagline": "Headless CMS",
+        "description": "Content management for Astro sites. Self-hosted or cloud, your choice.",
+        "href": "https://cms.saastro.io",
+        "icon": "database",
+        "color": "from-orange-500 to-orange-600",
+        "badge": "Coming Soon",
+        "features": ["Markdown", "Media library", "API", "Plugins"]
+      }
+    ]
+  },
   "about": {
     "title": "About",
     "subtitle": "We're building the tools that make the web better for everyone.",
