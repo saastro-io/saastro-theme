@@ -40,6 +40,9 @@ export interface Props {
   homeUrl?: string;
   /** CMS field prefix for page scanner */
   fieldPrefix?: string;
+  /** Label for the "Manage cookies" button. When set, renders a button that
+      re-opens the cookie consent banner (dispatches `cookie-consent-reopen`). */
+  manageCookiesLabel?: string;
 }
 
 const {
@@ -52,6 +55,7 @@ const {
   socialLinks = [],
   homeUrl = "/",
   fieldPrefix,
+  manageCookiesLabel,
 } = Astro.props;
 
 const currentYear = new Date().getFullYear();
@@ -109,25 +113,51 @@ const copyright = `© ${currentYear} ${siteName}. All rights reserved.`;
       )}
     </div>
 
-    {/* Bottom section: Copyright and social links */}
+    {/* Bottom section: Copyright, manage-cookies, social links */}
     <div class="flex flex-col gap-2 md:gap-4 border-t py-2 md:flex-row md:items-center md:justify-between">
       <p class="text-xs text-muted-foreground">{copyright}</p>
 
-      {socialLinks.length > 0 && (
-        <ul class="flex gap-2" role="list" aria-label="Social media links">
-          {socialLinks.map((link) => (
-            <li>
-              <a
-                href={link.href || "#"}
-                class="inline-flex items-center justify-center rounded-lg p-2.5 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                aria-label={link.ariaLabel || `Visit our ${link.icon?.replace("tabler:brand-", "") || "social"} page`}
-              >
-                {link.icon && <Icon name={link.icon} class="h-5 w-5" />}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div class="flex flex-wrap items-center gap-4">
+        {manageCookiesLabel && (
+          <button
+            type="button"
+            id="manage-cookies-btn"
+            class="text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            {manageCookiesLabel}
+          </button>
+        )}
+
+        {socialLinks.length > 0 && (
+          <ul class="flex gap-2" role="list" aria-label="Social media links">
+            {socialLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href || "#"}
+                  class="inline-flex items-center justify-center rounded-lg p-2.5 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  aria-label={link.ariaLabel || `Visit our ${link.icon?.replace("tabler:brand-", "") || "social"} page`}
+                >
+                  {link.icon && <Icon name={link.icon} class="h-5 w-5" />}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   </div>
+
+  {/* Re-open the cookie banner from the footer's "Manage cookies" button.
+      Delegated to document because ClientRouter (view transitions) swaps the
+      footer node on each navigation — a listener bound to the button would die
+      with it. This module runs once. The CookieBanner widget listens for the
+      `cookie-consent-reopen` event. */}
+  <script>
+    document.addEventListener('click', (e) => {
+      const target = e.target as Element | null
+      if (target?.closest?.('#manage-cookies-btn')) {
+        window.dispatchEvent(new CustomEvent('cookie-consent-reopen'))
+      }
+    })
+  </script>
 </footer>
