@@ -1,17 +1,25 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
-import AboutContent from '../components/AboutContent.astro';
-import { i18nConfig } from '../i18n/config';
+import { locales, defaultLocale } from '../../i18n/config';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import AboutContent from '../../components/AboutContent.astro';
 
-const i18n = i18nConfig.enabled;
-const t = i18n ? Astro.locals.t : undefined;
+export const prerender = true;
+
+export function getStaticPaths() {
+  return locales.map((locale) => ({
+    params: { locale: locale === defaultLocale ? undefined : locale },
+  }));
+}
+
+const t = Astro.locals.t;
 
 const about = (t as any)?.about ?? {
   title: 'About',
-  subtitle: 'We\'re building the tools that make the web better for everyone.',
+  subtitle: "We're building the tools that make the web better for everyone.",
   mission: {
     title: 'Our Mission',
-    description: 'We believe in open-source software that empowers developers to build beautiful, performant websites without compromise.',
+    description:
+      'We believe in open-source software that empowers developers to build beautiful, performant websites without compromise.',
   },
   values: {
     title: 'Our Values',
@@ -23,7 +31,7 @@ const about = (t as any)?.about ?? {
   },
 };
 
-const meta = (t as any)?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
+const meta = t?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
 ---
 
 <SiteLayout title={`${about.title} | ${meta.title}`} description={about.subtitle}>

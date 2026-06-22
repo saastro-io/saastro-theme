@@ -55,7 +55,15 @@ export default defineConfig({
   integrations: [
     stripStudioMeta,
     react(),
-    sitemap(),
+    // Standard Astro sitemap. The site is statically prerendered, so it
+    // enumerates every page automatically; the i18n option emits hreflang
+    // alternates (EN at the root, ES prefixed).
+    sitemap({
+      i18n: {
+        defaultLocale: 'en',
+        locales: { en: 'en', es: 'es' },
+      },
+    }),
     icon(),
     saastroStudio({ autoWrap: true, autoWrapPages: true }),
   ],

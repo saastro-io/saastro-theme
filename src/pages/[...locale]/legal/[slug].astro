@@ -1,24 +1,22 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { i18nConfig, locales } from '../../../i18n/config';
-import type { Locale } from '../../../i18n/config';
+import { defaultLocale } from '../../../i18n/config';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export const prerender = true;
 
 export async function getStaticPaths() {
   const allLegal = await getCollection('legal');
-  const nonDefaultLocales = locales.filter((l) => l !== i18nConfig.defaultLocale);
-  return nonDefaultLocales.flatMap((locale) =>
-    allLegal
-      .filter((e) => e.id.startsWith(`${locale}/`))
-      .map((e) => ({
-        params: { locale, slug: e.id.replace(`${locale}/`, '') },
-      }))
-  );
+  return allLegal.map((e) => {
+    const [loc, ...rest] = e.id.split('/');
+    return {
+      params: { locale: loc === defaultLocale ? undefined : loc, slug: rest.join('/') },
+    };
+  });
 }
 
-const { locale, slug } = Astro.params as { locale: Locale; slug: string };
+const slug = Astro.params.slug as string;
+const locale = Astro.locals.lang;
 
 const allLegal = await getCollection('legal');
 const entry = allLegal.find((e) => {

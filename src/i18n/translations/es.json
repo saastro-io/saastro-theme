@@ -24,6 +24,49 @@
       { "value": "MIT", "label": "Licencia" }
     ]
   },
+  "products": {
+    "title": "Todo lo que necesitas",
+    "subtitle": "Un ecosistema completo de herramientas diseñado específicamente para desarrolladores de Astro.",
+    "items": [
+      {
+        "name": "UI",
+        "tagline": "Librería de Componentes",
+        "description": "Más de 50 componentes UI accesibles para Astro. Vanilla JS, cero dependencias, listos para copiar y pegar.",
+        "href": "https://ui.saastro.io",
+        "icon": "squares",
+        "color": "from-blue-500 to-blue-600",
+        "features": ["Vanilla JS", "Tailwind CSS", "Accesible", "Modo oscuro"]
+      },
+      {
+        "name": "Forms",
+        "tagline": "Constructor de Formularios",
+        "description": "Constructor visual de formularios con validación, flujos multi-paso y gestión de envíos.",
+        "href": "https://forms.saastro.io",
+        "icon": "form",
+        "color": "from-green-500 to-green-600",
+        "features": ["Arrastrar y soltar", "Validación", "Multi-paso", "Webhooks"]
+      },
+      {
+        "name": "Themes",
+        "tagline": "Catálogo de Temas",
+        "description": "Temas de Astro listos para producción. Landing pages, blogs, portafolios y más.",
+        "href": "https://themes.saastro.io",
+        "icon": "palette",
+        "color": "from-purple-500 to-purple-600",
+        "features": ["Gratis y Pro", "Responsive", "SEO listo", "Rápido"]
+      },
+      {
+        "name": "CMS",
+        "tagline": "CMS Headless",
+        "description": "Gestión de contenidos para sitios Astro. Auto-alojado o en la nube, tú eliges.",
+        "href": "https://cms.saastro.io",
+        "icon": "database",
+        "color": "from-orange-500 to-orange-600",
+        "badge": "Próximamente",
+        "features": ["Markdown", "Biblioteca de medios", "API", "Plugins"]
+      }
+    ]
+  },
   "about": {
     "title": "Acerca de",
     "subtitle": "Estamos construyendo las herramientas que hacen la web mejor para todos.",

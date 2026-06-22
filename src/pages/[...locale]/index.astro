@@ -1,18 +1,19 @@
 ---
-import { i18nConfig, locales } from '../../i18n/config';
-import type { Locale } from '../../i18n/config';
+import { locales, defaultLocale } from '../../i18n/config';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import Hero from '../../components/Hero.astro';
+import Products from '../../components/Products.astro';
 
 export const prerender = true;
 
+// Default locale renders at the root (`/`); other locales are prefixed (`/es/…`).
+// The optional rest param `[...locale]` lets one page tree serve both.
 export function getStaticPaths() {
-  return locales
-    .filter((l) => l !== i18nConfig.defaultLocale)
-    .map((locale) => ({ params: { locale } }));
+  return locales.map((locale) => ({
+    params: { locale: locale === defaultLocale ? undefined : locale },
+  }));
 }
 
-const { locale } = Astro.params as { locale: Locale };
 const t = Astro.locals.t;
 const lp = Astro.locals.localePath;
 
@@ -28,6 +29,12 @@ const hero = (t as any)?.hero ?? {
     { value: '0kb', label: 'Default JS' },
     { value: 'MIT', label: 'License' },
   ],
+};
+
+const products = (t as any)?.products ?? {
+  title: 'Everything you need',
+  subtitle: 'A complete ecosystem of tools designed specifically for Astro developers.',
+  items: [],
 };
 
 const meta = t?.meta ?? { title: 'Saastro Theme', description: 'A modern Astro theme.' };
@@ -48,5 +55,12 @@ const announcement = t?.announcement ?? { text: 'Saastro Theme is now available'
     secondaryCta={{ label: hero.secondaryCta, href: 'https://github.com/saastro-io/saastro-hub' }}
     stats={hero.stats}
     fieldPrefix="hero"
+  />
+
+  <Products
+    title={products.title}
+    subtitle={products.subtitle}
+    items={products.items}
+    fieldPrefix="products"
   />
 </SiteLayout>
