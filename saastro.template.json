@@ -1,0 +1,42 @@
+{
+  "$schema": "https://hub.saastro.io/schemas/template-manifest.json",
+  "displayName": "Saastro Theme — Studio base",
+  "description": "Astro 6 + React 19 + Tailwind 4 + shadcn (Nova). Studio-ready marketing site with EN/ES i18n, blog + legal collections, and a HubForm contact sheet.",
+  "previewUrl": "https://saastro-theme.pages.dev",
+  "siteIdTarget": { "file": "src/data/settings.yaml", "path": "forms.siteId" },
+  "defaultForms": [{ "slug": "contact", "name": "Contact" }],
+  "onboardingTasks": [
+    {
+      "title": "Porta el diseño (Claude Design → theme)",
+      "description": "Claude: sigue docs/claude-design-handoff.md. Regla de oro: portar, nunca pegar. Nav/Footer no se regeneran.",
+      "priority": "high",
+      "items": [
+        "Importar el .dc.html como referencia (no copiar a src/)",
+        "Portar cada sección: block(registry) + adapter(.astro) + content(i18n)",
+        "Color → tokens oklch (global.css), nunca hex inline",
+        "pnpm studio:check en verde"
+      ]
+    },
+    {
+      "title": "Edita el contenido en el Studio",
+      "description": "Todo el texto editable vive en i18n (EN/ES). Edítalo desde el Hub.",
+      "items": [
+        "Textos EN + ES (paridad)",
+        "Imágenes y logo",
+        "Branding / color de marca en --primary/--accent o --brand"
+      ]
+    },
+    {
+      "title": "Conecta el deploy (Cloudflare)",
+      "description": "Conecta el proyecto Pages/Workers desde el tab Deploy y haz el primer deploy.",
+      "items": ["Conectar proyecto CF Pages/Workers", "Primer deploy", "Verificar la URL pública"]
+    },
+    {
+      "title": "Dominio + analytics",
+      "items": [
+        "Custom domain (Cloudflare es la fuente de verdad)",
+        "CF Web Analytics token (Hub → Audiencia)"
+      ]
+    }
+  ]
+}
