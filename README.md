@@ -396,59 +396,21 @@ Pass a `menu` prop to Header (auto-set when using SiteLayout with a custom Heade
 
 ## Deploy to Cloudflare
 
-This project uses **`@astrojs/cloudflare` v13**, which outputs a Workers model (`dist/server/` + `dist/client/`). Studio runs on SSR (`output: 'server'`), so deploy via **GitHub Actions + Wrangler** — CF Pages git integration alone can't deploy the worker.
+This theme deploys as a **Cloudflare Worker** (SSR, `@astrojs/cloudflare` v13 —
+`dist/server/` + `dist/client/`). Deployment is **wired by the Saastro Hub via
+Cloudflare Workers Builds** — there is **no Cloudflare token in this repo**. On
+*New site from template*, the Hub connects the repo so Cloudflare builds + deploys
+on every push to `main`.
 
-### How it works
-
-Every push to `main` triggers `.github/workflows/deploy.yml`:
-
-```
-git push → GitHub Actions
-  → pnpm install
-  → pnpm build            (generates dist/server/ + dist/client/)
-  → wrangler pages deploy dist/client   (deploys worker + assets to CF Pages)
-```
-
-The adapter generates `dist/server/wrangler.json` at build time. Wrangler reads it automatically when deploying `dist/client`.
-
-### First-time setup
-
-#### 1. Create a Cloudflare API token
-
-Cloudflare Dashboard → My Profile → API Tokens → Create Token → **"Edit Cloudflare Workers"** template:
-
-- Account Resources: select your account
-- Zone Resources: All zones
-
-Copy the token.
-
-#### 2. Get your Cloudflare Account ID
-
-Cloudflare Dashboard → any page → right sidebar → **Account ID**.
-
-#### 3. Add secrets to GitHub
-
-GitHub → repo → Settings → Secrets and variables → Actions → New repository secret:
-
-| Secret | Value |
-|--------|-------|
-| `CLOUDFLARE_API_TOKEN` | Token from step 1 |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID from step 2 |
-
-#### 4. Pause CF Pages git integration
-
-CF Pages → `your-project` → Settings → Builds & deployments → **Pause deployments**.
-
-This prevents CF Pages from trying to build via git integration (it would fail without the worker).
-
-### Manual deploy (emergency)
+**See [docs/deploy.md](docs/deploy.md)** for the full model, the one-time
+operator prerequisites (Hub-side: the CF↔GitHub connection, `CF_BUILDS_TOKEN`,
+`CF_BUILD_TOKEN_UUID`), and how to deploy manually.
 
 ```bash
-pnpm build
-pnpm dlx wrangler pages deploy dist/client --project-name your-project --branch main
+# Manual deploy (rare — Cloudflare does this on push)
+pnpm build      # emits dist/server/wrangler.json (name inherited from wrangler.jsonc)
+npx wrangler deploy --config dist/server/wrangler.json
 ```
-
-Requires `wrangler login` first.
 
 ### Deploy to other hosts
 
