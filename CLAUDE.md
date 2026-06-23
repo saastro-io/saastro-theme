@@ -83,7 +83,17 @@ Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `s
 ## Commands / deploy
 
 - Package manager: **pnpm**. `pnpm dev` (port 4930) · `pnpm build` · `pnpm preview`.
-- SSR on Cloudflare Workers (`@astrojs/cloudflare` v13). Deploy via GitHub Actions `.github/workflows/deploy.yml` (`wrangler pages deploy dist/client`).
+- SSR on Cloudflare **Workers** (`@astrojs/cloudflare` v13 — `output: 'server'`). `pnpm build`
+  emits `dist/server/wrangler.json` (the adapter derives it from the root `wrangler.jsonc`,
+  inheriting `name`); deploy is `wrangler deploy --config dist/server/wrangler.json`.
+- **Deploy is wired by the Hub, not by a workflow in this repo.** On *New site from
+  template*, the Hub rewrites `wrangler.jsonc` `name` → the site slug and connects the repo
+  to **Cloudflare Workers Builds** (git-integration) using the Hub's own credentials — so CF
+  builds + deploys on every push with **no token in this repo**. The `deploy` block in
+  `saastro.template.json` declares the `buildCommand`/`deployCommand`/`wranglerConfig` that
+  drives it. (There is intentionally no `.github/workflows/deploy.yml` — it was removed in
+  the token-free pivot; a workflow here would need a CF secret in every client repo.)
+- CI (`.github/workflows/ci.yml`) still runs `pnpm studio:check` — no secrets needed.
 
 ## History
 
