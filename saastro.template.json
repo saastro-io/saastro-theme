@@ -4,7 +4,12 @@
   "description": "Astro 6 + React 19 + Tailwind 4 + shadcn (Nova). Studio-ready marketing site with EN/ES i18n, blog + legal collections, and a HubForm contact sheet.",
   "previewUrl": "https://saastro-theme.pages.dev",
   "siteIdTarget": { "file": "src/data/settings.yaml", "path": "forms.siteId" },
-  "deploy": { "provider": "cf_workers", "managed": "repo-workflow" },
+  "deploy": {
+    "provider": "cf_workers",
+    "buildCommand": "pnpm build",
+    "deployCommand": "npx wrangler deploy --config dist/server/wrangler.json",
+    "wranglerConfig": "wrangler.jsonc"
+  },
   "defaultForms": [{ "slug": "contact", "name": "Contact" }],
   "onboardingTasks": [
     {
