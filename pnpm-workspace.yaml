@@ -9,3 +9,5 @@ allowBuilds:
   workerd: true
 minimumReleaseAgeExclude:
   - '@saastro/studio@0.7.0'
+  - '@astrojs/cloudflare@14.0.1'
+  - astro@7.0.3
