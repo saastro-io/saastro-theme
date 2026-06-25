@@ -1,0 +1,103 @@
+---
+/**
+ * LocalBusinessJsonLd — Store / LocalBusiness structured data (JSON-LD).
+ *
+ * Reads NAP (name, address, phone) + opening hours + social profiles straight
+ * from i18n (`contact` + `visitanos` + `meta`), so it stays in sync with what
+ * the site shows. Emitted site-wide from BaseLayout. Critical for local SEO:
+ * lets Google understand the business and show address / hours / rich results.
+ * Renders nothing if there's no address (e.g. the bare theme template).
+ */
+const t = Astro.locals.t as any;
+const c = t?.contact ?? {};
+const v = t?.visitanos ?? {};
+const meta = t?.meta ?? {};
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
+
+// "45510 Fuensalida (Toledo)" → postalCode / locality / region
+const line2 = String(c.addressLine2 ?? '');
+const am = line2.match(/^\s*(\d{5})?\s*([^()]+?)\s*(?:\(([^)]+)\))?\s*$/);
+const postalCode = (am?.[1] ?? '').trim();
+const addressLocality = (am?.[2] ?? '').trim();
+const addressRegion = (am?.[3] ?? '').trim();
+
+// Spanish weekday → schema.org dayOfWeek
+const DAYMAP: Record<string, string> = {
+  lunes: 'Monday', martes: 'Tuesday', miércoles: 'Wednesday', miercoles: 'Wednesday',
+  jueves: 'Thursday', viernes: 'Friday', sábado: 'Saturday', sabado: 'Saturday', domingo: 'Sunday',
+};
+const ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function daysToSchema(days: string): string[] {
+  const s = String(days).toLowerCase();
+  if (/cerrad/.test(s)) return [];
+  const range = s.match(/(\wáéíóú+)\s+a\s+(\wáéíóú+)/) || s.match(/(\S+)\s+a\s+(\S+)/);
+  if (range) {
+    const a = DAYMAP[range[1]];
+    const b = DAYMAP[range[2]];
+    if (a && b) {
+      const i = ORDER.indexOf(a);
+      const j = ORDER.indexOf(b);
+      if (i >= 0 && j >= i) return ORDER.slice(i, j + 1);
+    }
+  }
+  const found: string[] = [];
+  for (const [es, en] of Object.entries(DAYMAP)) if (s.includes(es)) found.push(en);
+  return [...new Set(found)];
+}
+
+function timesToRanges(time: string): [string, string][] {
+  if (/cerrad/i.test(String(time))) return [];
+  return String(time)
+    .split(/\s+y\s+/)
+    .map((seg): [string, string] | null => {
+      const mm = seg.match(/(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})/);
+      return mm ? [mm[1], mm[2]] : null;
+    })
+    .filter((x): x is [string, string] => x !== null);
+}
+
+const openingHoursSpecification: Record<string, unknown>[] = [];
+for (const h of v.hours ?? []) {
+  const dayOfWeek = daysToSchema(h.days);
+  const ranges = timesToRanges(h.time);
+  if (!dayOfWeek.length || !ranges.length) continue;
+  for (const [opens, closes] of ranges) {
+    openingHoursSpecification.push({ '@type': 'OpeningHoursSpecification', dayOfWeek, opens, closes });
+  }
+}
+
+// Only real social profiles (skip the generic facebook.com placeholder).
+const sameAs = [c.instagramUrl, c.facebookUrl].filter(
+  (u: string) => u && !/^https?:\/\/(www\.)?facebook\.com\/?$/.test(u),
+);
+
+const ld: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: meta.siteName ?? 'Yogui Bebés',
+  description: meta.description || undefined,
+  url: siteUrl || undefined,
+  telephone: c.phoneHref || undefined,
+  image: siteUrl ? `${siteUrl}${meta.ogImage ?? '/og-image.png'}` : undefined,
+  address: c.addressLine1
+    ? {
+        '@type': 'PostalAddress',
+        streetAddress: c.addressLine1,
+        postalCode: postalCode || undefined,
+        addressLocality: addressLocality || undefined,
+        addressRegion: addressRegion || undefined,
+        addressCountry: 'ES',
+      }
+    : undefined,
+  hasMap: c.directionsUrl || undefined,
+  openingHoursSpecification: openingHoursSpecification.length ? openingHoursSpecification : undefined,
+  sameAs: sameAs.length ? sameAs : undefined,
+  priceRange: '€€',
+};
+
+const hasData = Boolean(c.addressLine1);
+const json = JSON.stringify(ld);
+---
+{hasData && <script type="application/ld+json" set:html={json} />}

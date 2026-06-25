@@ -26,8 +26,20 @@ const stripStudioMeta = {
   },
 };
 
+// Canonical site URL — drives <link rel="canonical">, OG/Twitter URLs, the
+// sitemap and hreflang. Each project MUST set its real domain via the SITE_URL
+// build env var (e.g. in the Cloudflare Workers Builds project), otherwise
+// every page canonicalises to the template domain and Google indexes the wrong
+// host. The fallback below is only the template's own preview URL.
+const SITE_URL = process.env.SITE_URL || 'https://saastro-theme.pages.dev';
+if (!process.env.SITE_URL) {
+  console.warn(
+    '[saastro-theme] SITE_URL is not set — canonical/OG/sitemap will use the template domain. Set SITE_URL to your real domain before deploying.',
+  );
+}
+
 export default defineConfig({
-  site: 'https://saastro-theme.pages.dev/',
+  site: SITE_URL,
   output: 'server',
   adapter: cloudflare({
     imageService: 'passthrough',
