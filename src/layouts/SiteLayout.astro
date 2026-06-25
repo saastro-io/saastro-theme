@@ -18,6 +18,7 @@ import Footer from '../components/Footer.astro';
 import { Announcement } from '../widgets/Announcement/Announcement';
 import { CookieBanner } from '../widgets/CookieConsent/CookieBanner';
 import { ContactSheetProvider } from '../widgets/ContactSheet';
+import { WhatsAppWidget } from '../widgets/WhatsApp';
 import { i18nConfig } from '../i18n/config';
 import { getLocaleLinks } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
@@ -169,6 +170,10 @@ const footerLinks = [
     translations={cookieT}
     client:idle
   />
+
+  {t?.whatsapp?.number && (
+    <WhatsAppWidget t={t.whatsapp} fieldPrefix="whatsapp" client:load />
+  )}
 </BaseLayout>
 
 <style>

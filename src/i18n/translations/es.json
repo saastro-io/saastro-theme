@@ -134,5 +134,15 @@
     "personalizationLabel": "Personalización",
     "personalizationDescription": "Recuerdan tus preferencias y configuración.",
     "alwaysActive": "Siempre activas"
+  },
+  "whatsapp": {
+    "number": "34600000000",
+    "prefill": "Hola 👋 Estoy viendo vuestra web y quería consultaros una cosa.",
+    "name": "Atención al cliente",
+    "role": "Normalmente respondemos en minutos",
+    "greeting": "¡Hola! 👋 ¿En qué te ayudamos? Te responde una persona, no un call center.",
+    "cta": "Abrir WhatsApp",
+    "ariaOpen": "Abrir chat de WhatsApp",
+    "ariaClose": "Cerrar chat de WhatsApp"
   }
 }

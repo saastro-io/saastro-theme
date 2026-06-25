@@ -134,5 +134,15 @@
     "personalizationLabel": "Personalization",
     "personalizationDescription": "Remember your preferences and settings.",
     "alwaysActive": "Always active"
+  },
+  "whatsapp": {
+    "number": "34600000000",
+    "prefill": "Hi 👋 I was browsing your site and have a quick question.",
+    "name": "Customer care",
+    "role": "Typically replies within minutes",
+    "greeting": "Hi 👋 How can we help? A real person answers here — no call center.",
+    "cta": "Open WhatsApp",
+    "ariaOpen": "Open WhatsApp chat",
+    "ariaClose": "Close WhatsApp chat"
   }
 }

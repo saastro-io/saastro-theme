@@ -58,5 +58,18 @@ export interface Translations {
     personalizationDescription: string;
     alwaysActive: string;
   };
+  /** Floating WhatsApp click-to-chat widget (SiteLayout, `client:idle`).
+   *  Omit the block to hide the widget. `number` is digits-only (country code
+   *  included, no `+`); `prefill` is the pre-filled chat message. */
+  whatsapp?: {
+    number: string;
+    prefill: string;
+    name: string;
+    role: string;
+    greeting: string;
+    cta: string;
+    ariaOpen: string;
+    ariaClose: string;
+  };
   [key: string]: unknown;
 }
