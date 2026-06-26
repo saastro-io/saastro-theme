@@ -112,6 +112,24 @@ These are template-level traps that every descendant site inherits unless fixed 
   `contact.{addressLine1, addressLine2 ("CP Localidad (Provincia)"), phoneHref, instagramUrl,
   facebookUrl, directionsUrl}` + `visitanos.hours[]` ({days, time}) and the schema fills in
   (address, hours, sameAs) automatically. Critical for local SEO rich results.
+- **Baseline site schema — `SiteJsonLd.astro` (wired in `BaseLayout`).** Emits a `WebSite`
+  entity always, plus a primary entity (`Person` | `Organization` | `ProfessionalService`)
+  when `seo.schemaType` is set in `src/data/settings.yaml`. **New site onboarding: fill the
+  `seo` block** (`schemaType`, `email`, `jobTitle` for Person, `sameAs[]` — profiles + owned
+  domains). Left empty, the site emits only `WebSite` (no rich-result identity). This is
+  separate from `LocalBusinessJsonLd` (NAP/hours) above — a site can use either, both, or
+  just the default WebSite.
+- **Counters / count-up stats must render the FINAL value in SSR, not `0`.** A common bespoke
+  pattern animates a number from 0 on scroll. If the served HTML hardcodes `>0<` and only JS
+  fills the real value, crawlers and no-JS users see `0` — a terrible signal on a "trajectory"
+  stat. Render `{value}{suffix}` as the node's text content and keep the target in a
+  `data-count` attribute for the animation to read; the count-up still works, the real number
+  is in the DOM. (Fixed in `enlolab-site` Services.astro.)
+- **`robots.txt` is a generated endpoint (`src/pages/robots.txt.ts`), NOT a static file.** It
+  derives the `Sitemap:` line from `Astro.site` (= `SITE_URL`) so it always matches the
+  deployed domain. **Do NOT add a `public/robots.txt`** — a static file hardcodes the host and
+  silently ships the wrong sitemap URL to descendant sites (the original template bug:
+  `saastro-theme.pages.dev` leaked into a live site).
 - **NEVER import `@saastro/studio` (package ROOT) in a runtime component.** Its main entry
   bundles the Node Vite plugin (references `__filename`) and **500s under the workerd SSR
   runtime**. Import only the SSR-safe subpaths (`@saastro/studio/Img.astro`), or inline the

@@ -25,6 +25,15 @@ export interface SiteSettings {
   readonly metadata: {
     readonly description: string;
   };
+  readonly seo?: {
+    // Schema.org @type for the site's primary entity. Empty = emit only WebSite.
+    readonly schemaType?: 'Person' | 'Organization' | 'ProfessionalService' | '';
+    readonly email?: string;
+    // Person-only: the person's role (e.g. "Frontend Engineer").
+    readonly jobTitle?: string;
+    // Profiles/owned domains Google can cross-reference (LinkedIn, GitHub, …).
+    readonly sameAs?: readonly string[];
+  };
   readonly analytics: {
     readonly googleAnalytics: {
       readonly id: string;

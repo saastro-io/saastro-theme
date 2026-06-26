@@ -17,6 +17,19 @@ metadata:
   # titles + descriptions come from the i18n `meta` namespace, not here.
   description: "Plantillas Astro rápidas con React + shadcn + Tailwind."
 
+seo:
+  # Site-wide JSON-LD (schema.org). A WebSite entity is always emitted; set
+  # `schemaType` to also emit the primary entity for rich results.
+  #   Person               -> personal site / portfolio (add jobTitle)
+  #   Organization         -> company / product
+  #   ProfessionalService  -> agency / studio
+  # Leave empty to emit only the WebSite schema.
+  schemaType: ""
+  email: ""
+  jobTitle: ""
+  # Profiles / owned domains Google can cross-reference (one URL per line).
+  sameAs: []
+
 analytics:
   # Empty = disabled. GA/GTM are consent-gated; set a REAL id to enable.
   # Recommended for Saastro sites: use Cloudflare Web Analytics below instead.
