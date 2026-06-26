@@ -24,11 +24,13 @@
  */
 
 import { Icon } from "astro-icon/components";
+const { t } = Astro.locals;
 ---
 
 <button
   id="theme-toggle"
   type="button"
+  data-saastro="sec:toggle_theme"
   aria-label="Toggle theme"
   class="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 >
@@ -40,7 +42,7 @@ import { Icon } from "astro-icon/components";
     name="tabler:moon"
     class="h-5 w-5 absolute inset-0 m-auto transition-opacity block dark:hidden"
   />
-  <span class="sr-only">Toggle theme</span>
+  <span class="sr-only">{t.toggle_theme.span.toggle_theme}</span>
 </button>
 
 <script is:inline>

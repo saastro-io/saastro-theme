@@ -144,5 +144,10 @@
     "cta": "Open WhatsApp",
     "ariaOpen": "Open WhatsApp chat",
     "ariaClose": "Close WhatsApp chat"
+  },
+  "toggle_theme": {
+    "span": {
+      "toggle_theme": "Toggle theme"
+    }
   }
 }

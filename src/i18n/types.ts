@@ -71,5 +71,13 @@ export interface Translations {
     ariaOpen: string;
     ariaClose: string;
   };
+  /** Theme toggle a11y label (sr-only). Editable section so the Studio i18n
+   *  scan finds it already wrapped + marked (no orphan marker bug). Always
+   *  shipped by the theme (en + es), so required. */
+  toggle_theme: {
+    span: {
+      toggle_theme: string;
+    };
+  };
   [key: string]: unknown;
 }
