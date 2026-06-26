@@ -11,6 +11,7 @@ import '../styles/global.css';
 import ApplyColorMode from '../scripts/ApplyColorMode.astro';
 import Favicons from '../head/Favicons.astro';
 import LocalBusinessJsonLd from '../components/LocalBusinessJsonLd.astro';
+import SiteJsonLd from '../components/SiteJsonLd.astro';
 import Analytics from '../components/Analytics.astro';
 import AnalyticsNoscript from '../components/AnalyticsNoscript.astro';
 import { ClientRouter } from 'astro:transitions';
@@ -104,6 +105,12 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     <link rel="manifest" href="/manifest.json" />
 
     <Favicons />
+    <SiteJsonLd
+      siteUrl={siteUrl}
+      siteName={siteName}
+      description={description}
+      image={ogImage}
+    />
     <LocalBusinessJsonLd />
     {resolvedGoogleSiteVerificationId && (
       <meta name="google-site-verification" content={resolvedGoogleSiteVerificationId} />

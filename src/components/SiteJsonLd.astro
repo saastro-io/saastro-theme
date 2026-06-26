@@ -1,0 +1,52 @@
+---
+/**
+ * SiteJsonLd — baseline structured data for the whole site.
+ *
+ * Emits a primary-entity schema (Person | Organization | ProfessionalService,
+ * from `seo.schemaType` in settings.yaml) plus a WebSite schema. This is the
+ * site-wide identity graph; LocalBusinessJsonLd handles brick-and-mortar NAP
+ * data separately (and only when a contact address is set).
+ *
+ * Values come from BaseLayout (already-resolved siteName/description/ogImage)
+ * and the build-time `seo` block in src/data/settings.yaml.
+ */
+import JsonLd from './JsonLd.astro';
+import { getSettings } from '../lib/settings';
+
+export interface Props {
+  siteUrl: string; // canonical origin, no trailing slash
+  siteName: string;
+  description: string;
+  image?: string; // absolute URL (og image / logo)
+}
+
+const { siteUrl, siteName, description, image } = Astro.props;
+const seo = getSettings().seo ?? {};
+const schemaType = (seo.schemaType ?? '').trim() as
+  | 'Person'
+  | 'Organization'
+  | 'ProfessionalService'
+  | '';
+const sameAs = (seo.sameAs ?? []).filter(Boolean);
+const homeUrl = siteUrl ? `${siteUrl}/` : undefined;
+
+// Primary entity — only when a schemaType is configured.
+const entity =
+  schemaType && homeUrl
+    ? {
+        name: siteName,
+        url: homeUrl,
+        description,
+        ...(seo.email ? { email: seo.email } : {}),
+        ...(schemaType === 'Person' && seo.jobTitle ? { jobTitle: seo.jobTitle } : {}),
+        ...(image ? { [schemaType === 'Person' ? 'image' : 'logo']: image } : {}),
+        ...(sameAs.length ? { sameAs } : {}),
+      }
+    : null;
+
+// WebSite — always emitted when we know the origin.
+const website = homeUrl ? { name: siteName, url: homeUrl } : null;
+---
+
+{entity && <JsonLd type={schemaType as 'Person' | 'Organization' | 'ProfessionalService'} data={entity} />}
+{website && <JsonLd type="WebSite" data={website} />}

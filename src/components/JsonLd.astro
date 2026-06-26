@@ -1,6 +1,12 @@
 ---
 export interface Props {
-  type: 'Organization' | 'Article' | 'BreadcrumbList' | 'WebSite';
+  type:
+    | 'Organization'
+    | 'Person'
+    | 'ProfessionalService'
+    | 'Article'
+    | 'BreadcrumbList'
+    | 'WebSite';
   data: Record<string, unknown>;
 }
 

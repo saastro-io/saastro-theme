@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://saastro-theme.pages.dev/sitemap-index.xml
