@@ -1,3 +1,4 @@
+import { flattenSpansDeep } from '@saastro/studio/richtext';
 import { defaultLocale, locales, localeLabels, type Locale } from './config';
 import type { Translations } from './types';
 import en from './translations/en.json';
@@ -41,42 +42,13 @@ export function getLocaleFromUrl(pathname: string): Locale {
 }
 
 /**
- * Rich-spans support (Studio spans plan, PR 2). A translation leaf may be
- * `[{ text, marks?: ('accent'|'bold')[] }]` instead of a plain string.
- * `getTranslations` FLATTENS those to their concatenated text so every
- * existing `{t.x.y}` interpolation keeps rendering plain text — never
- * `[object Object]` (Astro) or a hooks crash (React islands). Sections
- * that want the styled render opt in per call site: import `<RichText>`
- * from `@saastro/studio/RichText.astro` and feed it the SAME leaf from
+ * Rich-spans support (Studio spans plan). A translation leaf may be
+ * `[{ text, marks? }]` instead of a plain string. `getTranslations`
+ * FLATTENS those to concatenated text (canonical helper from
+ * @saastro/studio 0.9.0) so every `{t.x.y}` interpolation keeps rendering
+ * strings; sections opt into the styled render via `<RichText>` fed from
  * `getRichTranslations`.
  */
-function isSpansValue(v: unknown): v is Array<{ text: string; marks?: string[] }> {
-  if (!Array.isArray(v) || v.length === 0) return false;
-  return v.every((s) => {
-    if (s === null || typeof s !== 'object' || Array.isArray(s)) return false;
-    const span = s as Record<string, unknown>;
-    if (typeof span.text !== 'string') return false;
-    return Object.keys(span).every((k) => k === 'text' || k === 'marks');
-  });
-}
-
-function flattenSpansDeep<T>(value: T): T {
-  if (isSpansValue(value)) {
-    return value.map((s) => s.text).join('') as unknown as T;
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => flattenSpansDeep(item)) as unknown as T;
-  }
-  if (value !== null && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      out[k] = flattenSpansDeep(v);
-    }
-    return out as T;
-  }
-  return value;
-}
-
 const flatCache = new Map<Locale, Translations>();
 const richCache = new Map<Locale, Translations>();
 
