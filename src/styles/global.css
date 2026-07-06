@@ -170,6 +170,17 @@
 @layer utilities {
   .animate-accordion-down { animation: accordion-down 0.2s ease-out; }
   .animate-accordion-up { animation: accordion-up 0.2s ease-out; }
+
+  /* Semantic accent mark — the rich-spans `accent` mark renders as
+     <span class="ac"> (via @saastro/studio RichText). Branding a project =
+     overriding THIS class (or --sa-accent); content and renderer never
+     change. --sa-accent also feeds the Studio overlay's live-patch color
+     chain so live edits match the published render. NEVER point this at
+     shadcn's --accent (near-white hover-surface token, invisible as text). */
+  .ac {
+    --sa-accent: var(--color-primary);
+    color: var(--sa-accent);
+  }
 }
 
 /* Print styles */

@@ -40,10 +40,66 @@ export function getLocaleFromUrl(pathname: string): Locale {
   return defaultLocale;
 }
 
+/**
+ * Rich-spans support (Studio spans plan, PR 2). A translation leaf may be
+ * `[{ text, marks?: ('accent'|'bold')[] }]` instead of a plain string.
+ * `getTranslations` FLATTENS those to their concatenated text so every
+ * existing `{t.x.y}` interpolation keeps rendering plain text — never
+ * `[object Object]` (Astro) or a hooks crash (React islands). Sections
+ * that want the styled render opt in per call site: import `<RichText>`
+ * from `@saastro/studio/RichText.astro` and feed it the SAME leaf from
+ * `getRichTranslations`.
+ */
+function isSpansValue(v: unknown): v is Array<{ text: string; marks?: string[] }> {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  return v.every((s) => {
+    if (s === null || typeof s !== 'object' || Array.isArray(s)) return false;
+    const span = s as Record<string, unknown>;
+    if (typeof span.text !== 'string') return false;
+    return Object.keys(span).every((k) => k === 'text' || k === 'marks');
+  });
+}
+
+function flattenSpansDeep<T>(value: T): T {
+  if (isSpansValue(value)) {
+    return value.map((s) => s.text).join('') as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => flattenSpansDeep(item)) as unknown as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = flattenSpansDeep(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+const flatCache = new Map<Locale, Translations>();
+const richCache = new Map<Locale, Translations>();
+
+/** Merged translations with rich spans flattened to plain strings —
+ *  the safe universal view every `{t.…}` interpolation consumes. */
 export function getTranslations(locale: Locale): Translations {
+  const cached = flatCache.get(locale);
+  if (cached) return cached;
+  const flat = flattenSpansDeep(getRichTranslations(locale));
+  flatCache.set(locale, flat);
+  return flat;
+}
+
+/** Merged translations with rich spans left INTACT — feed these leaves to
+ *  `<RichText>` at call sites that opt into the styled render. */
+export function getRichTranslations(locale: Locale): Translations {
+  const cached = richCache.get(locale);
+  if (cached) return cached;
   const base = translationMap[defaultLocale] as Translations;
-  if (locale === defaultLocale) return base;
-  return deepMerge<Translations>(base, translationMap[locale]);
+  const merged =
+    locale === defaultLocale ? base : deepMerge<Translations>(base, translationMap[locale]);
+  richCache.set(locale, merged);
+  return merged;
 }
 
 export function localePath(locale: Locale, path: string): string {
