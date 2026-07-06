@@ -6,7 +6,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { HubForm } from '@saastro/forms';
+import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { Locale } from '@/i18n/config';
 import type { Translations } from '@/i18n/types';
 import { getSettings } from '@/lib/settings';
@@ -14,10 +14,15 @@ import { useContactFormStore } from './store';
 
 // @saastro/forms <Form> needs the host's UI primitives (Input, Button,
 // Label, Textarea, Checkbox, Select, Field, Form…) injected via the
-// `components` prop. Eager-glob every shadcn file so the bundle stays one
-// chunk and the Form picks up whatever the site has on disk — newly added
-// primitives become available without touching this file.
-const uiComponents = import.meta.glob('@/components/ui/*.tsx', { eager: true });
+// `components` prop as a FLAT registry. Eager-glob every shadcn file, then
+// `parseGlobModules` flattens each module's named exports into that flat
+// registry (passing the raw `{path: module}` glob renders the "Missing UI
+// Components" fallback). The glob path MUST be RELATIVE: `import.meta.glob`
+// does not resolve the `@` → /src Vite alias inside its pattern, so
+// `@/components/ui/*.tsx` silently returns {} at build → an empty registry.
+const uiComponents = parseGlobModules(
+  import.meta.glob('../../components/ui/*.tsx', { eager: true }),
+);
 
 // The form schema lives in Saastro Hub (designed via the embedded builder)
 // and is fetched at runtime from the ingestion Worker, by default:
