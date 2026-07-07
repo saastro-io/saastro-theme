@@ -334,6 +334,46 @@ Pass IDs via SiteLayout or BaseLayout:
 />
 ```
 
+### Lead attribution (SAASTRO Gen) — opt-in
+
+`GenTracking.astro` reports where leads come from. On each page load it POSTs a
+page-view to the Gen collector (`{endpoint}/collect`) keyed by an anonymous
+`visitorId` kept in **sessionStorage** (cookieless → GDPR-friendly, no banner
+needed), and injects that id into every `<form>` as a hidden `gen_visitor_id`
+field. When the form is submitted the id rides along, so Gen links the lead to
+its pre-conversion journey → first/last-touch attribution + funnel/CPL per
+channel (source · medium · campaign).
+
+**Opt-in, not wired by default** — add it to your layout only when you want the
+site tracked (typically inside the `<head>`, e.g. in `BaseLayout` or a page):
+
+```astro
+---
+import GenTracking from '../components/GenTracking.astro';
+---
+<GenTracking workspaceId="team_123" vertical="realestate" />
+```
+
+Props (all but `workspaceId` optional):
+
+| Prop          | Default                    | Notes                                                        |
+| ------------- | -------------------------- | ------------------------------------------------------------ |
+| `workspaceId` | —                          | Gen workspace = the SAASTRO Platform team id. **Public** (like a GA measurement id — no secret in the browser). |
+| `vertical`    | `"default"`                | Product surface within the workspace (free string).          |
+| `endpoint`    | `"https://gen.saastro.io"` | Gen collector origin.                                        |
+| `consent`     | `"none"`                   | `"none"` = cookieless, tracks immediately. `"required"` = waits until `localStorage['gen-consent'] === 'granted'` (re-checked on each navigation; dispatch a `gen:consent-granted` window event to start in the same tab). |
+
+Notes:
+
+- Skips editor previews and local dev automatically (any `localhost` /
+  `*.saastro.io` / `*.saastro.test` / `*.local` host) so the Studio preview and
+  dev sessions never pollute attribution data.
+- Zero dependencies, inline IIFE, fully defensive (a down/blocked collector
+  never breaks the page). Fires on initial load and every View-Transitions
+  navigation.
+- If the site sets a Content-Security-Policy, allow the collector in
+  `connect-src` (e.g. `https://gen.saastro.io`).
+
 ## Accessibility
 
 - Skip-to-content link (visible on Tab)
