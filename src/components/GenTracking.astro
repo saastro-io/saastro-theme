@@ -1,0 +1,218 @@
+---
+/**
+ * GenTracking — SAASTRO Gen lead-attribution beacon (opt-in).
+ *
+ * Emits one page-view to `{endpoint}/collect` per page load, keyed by an
+ * anonymous `visitorId` kept in **sessionStorage** (cookieless → GDPR-friendly,
+ * no banner needed), and injects that id into every `<form>` as a hidden field
+ * `gen_visitor_id`. When the form is submitted the id rides along, so Gen can
+ * link the lead back to its pre-conversion journey → first/last-touch
+ * attribution + funnel/CPL per channel.
+ *
+ * PUBLIC config only (like a GA measurement id) — `workspaceId`/`vertical`
+ * merely attribute page-views; no secret travels in the browser. Spoofing is
+ * bounded server-side by a per-IP+visitor rate-limit.
+ *
+ * NOT wired into BaseLayout by default — include it explicitly per site so no
+ * one is tracked by accident:
+ *
+ *   import GenTracking from '../components/GenTracking.astro';
+ *   <GenTracking workspaceId="team_123" vertical="realestate" />
+ *
+ * Consent modes:
+ *   consent="none"      (default) cookieless, tracks immediately.
+ *   consent="required"  waits until localStorage['gen-consent'] === 'granted'
+ *                       (re-checked on each navigation; dispatch a
+ *                       `gen:consent-granted` window event to start same-tab).
+ */
+export interface Props {
+  /** Gen workspace id = the SAASTRO Platform team id (public). */
+  workspaceId: string;
+  /** Product surface within the workspace (free string). Default: "default". */
+  vertical?: string;
+  /** Gen collector origin. Default: https://gen.saastro.io */
+  endpoint?: string;
+  /** "none" (cookieless, immediate) | "required" (gated on gen-consent). */
+  consent?: 'none' | 'required';
+}
+
+const {
+  workspaceId,
+  vertical = 'default',
+  endpoint = 'https://gen.saastro.io',
+  consent = 'none',
+} = Astro.props;
+---
+
+{workspaceId && (
+  <script
+    is:inline
+    data-gen-workspace={workspaceId}
+    data-gen-vertical={vertical}
+    data-gen-endpoint={endpoint}
+    data-gen-consent={consent}
+  >
+    (function () {
+      try {
+        var el =
+          document.currentScript || document.querySelector('script[data-gen-workspace]');
+        var cfg = (el && el.dataset) || {};
+        var workspace = cfg.genWorkspace;
+        if (!workspace) return;
+        var vertical = cfg.genVertical || 'default';
+        var endpoint = (cfg.genEndpoint || 'https://gen.saastro.io').replace(/\/+$/, '');
+        var consentMode = cfg.genConsent || 'none';
+
+        // Never track editor previews / local dev — the Studio preview proxy
+        // serves the site under a *.saastro.io origin, and localhost is dev.
+        var h = location.hostname;
+        if (
+          h === 'localhost' ||
+          h === '127.0.0.1' ||
+          h.endsWith('.saastro.io') ||
+          h.endsWith('.saastro.test') ||
+          h.endsWith('.local')
+        )
+          return;
+
+        function consentOk() {
+          if (consentMode !== 'required') return true;
+          try {
+            return localStorage.getItem('gen-consent') === 'granted';
+          } catch (e) {
+            return false;
+          }
+        }
+
+        function uuid() {
+          try {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+          } catch (e) {}
+          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (Math.random() * 16) | 0;
+            var v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          });
+        }
+
+        function visitorId() {
+          try {
+            var k = 'gen-visitor-id';
+            var v = sessionStorage.getItem(k);
+            if (!v) {
+              v = uuid();
+              sessionStorage.setItem(k, v);
+            }
+            return v;
+          } catch (e) {
+            return null; // storage blocked → stay anonymous, don't track
+          }
+        }
+
+        function parseUtm() {
+          try {
+            var p = new URLSearchParams(location.search);
+            var out = {};
+            var keys = ['source', 'medium', 'campaign', 'term', 'content'];
+            for (var i = 0; i < keys.length; i++) {
+              var val = p.get('utm_' + keys[i]);
+              if (val) out[keys[i]] = String(val).slice(0, 200);
+            }
+            return Object.keys(out).length ? out : undefined;
+          } catch (e) {
+            return undefined;
+          }
+        }
+
+        function injectForms(vid) {
+          try {
+            var forms = document.getElementsByTagName('form');
+            for (var i = 0; i < forms.length; i++) {
+              var f = forms[i];
+              var input = f.querySelector('input[name="gen_visitor_id"]');
+              if (input) {
+                input.value = vid;
+                continue;
+              }
+              input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'gen_visitor_id';
+              input.value = vid;
+              f.appendChild(input);
+            }
+          } catch (e) {}
+        }
+
+        function send(vid) {
+          try {
+            var body = {
+              workspaceId: workspace,
+              vertical: vertical,
+              visitorId: vid,
+              type: 'page_view',
+              url: location.href,
+              path: location.pathname,
+              referrer: document.referrer || undefined,
+              utm: parseUtm(),
+              title: document.title || undefined,
+              ts: Date.now(),
+            };
+            var json = JSON.stringify(body);
+            var url = endpoint + '/collect';
+            if (navigator.sendBeacon) {
+              var blob = new Blob([json], { type: 'application/json' });
+              if (navigator.sendBeacon(url, blob)) return;
+            }
+            fetch(url, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: json,
+              keepalive: true,
+              mode: 'cors',
+              credentials: 'omit',
+            }).catch(function () {});
+          } catch (e) {}
+        }
+
+        var lastUrl = '';
+        var lastTs = 0;
+        function track() {
+          if (!consentOk()) return;
+          var vid = visitorId();
+          if (!vid) return;
+          // Always (re)inject — forms are swapped on SPA navigation.
+          injectForms(vid);
+          // Collapse the initial double-fire (astro:page-load + DOMContentLoaded)
+          // without dropping genuine navigations to other URLs.
+          var here = location.pathname + location.search;
+          var now = Date.now();
+          if (here === lastUrl && now - lastTs < 1000) return;
+          lastUrl = here;
+          lastTs = now;
+          send(vid);
+        }
+
+        // Astro View Transitions: fires on initial load AND every SPA nav.
+        document.addEventListener('astro:page-load', track);
+        // Non-Astro fallback (portable drop-in): fire once if page-load never comes.
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', track);
+        } else {
+          track();
+        }
+        // Consent granted later → start tracking (same tab via custom event,
+        // other tabs via the storage event).
+        if (consentMode === 'required') {
+          try {
+            window.addEventListener('storage', function (e) {
+              if (e && e.key === 'gen-consent' && e.newValue === 'granted') track();
+            });
+            window.addEventListener('gen:consent-granted', function () {
+              track();
+            });
+          } catch (e) {}
+        }
+      } catch (e) {}
+    })();
+  </script>
+)}
