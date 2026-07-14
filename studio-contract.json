@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "note": "Manifiesto del contrato Studio sobre el DOM construido. NO editar a mano ni regenerar automáticamente: se actualiza SOLO con `pnpm studio:contract:update` tras un cambio deliberado de arquitectura/estructura.",
   "defaultLocale": "en",
   "locales": [
@@ -9,10 +9,14 @@
   "pages": {
     "500.html": {
       "locale": "en",
+      "route": "/500",
+      "crawleable": true,
       "sections": {}
     },
     "about/index.html": {
       "locale": "en",
+      "route": "/about/",
+      "crawleable": true,
       "sections": {
         "about": [
           "subtitle",
@@ -45,6 +49,8 @@
     },
     "blog/dark-mode-implementation/index.html": {
       "locale": "en",
+      "route": "/blog/dark-mode-implementation/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -73,6 +79,8 @@
     },
     "blog/getting-started/index.html": {
       "locale": "en",
+      "route": "/blog/getting-started/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -101,6 +109,8 @@
     },
     "blog/index.html": {
       "locale": "en",
+      "route": "/blog/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -129,6 +139,8 @@
     },
     "es/about/index.html": {
       "locale": "es",
+      "route": "/es/about/",
+      "crawleable": true,
       "sections": {
         "about": [
           "subtitle",
@@ -161,6 +173,8 @@
     },
     "es/blog/dark-mode-implementation/index.html": {
       "locale": "es",
+      "route": "/es/blog/dark-mode-implementation/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -189,6 +203,8 @@
     },
     "es/blog/getting-started/index.html": {
       "locale": "es",
+      "route": "/es/blog/getting-started/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -217,6 +233,8 @@
     },
     "es/blog/index.html": {
       "locale": "es",
+      "route": "/es/blog/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -245,6 +263,8 @@
     },
     "es/index.html": {
       "locale": "es",
+      "route": "/es/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -328,6 +348,8 @@
     },
     "es/legal/cookies/index.html": {
       "locale": "es",
+      "route": "/es/legal/cookies/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -356,6 +378,8 @@
     },
     "es/legal/privacy/index.html": {
       "locale": "es",
+      "route": "/es/legal/privacy/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -384,6 +408,8 @@
     },
     "es/legal/terms/index.html": {
       "locale": "es",
+      "route": "/es/legal/terms/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -412,6 +438,8 @@
     },
     "index.html": {
       "locale": "en",
+      "route": "/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -495,6 +523,8 @@
     },
     "legal/cookies/index.html": {
       "locale": "en",
+      "route": "/legal/cookies/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -523,6 +553,8 @@
     },
     "legal/privacy/index.html": {
       "locale": "en",
+      "route": "/legal/privacy/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -551,6 +583,8 @@
     },
     "legal/terms/index.html": {
       "locale": "en",
+      "route": "/legal/terms/",
+      "crawleable": true,
       "sections": {
         "footer": [
           "links[0]",
@@ -612,7 +646,7 @@
     "saastro.template.json": "sha256:b93760bee40e7b7e18f5d47bcdf15b30742d51e4acd81e3ba9152ff41f16824b",
     "saastrocms.config.ts": "sha256:73f1cd129ce7fb943a629bd5bcc07ca22c0f107f8e490211d8312998b99f65e2",
     "scripts/studio-check.mjs": "sha256:274fbd06aebed988632446aa1d02f7f529d249e41b8d217e94ee0b8986dac880",
-    "scripts/studio-contract-check.mjs": "sha256:cc170b2c60e03b748f193526618e8f3a6fa77837d902eae8d8069fd1443006bf",
+    "scripts/studio-contract-check.mjs": "sha256:c4f01941021eee36c7bee471f9eeced132e0eaeefaae51f098169cae48a1573f",
     "src/content.config.ts": "sha256:f89854b19063822732518cf911f5373e934b0e158ca78f7fa412d79a7efb2539",
     "src/env.d.ts": "sha256:2f2914b361994d5464b566e8489886697e2b537eb3e10f313e463ef9dbbecbe0",
     "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
