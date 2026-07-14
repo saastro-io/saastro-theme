@@ -1,0 +1,627 @@
+{
+  "version": 1,
+  "note": "Manifiesto del contrato Studio sobre el DOM construido. NO editar a mano ni regenerar automáticamente: se actualiza SOLO con `pnpm studio:contract:update` tras un cambio deliberado de arquitectura/estructura.",
+  "defaultLocale": "en",
+  "locales": [
+    "en",
+    "es"
+  ],
+  "pages": {
+    "500.html": {
+      "locale": "en",
+      "sections": {}
+    },
+    "about/index.html": {
+      "locale": "en",
+      "sections": {
+        "about": [
+          "subtitle",
+          "title"
+        ],
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "blog/dark-mode-implementation/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "blog/getting-started/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "blog/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/about/index.html": {
+      "locale": "es",
+      "sections": {
+        "about": [
+          "subtitle",
+          "title"
+        ],
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/blog/dark-mode-implementation/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/blog/getting-started/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/blog/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "hero": [
+          "eyebrow",
+          "stats[0]",
+          "stats[0].label",
+          "stats[0].value",
+          "stats[1]",
+          "stats[1].label",
+          "stats[1].value",
+          "stats[2]",
+          "stats[2].label",
+          "stats[2].value",
+          "stats[3]",
+          "stats[3].label",
+          "stats[3].value",
+          "subtitle",
+          "title[0]",
+          "title[1]"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "products": [
+          "items[0]",
+          "items[0].description",
+          "items[0].features[0]",
+          "items[0].features[1]",
+          "items[0].features[2]",
+          "items[0].features[3]",
+          "items[0].name",
+          "items[0].tagline",
+          "items[1]",
+          "items[1].description",
+          "items[1].features[0]",
+          "items[1].features[1]",
+          "items[1].features[2]",
+          "items[1].features[3]",
+          "items[1].name",
+          "items[1].tagline",
+          "items[2]",
+          "items[2].description",
+          "items[2].features[0]",
+          "items[2].features[1]",
+          "items[2].features[2]",
+          "items[2].features[3]",
+          "items[2].name",
+          "items[2].tagline",
+          "items[3]",
+          "items[3].badge",
+          "items[3].description",
+          "items[3].features[0]",
+          "items[3].features[1]",
+          "items[3].features[2]",
+          "items[3].features[3]",
+          "items[3].name",
+          "items[3].tagline",
+          "subtitle",
+          "title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/legal/cookies/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/legal/privacy/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "es/legal/terms/index.html": {
+      "locale": "es",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "hero": [
+          "eyebrow",
+          "stats[0]",
+          "stats[0].label",
+          "stats[0].value",
+          "stats[1]",
+          "stats[1].label",
+          "stats[1].value",
+          "stats[2]",
+          "stats[2].label",
+          "stats[2].value",
+          "stats[3]",
+          "stats[3].label",
+          "stats[3].value",
+          "subtitle",
+          "title[0]",
+          "title[1]"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "products": [
+          "items[0]",
+          "items[0].description",
+          "items[0].features[0]",
+          "items[0].features[1]",
+          "items[0].features[2]",
+          "items[0].features[3]",
+          "items[0].name",
+          "items[0].tagline",
+          "items[1]",
+          "items[1].description",
+          "items[1].features[0]",
+          "items[1].features[1]",
+          "items[1].features[2]",
+          "items[1].features[3]",
+          "items[1].name",
+          "items[1].tagline",
+          "items[2]",
+          "items[2].description",
+          "items[2].features[0]",
+          "items[2].features[1]",
+          "items[2].features[2]",
+          "items[2].features[3]",
+          "items[2].name",
+          "items[2].tagline",
+          "items[3]",
+          "items[3].badge",
+          "items[3].description",
+          "items[3].features[0]",
+          "items[3].features[1]",
+          "items[3].features[2]",
+          "items[3].features[3]",
+          "items[3].name",
+          "items[3].tagline",
+          "subtitle",
+          "title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "legal/cookies/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "legal/privacy/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    },
+    "legal/terms/index.html": {
+      "locale": "en",
+      "sections": {
+        "footer": [
+          "links[0]",
+          "links[0].links[0]",
+          "links[0].links[0].text",
+          "links[0].links[1]",
+          "links[0].links[1].text",
+          "links[0].links[2]",
+          "links[0].links[2].text",
+          "links[0].title",
+          "manageCookiesLabel"
+        ],
+        "nav": [
+          "localeLinks[0]",
+          "localeLinks[1]",
+          "menu[0]",
+          "menu[0].title",
+          "menu[1]",
+          "menu[1].title",
+          "menu[2]",
+          "menu[2].title"
+        ],
+        "toggle_theme": [],
+        "whatsapp": []
+      }
+    }
+  },
+  "css": {
+    "requires": [
+      "var(--font-body)",
+      "var(--font-display)",
+      ".ac"
+    ]
+  },
+  "formPrimitiveExports": {
+    "src/components/ui/form.tsx": [
+      "FormControl",
+      "FormDescription",
+      "FormField",
+      "FormItem",
+      "FormLabel",
+      "FormMessage"
+    ],
+    "src/components/ui/field.tsx": [
+      "Field",
+      "FieldContent",
+      "FieldDescription",
+      "FieldError",
+      "FieldGroup",
+      "FieldLabel",
+      "FieldLegend",
+      "FieldSeparator",
+      "FieldSet",
+      "FieldTitle"
+    ]
+  },
+  "architectureHashes": {
+    "astro.config.mjs": "sha256:a2606bb4caf660932d9b33df3a928fec037c3c35babfcd8cf3a4a35733f86760",
+    "saastro.template.json": "sha256:b93760bee40e7b7e18f5d47bcdf15b30742d51e4acd81e3ba9152ff41f16824b",
+    "saastrocms.config.ts": "sha256:73f1cd129ce7fb943a629bd5bcc07ca22c0f107f8e490211d8312998b99f65e2",
+    "scripts/studio-check.mjs": "sha256:274fbd06aebed988632446aa1d02f7f529d249e41b8d217e94ee0b8986dac880",
+    "scripts/studio-contract-check.mjs": "sha256:5e0c701dbd0ef6cc9d162f55ffba83f05b2bf6edbc7a502f09aafd7525d51af4",
+    "src/content.config.ts": "sha256:f89854b19063822732518cf911f5373e934b0e158ca78f7fa412d79a7efb2539",
+    "src/env.d.ts": "sha256:2f2914b361994d5464b566e8489886697e2b537eb3e10f313e463ef9dbbecbe0",
+    "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
+    "src/i18n/index.ts": "sha256:09b6e214338654d36d2d5740f89bb714015088b30331b455a1a633a7681cabe4",
+    "src/i18n/meta.ts": "sha256:74fda56fd5279a8454d01bc559bf5e0843f6fc44b7251db94d064700810006b1",
+    "src/i18n/types.ts": "sha256:0576fef21b5c61ee4312cc5c9c234d20e125dda295a805115cdaa84e775c37b8",
+    "src/i18n/utils.ts": "sha256:89ee3b4e2b0fe8d180132e6118a3dd3fe276b92129a10d7f666eb1320a55cdb8",
+    "src/integrations/strip-studio-meta-middleware.ts": "sha256:012405e52443b3de3775cb9575eb0d9494c28b8a7202fab3b43246733c109abe",
+    "src/lib/settings.ts": "sha256:8afaea601af6725fcd832762eb5f42f013cc53430b4c540c4d61259b9f1b48a8",
+    "src/middleware.ts": "sha256:f4dc8dc983da1f49e262eddc1c374031196fed3b770ac0fc56d3b36acd246161"
+  }
+}

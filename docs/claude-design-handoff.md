@@ -99,6 +99,7 @@ It fails on:
 4. raw `<form>` (must be `<HubForm>`)
 5. `astro build` failure
 6. (advisory) hardcoded copy in a marked section outside the i18n allowlist
+7. **contract drift on the BUILT DOM** — after the build, `scripts/studio-contract-check.mjs` re-validates `dist/` against `studio-contract.json` + the i18n JSONs (section/field markers per page, i18n text verbatim, schema scripts, locale parity, CSS tokens, architecture hashes); deliberate structural changes are recorded with `pnpm studio:contract:update`
 
 > Note: `studio:check` is implemented over the shared `@saastro/studio/doctor` subpath.
 
