@@ -14,6 +14,7 @@ import LocalBusinessJsonLd from '../components/LocalBusinessJsonLd.astro';
 import SiteJsonLd from '../components/SiteJsonLd.astro';
 import Analytics from '../components/Analytics.astro';
 import AnalyticsNoscript from '../components/AnalyticsNoscript.astro';
+import GenTracking from '../components/GenTracking.astro';
 import { ClientRouter } from 'astro:transitions';
 import { i18nConfig } from '../i18n/config';
 import { getHreflangEntries } from '../i18n/utils';
@@ -57,6 +58,7 @@ const resolvedAnalytics = {
 };
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 const cfWebAnalyticsToken = settings.analytics.cloudflareWebAnalytics?.token ?? '';
+const genTracking = settings.gen ?? { workspaceId: '' };
 // Brand name for og:site_name — from i18n `meta.siteName` (Hub-editable),
 // falling back to the build-time settings value.
 const siteName =
@@ -119,6 +121,11 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     <Analytics
       googleAnalyticsId={resolvedAnalytics.googleAnalyticsId}
       googleTagManagerId={resolvedAnalytics.googleTagManagerId}
+    />
+    <GenTracking
+      workspaceId={genTracking.workspaceId}
+      vertical={genTracking.vertical}
+      collectUrl={genTracking.collectUrl}
     />
     <ClientRouter fallback="swap" />
 

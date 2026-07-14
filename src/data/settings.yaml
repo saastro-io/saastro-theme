@@ -50,3 +50,15 @@ forms:
   # of erroring. `contactFormSlug` is the form the slide-out ContactSheet renders.
   siteId: ""
   contactFormSlug: "contact"
+
+gen:
+  # saastro-gen lead tracking. When `workspaceId` is set, an anonymous per-session
+  # visitor id is minted and page views beacon to gen's /collect — so a lead that
+  # later submits the form is attributed to its full pre-lead journey. The same id
+  # rides to gen via a `gen_visitor_id` hidden form field (a `storage` resolver,
+  # area=session). Consent-gated by the `analytics` cookie category. Empty =
+  # disabled (no id minted, no beacon).
+  workspaceId: ""
+  vertical: "default"
+  # gen's public collector endpoint (prod default).
+  collectUrl: "https://gen.saastro.io/collect"

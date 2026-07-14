@@ -1,0 +1,110 @@
+---
+/**
+ * GenTracking — anonymous visitor tracking for saastro-gen lead attribution.
+ *
+ * Mints a per-session anonymous `gen_vid` (sessionStorage, matching gen's
+ * /collect design) so a lead that later submits the contact form is attributed
+ * to its full pre-lead journey. The same id rides to gen via a `gen_visitor_id`
+ * hidden form field (a Hub-authored field with a `storage` resolver, area=session).
+ *
+ * Privacy: the id is minted UNCONDITIONALLY (local, session-scoped, functional —
+ * it identifies a form the visitor themselves submits). The /collect BEACON
+ * (network) fires ONLY with `analytics` consent, mirroring Analytics.astro, and
+ * (re)fires when consent is granted or on each client-side navigation.
+ *
+ * Renders nothing unless a gen `workspaceId` is configured (settings.yaml → gen).
+ */
+export interface Props {
+  workspaceId?: string;
+  vertical?: string;
+  collectUrl?: string;
+}
+
+const {
+  workspaceId,
+  vertical = 'default',
+  collectUrl = 'https://gen.saastro.io/collect',
+} = Astro.props;
+
+const enabled = typeof workspaceId === 'string' && workspaceId.trim().length > 0;
+---
+
+{enabled && (
+  <script is:inline define:vars={{ workspaceId, vertical, collectUrl }}>
+    (function () {
+      // Init once — the head script persists across View Transitions, so guard
+      // against re-attaching listeners on navigation.
+      if (window.__genTrackingInit) return;
+      window.__genTrackingInit = true;
+
+      const KEY = 'gen_vid';
+      let lastUrl = '';
+
+      function hasConsent(category) {
+        try {
+          if (category === 'essential') return true;
+          const match = document.cookie.split('; ').find((c) => c.startsWith('cookie_consent='));
+          if (!match) return false;
+          const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          return !!consent[category];
+        } catch {
+          return false;
+        }
+      }
+
+      function visitorId() {
+        try {
+          let id = sessionStorage.getItem(KEY);
+          if (!id) {
+            id =
+              (crypto && crypto.randomUUID && crypto.randomUUID()) ||
+              Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+            sessionStorage.setItem(KEY, id);
+          }
+          return id;
+        } catch {
+          return null;
+        }
+      }
+
+      function beacon() {
+        if (!hasConsent('analytics')) return;
+        if (location.href === lastUrl) return; // dedupe (immediate + page-load)
+        const id = visitorId();
+        if (!id) return;
+        lastUrl = location.href;
+        try {
+          const body = JSON.stringify({
+            workspaceId: workspaceId,
+            vertical: vertical,
+            visitorId: id,
+            type: 'page_view',
+            url: location.href.slice(0, 2048),
+            path: location.pathname.slice(0, 1024),
+            referrer: document.referrer ? document.referrer.slice(0, 2048) : undefined,
+            title: document.title ? document.title.slice(0, 512) : undefined,
+            ts: Date.now(),
+          });
+          fetch(collectUrl, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: body,
+            keepalive: true,
+            mode: 'cors',
+            credentials: 'omit',
+          }).catch(function () {});
+        } catch (e) {
+          /* tracking must never break the page */
+        }
+      }
+
+      // Mint the id up front (functional); beacon now + on every navigation.
+      visitorId();
+      beacon();
+      document.addEventListener('astro:page-load', beacon);
+      window.addEventListener('cookie-consent-updated', function (e) {
+        if (e && e.detail && e.detail.analytics) beacon();
+      });
+    })();
+  </script>
+)}

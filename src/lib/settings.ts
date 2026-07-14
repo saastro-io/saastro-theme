@@ -49,6 +49,12 @@ export interface SiteSettings {
     readonly siteId: string;
     readonly contactFormSlug: string;
   };
+  // saastro-gen lead tracking (optional). Empty workspaceId = disabled.
+  readonly gen?: {
+    readonly workspaceId: string;
+    readonly vertical?: string;
+    readonly collectUrl?: string;
+  };
 }
 
 let cached: SiteSettings | null = null;
