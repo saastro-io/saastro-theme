@@ -39,14 +39,13 @@ const {
   showContactButton = true,
   contactButtonLabel = 'Contact',
   localeLinks = [],
-  fieldPrefix,
+  fieldPrefix = 'nav',
 } = Astro.props;
 
 const currentPath = `/${new URL(Astro.url).pathname.replace(/^\//, '')}`;
 ---
 
 <header
-  data-saastro={`sec:${fieldPrefix ?? 'nav'}`}
   class:list={[
     'z-50 h-16 px-4 border-b bg-background/80 backdrop-blur-md flex items-center',
     { 'sticky top-0': isSticky, relative: !isSticky },

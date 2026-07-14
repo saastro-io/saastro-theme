@@ -24,6 +24,31 @@ It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — 
 
 **Editable = what's in i18n.** A section is editable when its component emits a `data-saastro="sec:<key>"` marker on its root tag (built from the `fieldPrefix` prop the page/layout passes) AND `<key>` is a top-level namespace in the translation JSON. Marked keys: `hero`, `products`, `about`, `nav`, `footer`. Every section component now follows this contract (prop-driven + i18n + marker) — no hardcoded sections remain.
 
+> ⚠️ Since `@saastro/studio` 0.10.0 the plugin auto-injects the `sec:` root marker
+> when the frontmatter declares `fieldPrefix` — but **`data-saastro-field` auto-
+> instrumentation still requires a literal `data-saastro=` in the .astro source**
+> (`instrumentFields` bails without it). The hand-written markers in Hero/Footer/
+> AboutContent/Products are therefore still load-bearing: removing them keeps the
+> `sec:` marker (auto-injected) but silently drops every field marker. Do NOT
+> remove them until the plugin instruments fields on auto-wrapped sections.
+
+## Contract check over the BUILT DOM — `studio-contract.json`
+
+`pnpm studio:check` is the single full-verdict command: source doctor
+(`scripts/studio-check.mjs`) → `astro build` → **contract check over `dist/`**
+(`scripts/studio-contract-check.mjs`). The contract layer compares the built
+HTML against two sources of truth: the i18n JSONs and **`studio-contract.json`**
+(committed manifest at the repo root) — per-page section/field markers, i18n
+text verbatim in the HTML (stega/click-to-edit precondition), raw editable
+images, schema scripts, locale parity, emitted CSS tokens (`--font-body`/
+`--font-display`/`.ac`), the `#manage-cookies-btn`, form-primitive exports, and
+sha256 hashes of pure-architecture files.
+
+The manifest is **never regenerated automatically**: after a deliberate
+structural/architecture change run `pnpm studio:contract:update` and commit the
+diff. A red check = the built DOM diverged from the recorded contract; each
+failure says which invariant, which page/section/field, and what to do.
+
 ## Claude Design handoff
 
 When a design from **Claude Design** arrives (a `.dc.html` / the `claude_design` MCP),
