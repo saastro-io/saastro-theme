@@ -1,17 +1,6 @@
 import React from 'react'
+import { editableSection, editableSlot } from '@saastro/studio/markers'
 import type { Translations } from '../../i18n/types'
-
-// Studio editable-marker helpers, inlined on purpose. Importing them from the
-// `@saastro/studio` package ROOT pulls in its main entry, which bundles the
-// Node-only Vite plugin (references `__filename`) and 500s the page under the
-// workerd SSR runtime. These emit the exact same `data-saastro` markers the
-// package helpers do, so the Studio overlay enumerates/binds them identically.
-function editableSection(fieldPrefix: string) {
-  return fieldPrefix ? { 'data-saastro': `sec:${fieldPrefix}` } : {}
-}
-function editableSlot(fieldPrefix: string, slotName: string) {
-  return fieldPrefix && slotName ? { 'data-saastro': `slot:${fieldPrefix}.${slotName}` } : {}
-}
 
 const WA_GREEN = '#25D366'
 const WA_GREEN_DEEP = '#1DA851'
