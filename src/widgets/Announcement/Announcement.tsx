@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
+import { editableField, editableSection } from '@saastro/studio/markers';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,7 @@ export function Announcement({
   return (
     <div
       role="banner"
-      data-saastro={`sec:${fieldPrefix}`}
+      {...editableSection(fieldPrefix)}
       className={cn(
         'flex items-center justify-center gap-3 border-b bg-muted/60 px-4 py-2 text-sm',
         className,
@@ -56,12 +57,12 @@ export function Announcement({
       <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 
       {badge && (
-        <Badge variant="secondary" className="shrink-0 text-xs" data-saastro-field="badge">
+        <Badge variant="secondary" className="shrink-0 text-xs" {...editableField('badge')}>
           {badge}
         </Badge>
       )}
 
-      <span className="text-muted-foreground truncate" data-saastro-field="text">
+      <span className="text-muted-foreground truncate" {...editableField('text')}>
         {href ? (
           <a href={href} className="hover:text-foreground underline underline-offset-4 transition-colors">
             {text}

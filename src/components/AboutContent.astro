@@ -21,13 +21,12 @@ const {
   missionDescription,
   valuesTitle,
   valuesItems,
-  fieldPrefix,
+  fieldPrefix = 'about',
 } = Astro.props;
 ---
 
 <section
   class="container mx-auto px-4 py-20 md:py-32"
-  data-saastro={`sec:${fieldPrefix ?? 'about'}`}
 >
   <div class="mx-auto max-w-3xl">
     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl mb-6">{title}</h1>

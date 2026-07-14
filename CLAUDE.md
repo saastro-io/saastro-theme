@@ -17,20 +17,24 @@ It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — 
 |---|---|
 | `@saastro/studio` Vite plugin (`autoWrap` + `autoWrapPages`) | `astro.config.mjs` |
 | `stripStudioMeta` integration (strips dev meta tags in prod) | `astro.config.mjs` + `src/integrations/strip-studio-meta-middleware.ts` |
-| `data-saastro="sec:<key>"` markers on section roots | `src/components/{Hero,AboutContent,Header,Footer}.astro` |
+| `data-saastro="sec:<key>"` markers on section roots | auto-injected by the plugin (≥0.10.1) from the `fieldPrefix` destructuring default; islands spread `@saastro/studio/markers` helpers |
 | Global sections (nav/footer) | `studio.config.json` |
 | Collections + i18n shape (parsed by the Hub) | `saastrocms.config.ts` (interface inlined — no `@saastro/cms` dep) |
 | Editable content | `src/i18n/translations/{en,es}.json` |
 
 **Editable = what's in i18n.** A section is editable when its component emits a `data-saastro="sec:<key>"` marker on its root tag (built from the `fieldPrefix` prop the page/layout passes) AND `<key>` is a top-level namespace in the translation JSON. Marked keys: `hero`, `products`, `about`, `nav`, `footer`. Every section component now follows this contract (prop-driven + i18n + marker) — no hardcoded sections remain.
 
-> ⚠️ Since `@saastro/studio` 0.10.0 the plugin auto-injects the `sec:` root marker
-> when the frontmatter declares `fieldPrefix` — but **`data-saastro-field` auto-
-> instrumentation still requires a literal `data-saastro=` in the .astro source**
-> (`instrumentFields` bails without it). The hand-written markers in Hero/Footer/
-> AboutContent/Products are therefore still load-bearing: removing them keeps the
-> `sec:` marker (auto-injected) but silently drops every field marker. Do NOT
-> remove them until the plugin instruments fields on auto-wrapped sections.
+> Since `@saastro/studio` **0.10.1** the plugin auto-injects BOTH the `sec:` root
+> marker AND the `data-saastro-field` markers in `.astro` sections whose
+> frontmatter declares `fieldPrefix` (the 0.10.0 bug — `instrumentFields` bailing
+> without a literal `data-saastro=` in the source — is fixed). No `.astro` section
+> hand-writes markers anymore: the default lives in the destructuring
+> (`fieldPrefix = 'hero'`) and the plugin does the rest. React islands are never
+> auto-instrumented — they spread the pure helpers from the SSR/browser-safe
+> subpath **`@saastro/studio/markers`** (`editableSection`/`editableField`/
+> `editableSlot`), which the doctor requires (`island_raw_markers` warns on
+> hand-typed attributes). Single exception: `ToggleTheme.astro` keeps its
+> hardcoded marker (no `fieldPrefix` prop — deliberate).
 
 ## Contract check over the BUILT DOM — `studio-contract.json`
 
@@ -157,9 +161,11 @@ These are template-level traps that every descendant site inherits unless fixed 
   `saastro-theme.pages.dev` leaked into a live site).
 - **NEVER import `@saastro/studio` (package ROOT) in a runtime component.** Its main entry
   bundles the Node Vite plugin (references `__filename`) and **500s under the workerd SSR
-  runtime**. Import only the SSR-safe subpaths (`@saastro/studio/Img.astro`), or inline the
-  trivial editable-marker helpers (`editableSection` → `{ 'data-saastro': 'sec:<prefix>' }`,
-  `editableSlot` → `{ 'data-saastro': 'slot:<prefix>.<name>' }`).
+  runtime**. Import only the SSR-safe subpaths: `@saastro/studio/Img.astro`, and — for the
+  editable-marker helpers in islands — **`@saastro/studio/markers`** (≥0.10.1:
+  `editableSection`/`editableField`/`editableSlot`/`editableImage`/`editableArrayItem`).
+  Don't inline copies of the helpers anymore — the subpath is workerd-safe and the doctor
+  recognizes the import.
 - **Collection-backed sections: load the collection INSIDE the component, never pass it as
   an editable `items` prop.** If a section receives `items` as a prop, autoWrap exposes it as
   a Studio field (often `kind: json` for unions → a broken raw-JSON editor + "NEEDS CONFIG"),
