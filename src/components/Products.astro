@@ -26,13 +26,12 @@ interface Props {
   fieldPrefix?: string;
 }
 
-const { title, subtitle, items = [], fieldPrefix } = Astro.props;
+const { title, subtitle, items = [], fieldPrefix = 'products' } = Astro.props;
 ---
 
 <section
   id="products"
   class="py-20 md:py-32"
-  data-saastro={`sec:${fieldPrefix ?? 'products'}`}
 >
   <div class="container mx-auto px-4">
     <!-- Section header -->

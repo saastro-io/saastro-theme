@@ -24,20 +24,19 @@ const {
   stats,
   primaryCta,
   secondaryCta,
-  fieldPrefix,
+  fieldPrefix = 'hero',
 } = Astro.props;
 ---
 
 <section
   class="relative flex min-h-[85vh] flex-col justify-end overflow-hidden pb-16 pt-32 lg:pb-24"
-  data-saastro={`sec:${fieldPrefix ?? 'hero'}`}
 >
   {image ? (
     <>
       <Img
         src={image}
         alt={imageAlt}
-        fieldPrefix={`${fieldPrefix ?? 'hero'}.image`}
+        fieldPrefix={`${fieldPrefix}.image`}
         width={1920}
         height={1080}
         sizes="100vw"
