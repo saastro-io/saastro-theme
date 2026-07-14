@@ -208,10 +208,15 @@ const translations = Object.fromEntries(
 const locales = Object.keys(translations).sort()
 const defaultLocale = locales.includes(DEFAULT_LOCALE) ? DEFAULT_LOCALE : locales[0]
 
-/** locale + path lógico (sin prefijo de locale) de una página de dist */
+/** locale + path lógico (sin prefijo de locale) de una página de dist.
+ *  Soporta ambas convenciones de routing de la flota: default SIN prefijo
+ *  (este theme — el primer segmento nunca es el locale default) y default
+ *  PREFIJADO (sites con routing 'manual' que emiten /en/… también para el
+ *  default) — el prefijo se recorta siempre que sea un locale conocido, para
+ *  que la paridad de locales compare paths lógicos equivalentes. */
 function pageLocale(relPath) {
   const first = relPath.split('/')[0]
-  if (first !== defaultLocale && locales.includes(first)) {
+  if (locales.includes(first)) {
     return { locale: first, logicalPath: relPath.split('/').slice(1).join('/') }
   }
   return { locale: defaultLocale, logicalPath: relPath }
@@ -478,7 +483,13 @@ for (const [rel] of Object.entries(pages)) {
       else if (entry.name.endsWith('.css')) cssFiles.push(full)
     }
   })(htmlRoot)
-  const allCss = cssFiles.map((f) => readFileSync(f, 'utf8')).join('\n')
+  // El CSS emitido puede vivir en ficheros .css de dist o inline en <style>
+  // dentro del HTML (sites con inlineStylesheets:'always' no emiten .css).
+  // Se escanean ambas fuentes.
+  const inlineCss = Object.values(pages)
+    .flatMap((p) => p.root.querySelectorAll('style').map((s) => s.textContent ?? ''))
+    .join('\n')
+  const allCss = cssFiles.map((f) => readFileSync(f, 'utf8')).join('\n') + '\n' + inlineCss
   for (const req of manifest.css?.requires ?? CSS_REQUIRES) {
     const ok = req.startsWith('.')
       ? new RegExp(req.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^\\w-]').test(allCss)
