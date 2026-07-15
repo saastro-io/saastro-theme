@@ -79,6 +79,17 @@ marker is `data-saastro="sec:<key>"`). There's no canonical key list — section
 per-project; `pnpm studio:check` validates internal coherence (marker ↔ i18n ↔ page),
 not membership in a fixed list.
 
+**Fonts — decision on record (owner, 2026-07-16):** client sites **load Google
+Fonts from Google's CDN; they do NOT self-host**. This template itself bundles
+Geist, but a redesign that pulls fonts from `fonts.googleapis.com` is following
+the owner's explicit call, not a mistake to "fix". Two consequences that ARE
+binding: (1) the site's cookie/privacy policy must **declare** the transfer (the
+visitor's browser sends its IP to Google on every page load, before the consent
+banner exists) — an undeclared third-party font load is the actual problem, not
+the font source; (2) don't spend a round trip re-raising it: the trade-off
+(convenience vs. an EU-transfer question that has case law behind it) was put to
+the owner and decided. Revisit only if the owner asks.
+
 **Tokens SSOT:** `src/styles/global.css` — oklch variables mapped via `@theme inline`.
 The base palette is neutral (chroma 0); a brand color means giving `--primary`/`--accent`
 real chroma or adding `--brand` in `:root` + `.dark`, never an inline hex.

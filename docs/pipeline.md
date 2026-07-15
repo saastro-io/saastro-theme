@@ -97,5 +97,6 @@ Las tres capas que hacen que esto sea repetible (y por qué existen):
 - **`studio:contract:update` para poner el check en verde** → estás borrando la alarma,
   no el fuego. Solo tras un cambio estructural deliberado, revisando el diff.
 - **Copy o color hardcodeados** → el cliente no puede editarlos desde Studio.
+- **Fuentes de terceros sin declarar** → los sites cargan Google Fonts desde el CDN de Google (decisión del propietario, 16-jul-2026: no se autoaloja). Eso es una decisión tomada, no un despiste — pero **obliga**: la política de cookies/privacidad del site tiene que declarar esa transferencia, porque el navegador del visitante manda su IP a Google en cada carga, antes de que el banner exista. Lo que no se puede es cargarla sin declararla.
 - **Editable fuera del allowlist del Hub** (i18n JSON · `.md` · `src/pages` ·
   `src/content` · `studio.config.json`) → se pierde en la siguiente publicación.
