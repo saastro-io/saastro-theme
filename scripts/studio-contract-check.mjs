@@ -69,13 +69,14 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { extname, join, relative } from 'node:path'
 import { parse } from 'node-html-parser'
+import { resolveDefaultLocale } from './lib/default-locale.mjs'
 
 const ROOT = process.cwd()
 const DIST_HTML_ROOTS = ['dist/client', 'dist'] // output:'server' prerenderiza en dist/client; static en dist
 const I18N_DIR = join(ROOT, 'src', 'i18n', 'translations')
 const PAGES_DIR = join(ROOT, 'src', 'pages')
 const MANIFEST_PATH = join(ROOT, 'studio-contract.json')
-const DEFAULT_LOCALE = 'en'
+const DEFAULT_LOCALE = resolveDefaultLocale(ROOT).locale
 const MANIFEST_VERSION = 2
 
 // ── flags ────────────────────────────────────────────────────────────────────
