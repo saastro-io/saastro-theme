@@ -30,23 +30,17 @@ interface CookieBannerProps {
   fieldPrefix?: string
 }
 
-/** ¿Hay algún tracker de analytics ya cargado en esta página? Cubre los flags
- *  que dejan los loaders gateados del theme (Analytics.astro: `gaLoaded` /
- *  `gtmLoaded`; BaseLayout: `__cfBeaconLoaded`) y, como red de seguridad, la
- *  presencia del <script> del beacon de CF aunque lo haya inyectado otro
- *  código (p. ej. auto-inject de Cloudflare). */
+/** ¿Hay algún tracker CONDICIONADO AL CONSENTIMIENTO ya cargado en esta página?
+ *  Solo los flags de los loaders gateados (Analytics.astro: `gaLoaded` /
+ *  `gtmLoaded`).
+ *
+ *  El beacon de Cloudflare NO cuenta a propósito: no está gateado (es cookieless
+ *  — ver la nota de decisión en BaseLayout), así que recargar por él sería
+ *  inútil: volvería a cargar igual tras el reload. Incluirlo solo provocaría una
+ *  recarga sin efecto cada vez que alguien apaga analytics en un site con beacon. */
 function analyticsTrackerLoaded(): boolean {
-  const w = window as Window & {
-    gaLoaded?: boolean
-    gtmLoaded?: boolean
-    __cfBeaconLoaded?: boolean
-  }
-  return Boolean(
-    w.gaLoaded ||
-      w.gtmLoaded ||
-      w.__cfBeaconLoaded ||
-      document.querySelector('script[src*="cloudflareinsights.com"]'),
-  )
+  const w = window as Window & { gaLoaded?: boolean; gtmLoaded?: boolean }
+  return Boolean(w.gaLoaded || w.gtmLoaded)
 }
 
 export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
