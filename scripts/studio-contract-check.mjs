@@ -119,6 +119,7 @@ function architectureFiles() {
     'src/lib/settings.ts',
     'scripts/studio-check.mjs',
     'scripts/studio-contract-check.mjs', // autoprotección
+    'scripts/lib/default-locale.mjs', // ídem: de él depende el default locale de AMBOS checks
   ]
   // content config: el que exista de los dos layouts
   if (existsSync(join(ROOT, 'src/content.config.ts'))) fixed.push('src/content.config.ts')
