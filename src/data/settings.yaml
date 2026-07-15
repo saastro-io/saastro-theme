@@ -50,3 +50,16 @@ forms:
   # of erroring. `contactFormSlug` is the form the slide-out ContactSheet renders.
   siteId: ""
   contactFormSlug: "contact"
+
+gen:
+  # SAASTRO Gen lead-attribution beacon (GenTracking): one cookieless page-view
+  # per load → gen.saastro.io/collect, and the anonymous visitor id rides along
+  # on form submits so Gen links each lead to its pre-conversion journey.
+  # `workspaceId` = your Gen workspace (the Platform team id). EMPTY = OFF.
+  # Toggled per site from Hub → Site → Settings, which writes this block
+  # (same mechanism as forms.siteId). Host-blocked on previews/local dev.
+  workspaceId: ""
+  vertical: "default"
+  # "none" = cookieless, tracks immediately (no banner needed).
+  # "required" = waits until localStorage['gen-consent'] === 'granted'.
+  consent: "none"

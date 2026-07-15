@@ -49,6 +49,16 @@ export interface SiteSettings {
     readonly siteId: string;
     readonly contactFormSlug: string;
   };
+  /**
+   * SAASTRO Gen lead-attribution beacon (GenTracking.astro). Empty/absent
+   * `workspaceId` = tracking OFF. Toggled per site from the Hub, which writes
+   * this block (same mechanism as forms.siteId).
+   */
+  readonly gen?: {
+    readonly workspaceId: string;
+    readonly vertical?: string;
+    readonly consent?: 'none' | 'required';
+  };
 }
 
 let cached: SiteSettings | null = null;
