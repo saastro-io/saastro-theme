@@ -30,6 +30,25 @@ interface CookieBannerProps {
   fieldPrefix?: string
 }
 
+/** ¿Hay algún tracker de analytics ya cargado en esta página? Cubre los flags
+ *  que dejan los loaders gateados del theme (Analytics.astro: `gaLoaded` /
+ *  `gtmLoaded`; BaseLayout: `__cfBeaconLoaded`) y, como red de seguridad, la
+ *  presencia del <script> del beacon de CF aunque lo haya inyectado otro
+ *  código (p. ej. auto-inject de Cloudflare). */
+function analyticsTrackerLoaded(): boolean {
+  const w = window as Window & {
+    gaLoaded?: boolean
+    gtmLoaded?: boolean
+    __cfBeaconLoaded?: boolean
+  }
+  return Boolean(
+    w.gaLoaded ||
+      w.gtmLoaded ||
+      w.__cfBeaconLoaded ||
+      document.querySelector('script[src*="cloudflareinsights.com"]'),
+  )
+}
+
 export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
   const [visible, setVisible] = useState(false)
   const [showCustomize, setShowCustomize] = useState(false)
@@ -55,10 +74,21 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
 
   const save = useCallback(
     (prefs: { analytics: boolean; personalization: boolean }) => {
+      const previous = getConsent()
       setConsent(prefs)
       window.dispatchEvent(new CustomEvent("cookie-consent-updated", { detail: prefs }))
       setVisible(false)
       setShowCustomize(false)
+
+      // Revocación EFECTIVA (RGPD): apagar analytics escribe la cookie, pero un
+      // tracker YA CARGADO (gtag/GTM/beacon CF) sigue emitiendo — y con
+      // ClientRouter (view transitions) sobreviviría toda la sesión SPA. No hay
+      // forma fiable de "descargar" esos scripts, así que si analytics pasa de
+      // on→off con un tracker vivo, recargamos: al arrancar sin consentimiento,
+      // los loaders gateados (Analytics.astro / beacon CF) ya no lo inyectan.
+      if (previous?.analytics && !prefs.analytics && analyticsTrackerLoaded()) {
+        window.location.reload()
+      }
     },
     [],
   )
