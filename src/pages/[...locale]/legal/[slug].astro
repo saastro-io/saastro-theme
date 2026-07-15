@@ -34,6 +34,16 @@ if (!entry) {
 
 const { Content, headings } = await render(entry);
 
+// La política de cookies gana un botón de gestión propio: es el camino
+// UNIVERSAL de reapertura. Desde cualquier página siempre existe la ruta
+// banner-o-footer → política → gestionar, incluso desde las que no llevan
+// footer (404/500) o cuyo pie es un componente propio sin el botón (pasa en
+// descendientes con footer custom). Id propio y NO `manage-cookies-btn`: ese
+// es el del footer, el que exige el contrato, y duplicarlo en la misma página
+// sería HTML inválido. El slug lo fija la colección legal.
+const isCookiePolicy = slug === 'cookies';
+const manageCookiesLabel = Astro.locals.t?.footer?.manageCookies;
+
 const toc = headings
   .filter((h) => h.depth === 2)
   .map((h) => ({ id: h.slug, label: h.text }));
@@ -77,7 +87,34 @@ const lastUpdated = new Intl.DateTimeFormat(locale, {
         <h1>{entry.data.title}</h1>
         <p class="text-sm text-muted-foreground">{lastUpdated}</p>
         <Content />
+
+        {isCookiePolicy && manageCookiesLabel && (
+          <p class="not-prose mt-10">
+            <button
+              type="button"
+              id="manage-cookies-policy-btn"
+              class="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors cursor-pointer"
+            >
+              {manageCookiesLabel}
+            </button>
+          </p>
+        )}
       </article>
     </div>
   </div>
+
+  {/* Mismo patrón que el botón del Footer: listener delegado a document (el
+      ClientRouter intercambia el nodo en cada navegación) + pending-flag para
+      el click anterior a la hidratación de la isla. */}
+  {isCookiePolicy && (
+    <script>
+      document.addEventListener('click', (e) => {
+        const target = e.target as Element | null
+        if (target?.closest?.('#manage-cookies-policy-btn')) {
+          ;(window as Window & { __cookieReopenPending?: boolean }).__cookieReopenPending = true
+          window.dispatchEvent(new CustomEvent('cookie-consent-reopen'))
+        }
+      })
+    </script>
+  )}
 </SiteLayout>
