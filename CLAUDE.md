@@ -2,13 +2,15 @@
 
 This repo is the **canonical base template for new Saastro client sites**: a standalone Astro 6 + React 19 + Tailwind 4 + shadcn/ui marketing site, **pre-instrumented for Saastro Studio** (the editor lives in the Saastro Hub, not in this site).
 
-It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — it's a separate `saastro-io/saastro-theme` repo, consumed via GitHub *"Use this template"* → Hub *"Connect existing"*.
+It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — it's a separate `saastro-io/saastro-theme` repo.
+
+**A new client site is created with `pnpm scaffold client` from the Hub repo** (see "New project pipeline" below) — never with GitHub *"Use this template"*, which produces a repo with **no common history** with this theme: such a descendant can never `git merge upstream/main`, so every theme fix has to be back-ported by hand.
 
 ## Model (why this exists)
 
-- New projects start from this template (GitHub *Use this template*), then connect in the Hub.
+- New projects start from this template via `pnpm scaffold client` (the subcommand clones THIS repo with full history + `upstream`), then connect in the Hub.
 - The template already ships everything the Hub's Setup detectors look for, so **the Setup page validates green with zero instrumentation work** (Install Studio / Generate config / Auto-mark find nothing to do). Setup's role becomes validation, not setup.
-- The Hub's `@saastro/scaffold` engine is a *separate* path (blank greenfield site from the wizard) — it is **not** this repo.
+- `@saastro/scaffold` has two paths: `scaffold client` (a descendant of THIS repo — the one you want for a client site) and the blank-greenfield engine the Hub wizard uses, which is not this repo.
 - `enlolab/dorjoiers` is a production descendant of this theme (its `package.json` is still named `saastro-theme`) — use it as the reference for any Studio-wiring question.
 
 ## Studio instrumentation (the contract)
@@ -53,10 +55,22 @@ structural/architecture change run `pnpm studio:contract:update` and commit the
 diff. A red check = the built DOM diverged from the recorded contract; each
 failure says which invariant, which page/section/field, and what to do.
 
+## New project pipeline (briefing → Design → this template → live)
+
+The full route, and what runs it, is in **`docs/pipeline.md`**. Short version:
+
+1. **Create the repo** — from the Hub repo: `pnpm scaffold client <slug> --name "…" --domain … --owner … --locales es --default es`. Clones this theme with **full history** + `upstream`, parametrizes identity/locales/collections, and only commits if `studio:check` is green.
+2. **Design** — brief in Claude.ai → Claude Design → handoff (`.dc.html` / MCP).
+3. **Apply the handoff** — in the client repo, run the **`apply-handoff` skill** (`.claude/skills/apply-handoff/`, inherited by every copy): it ports the design into the free zone and loops until `pnpm studio:check` is green.
+4. **Ship** — branch → PR → deploy → Hub *"Connect existing"* (green here ⇒ green there).
+
+Bring theme fixes down anytime: `git fetch upstream && git merge upstream/main`.
+
 ## Claude Design handoff
 
 When a design from **Claude Design** arrives (a `.dc.html` / the `claude_design` MCP),
-follow **`docs/claude-design-handoff.md`**. Golden rule: **port, never paste**.
+follow **`docs/claude-design-handoff.md`** — or just invoke the **`apply-handoff`
+skill**, which drives that playbook as a loop. Golden rule: **port, never paste**.
 **Nav/Footer are not regenerated** — they carry behavior (mobile menu, locale switcher,
 the "Manage cookies" reopen, contact sheet); take the new look, keep the wiring.
 
