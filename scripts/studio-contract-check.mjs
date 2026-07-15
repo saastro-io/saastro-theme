@@ -57,6 +57,8 @@
  *                         (en crawl: <style> inline + los .css referenciados por <link> del mismo server)
  *   8. manage-cookies   — páginas con footer llevan #manage-cookies-btn
  *   8b. cookie-policy   — el href de la política del CookieBanner resuelve (dist o HTTP ok)
+ *   8c. gen-legal       — si el DOM SERVIDO emite el beacon de Gen, la política de cookies
+ *                         enlazada lo DECLARA (ancla <div data-legal="gen-tracking">)
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -133,10 +135,26 @@ function architectureFiles() {
 
 const FORM_PRIMITIVE_FILES = ['src/components/ui/form.tsx', 'src/components/ui/field.tsx']
 
+// Invariante 8c (gen-legal). El beacon de Gen (GenTracking.astro) es un
+// tratamiento de datos: encender `settings.gen.workspaceId` empieza a emitir
+// page-views + un visitor id a gen.saastro.io sin que nada obligue a tocar el
+// texto legal. El ancla es un marcador EXPLÍCITO en el markdown de la política
+// (markdown admite HTML), no un heading: los títulos dependen del idioma
+// (es/en/fr…) y de la redacción; el marcador es estable, greppable y neutro.
+const GEN_LEGAL_MARKER = 'gen-tracking'
+const GEN_LEGAL_SNIPPET = 'docs/legal-gen-tracking.md'
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 const failures = []
 function fail(invariant, page, where, what, fix) {
   failures.push({ invariant, page, where, what, fix })
+}
+
+// Aviso: no rompe el gate, pero se enumera en CADA pasada (mismo criterio que
+// las rutas no verificadas — lo dudoso es explícito, nunca silencioso).
+const warnings = []
+function warn(invariant, page, where, what, fix) {
+  warnings.push({ invariant, page, where, what, fix })
 }
 
 function sha256(buf) {
@@ -581,6 +599,24 @@ function scanPage(html) {
   const hasFooter = sections.includes('footer')
   const hasManageCookies = root.querySelector('#manage-cookies-btn') != null
 
+  // Beacon de atribución de SAASTRO Gen (invariante 8c). GenTracking.astro
+  // emite `<script is:inline data-gen-workspace="…">`. Se detecta en el DOM
+  // SERVIDO, NO en src/data/settings.yaml: lo que crea el tratamiento de datos
+  // es lo que llega al navegador del visitante — venga del toggle del Hub, de
+  // un <GenTracking> puesto a mano, o de un layout de un descendiente.
+  // Un grep sobre el HTML daría 2 matches (el cuerpo del script contiene la
+  // cadena 'script[data-gen-workspace]' para localizarse a sí mismo); el DOM
+  // da 1 elemento — otra razón para consultar el árbol y no el texto.
+  const hasGenBeacon = root.querySelector('script[data-gen-workspace]') != null
+
+  // Declaraciones legales ancladas: <div data-legal="…"> en el markdown de la
+  // política. El parser IGNORA los comentarios HTML, así que una declaración
+  // comentada NO cuenta — que es exactamente lo correcto: un texto comentado no
+  // declara nada al visitante.
+  const legalMarkers = new Set(
+    root.querySelectorAll('[data-legal]').map((el) => el.getAttribute('data-legal')),
+  )
+
   // href de la política de cookies: viaja en las props de la isla (el banner
   // SSR-renderiza null, así que el DOM estático no lleva el <a>).
   let cookiePolicyHref = null
@@ -594,7 +630,7 @@ function scanPage(html) {
     }
   }
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref }
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, legalMarkers }
 }
 
 function scanDistPages() {
@@ -1042,9 +1078,27 @@ async function main() {
           firstPageByHref.set(p.cookiePolicyHref, rel)
         }
       }
+
+      // 8c — ¿el site EMITE el beacon de Gen? Pregunta al DOM servido, no a
+      // settings.yaml: el tratamiento existe si el script llega al navegador.
+      const genBeaconPages = Object.entries(pages)
+        .filter(([, p]) => p.hasGenBeacon)
+        .map(([rel]) => rel)
+        .sort()
+      const genOn = genBeaconPages.length > 0
+
+      /** La política escaneada por el fetcher activo para un href interno. */
+      function scannedPolicyForHref(href) {
+        const clean = href.replace(/^\//, '').replace(/\/$/, '')
+        const candidates = clean === '' ? ['index.html'] : [`${clean}/index.html`, `${clean}.html`]
+        for (const key of candidates) if (key in pages) return { key, page: pages[key] }
+        return null
+      }
+
       for (const [href, rel] of firstPageByHref) {
         if (/^https?:\/\//.test(href)) continue // externo: fuera del alcance del checker
         let ok = false
+        let policyHtml = null // cuerpo reaprovechado por 8c: un fetch, dos invariantes
         if (mode === 'crawl') {
           try {
             const res = await fetch(server.origin + href, {
@@ -1052,6 +1106,9 @@ async function main() {
               signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
             })
             ok = res.ok
+            if (ok && /text\/html/i.test(res.headers.get('content-type') ?? '')) {
+              policyHtml = await res.text()
+            }
           } catch {
             ok = false
           }
@@ -1065,6 +1122,38 @@ async function main() {
           fail('cookie-policy', rel, href,
             `el banner de cookies enlaza a "${href}" y esa ruta NO ${mode === 'crawl' ? 'responde con HTTP ok en el server local' : 'existe en dist'}`,
             'RGPD: la política de cookies enlazada debe existir — crea la página (p.ej. src/pages/legal/…) o corrige la prop cookiesPolicyHref del CookieBanner')
+          continue // sin política que resuelva no hay nada cuyo contenido juzgar (8c)
+        }
+
+        // 8c — gen-legal: encender el flag de Gen añade un tratamiento (beacon
+        // de page-view + visitor id en sessionStorage + el id viajando en cada
+        // form) SIN que nada obligue a tocar el texto legal. Este invariante es
+        // esa obligación: si el beacon se sirve, la política lo declara.
+        const scanned = scannedPolicyForHref(href)
+        const legalMarkers = scanned
+          ? scanned.page.legalMarkers
+          : policyHtml
+            ? new Set(
+                parse(policyHtml)
+                  .querySelectorAll('[data-legal]')
+                  .map((el) => el.getAttribute('data-legal')),
+              )
+            : null
+        if (legalMarkers == null) continue // política no escaneable: 8c no opina
+        const declares = legalMarkers.has(GEN_LEGAL_MARKER)
+        const policyKey = scanned?.key ?? href
+
+        if (genOn && !declares) {
+          fail('gen-legal', policyKey, `data-legal="${GEN_LEGAL_MARKER}"`,
+            `el site EMITE el beacon de Gen (${genBeaconPages.length} pág., p.ej. ${genBeaconPages[0]}) y esta política de cookies NO declara el tratamiento`,
+            `RGPD: el beacon manda una vista de página a gen.saastro.io por cada carga y guarda un visitor id anónimo en sessionStorage que viaja en cada formulario — un tratamiento que la política debe declarar. Copia la sección canónica de ${GEN_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${GEN_LEGAL_MARKER}"></div>) al markdown de la política, en TODOS los locales. Si Gen no debía estar activo, vacía settings.gen.workspaceId`)
+        } else if (!genOn && declares) {
+          // Inverso: menos grave (declarar de más no oculta nada al visitante) y
+          // puede ser transitorio legítimo — escribir el texto ANTES de encender
+          // el flag es el orden correcto. Aviso, no fallo.
+          warn('gen-legal', policyKey, `data-legal="${GEN_LEGAL_MARKER}"`,
+            'la política DECLARA el tratamiento de Gen pero el site NO emite el beacon en ninguna página',
+            `declarar un tratamiento que no ocurre también es información falsa, pero no oculta nada al visitante y puede ser un paso intermedio legítimo (texto primero, flag después). Enciende settings.gen.workspaceId o retira la sección de ${GEN_LEGAL_SNIPPET} de la política`)
         }
       }
     }
@@ -1122,6 +1211,9 @@ async function main() {
             .map((k) => `    ${manifestPages[k].route ?? routeFromPageKey(k)} (${k})`)
             .join('\n'),
       )
+    }
+    for (const w of warnings) {
+      console.warn(`  ⚠ [${w.invariant}] ${w.page} — ${w.where}\n      ${w.what}\n      fix: ${w.fix}`)
     }
     if (failures.length) {
       for (const f of failures) {

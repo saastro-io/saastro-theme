@@ -106,7 +106,8 @@ It fails on:
 5. `astro build` failure
 6. (advisory) hardcoded copy in a marked section outside the i18n allowlist
 7. **the cookie-policy link resolving** — if the banner links to a policy page that doesn't exist, that's a 404 in production (it happened on two live sites) and the gate now catches it
-8. **contract drift on the BUILT DOM** — after the build, `scripts/studio-contract-check.mjs` re-validates `dist/` against `studio-contract.json` + the i18n JSONs (section/field markers per page, i18n text verbatim, schema scripts, locale parity, CSS tokens, architecture hashes); deliberate structural changes are recorded with `pnpm studio:contract:update`
+8. **the Gen beacon being declared** (`gen-legal`) — if the served DOM emits the Gen lead-attribution beacon (`settings.gen.workspaceId` set), the cookie policy must declare that processing via the `<div data-legal="gen-tracking"></div>` anchor. Canonical text to copy: **`docs/legal-gen-tracking.md`**
+9. **contract drift on the BUILT DOM** — after the build, `scripts/studio-contract-check.mjs` re-validates `dist/` against `studio-contract.json` + the i18n JSONs (section/field markers per page, i18n text verbatim, schema scripts, locale parity, CSS tokens, architecture hashes); deliberate structural changes are recorded with `pnpm studio:contract:update`
 
 > Note: `studio:check` is implemented over the shared `@saastro/studio/doctor` subpath.
 

@@ -86,8 +86,9 @@ Las tres capas que hacen que esto sea repetible (y por qué existen):
    nada arquitectónico que romper.
 3. **El contrato ejecutable** (`pnpm studio:check` = doctor + build + contract-check
    sobre el DOM construido o servido): marcadores, texto verbatim, paridad i18n,
-   tokens, política de cookies alcanzable, arquitectura sin divergir. Viaja dentro del
-   repo, así que **toda copia lo hereda**.
+   tokens, política de cookies alcanzable, **beacon de Gen declarado en la política**
+   (`gen-legal`), arquitectura sin divergir. Viaja dentro del repo, así que **toda
+   copia lo hereda**.
 
 ## Errores caros que ya nos costaron caro
 
@@ -98,5 +99,11 @@ Las tres capas que hacen que esto sea repetible (y por qué existen):
   no el fuego. Solo tras un cambio estructural deliberado, revisando el diff.
 - **Copy o color hardcodeados** → el cliente no puede editarlos desde Studio.
 - **Fuentes de terceros sin declarar** → los sites cargan Google Fonts desde el CDN de Google (decisión del propietario, 16-jul-2026: no se autoaloja). Eso es una decisión tomada, no un despiste — pero **obliga**: la política de cookies/privacidad del site tiene que declarar esa transferencia, porque el navegador del visitante manda su IP a Google en cada carga, antes de que el banner exista. Lo que no se puede es cargarla sin declararla.
+- **Encender Gen y no tocar el texto legal** → `settings.gen.workspaceId` añade un
+  tratamiento (vista de página a `gen.saastro.io` + visitor id que viaja en cada
+  formulario) mientras la política sigue diciendo que no hay seguimiento. Misma clase
+  que las fuentes: el fallo no está en el código, está en que el texto no lo sigue. El
+  invariante `gen-legal` lo impide; el texto listo para copiar está en
+  **`docs/legal-gen-tracking.md`**.
 - **Editable fuera del allowlist del Hub** (i18n JSON · `.md` · `src/pages` ·
   `src/content` · `studio.config.json`) → se pierde en la siguiente publicación.

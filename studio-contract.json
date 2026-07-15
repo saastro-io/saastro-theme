@@ -647,7 +647,7 @@
     "saastrocms.config.ts": "sha256:73f1cd129ce7fb943a629bd5bcc07ca22c0f107f8e490211d8312998b99f65e2",
     "scripts/lib/default-locale.mjs": "sha256:0e83b15a49275027c725e45c7b5b0c10e36c3ea0a73b7f7c3d273dabfd236397",
     "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
-    "scripts/studio-contract-check.mjs": "sha256:6a4b622e4c3b5da11b9a193b91cdcd409df428b561a9ba19770843a69797ec86",
+    "scripts/studio-contract-check.mjs": "sha256:8afb30d89966eb9f4554932f1e3c932a2dd5939ee9984e7e6361eafbef77bf38",
     "src/content.config.ts": "sha256:f89854b19063822732518cf911f5373e934b0e158ca78f7fa412d79a7efb2539",
     "src/env.d.ts": "sha256:2f2914b361994d5464b566e8489886697e2b537eb3e10f313e463ef9dbbecbe0",
     "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
