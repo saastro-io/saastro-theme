@@ -4,6 +4,7 @@
   "description": "Astro 6 + React 19 + Tailwind 4 + shadcn (Nova). Studio-ready marketing site with EN/ES i18n, blog + legal collections, and a HubForm contact sheet.",
   "previewUrl": "https://saastro-theme.pages.dev",
   "siteIdTarget": { "file": "src/data/settings.yaml", "path": "forms.siteId" },
+  "genTarget": { "file": "src/data/settings.yaml", "path": "gen" },
   "deploy": {
     "provider": "cf_workers",
     "buildCommand": "pnpm build",
