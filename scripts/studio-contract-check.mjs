@@ -56,6 +56,7 @@
  *   7. css-tokens       — el CSS emitido contiene var(--font-body), var(--font-display) y la clase .ac
  *                         (en crawl: <style> inline + los .css referenciados por <link> del mismo server)
  *   8. manage-cookies   — páginas con footer llevan #manage-cookies-btn
+ *   8b. cookie-policy   — el href de la política del CookieBanner resuelve (dist o HTTP ok)
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -579,7 +580,20 @@ function scanPage(html) {
   const hasFooter = sections.includes('footer')
   const hasManageCookies = root.querySelector('#manage-cookies-btn') != null
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies }
+  // href de la política de cookies: viaja en las props de la isla (el banner
+  // SSR-renderiza null, así que el DOM estático no lleva el <a>).
+  let cookiePolicyHref = null
+  const bannerIsland = root.querySelector('astro-island[component-export="CookieBanner"]')
+  if (bannerIsland) {
+    try {
+      const v = JSON.parse(bannerIsland.getAttribute('props') ?? '{}').cookiesPolicyHref
+      if (Array.isArray(v) && typeof v[1] === 'string') cookiePolicyHref = v[1]
+    } catch {
+      /* props ilegibles: el invariante cookie-policy solo actúa con href extraíble */
+    }
+  }
+
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref }
 }
 
 function scanDistPages() {
@@ -1014,6 +1028,43 @@ async function main() {
       if (p.hasFooter && !p.hasManageCookies) {
         fail('manage-cookies', rel, '#manage-cookies-btn', 'la página tiene footer pero no el botón "Gestionar cookies"',
           'el footer debe renderizar el botón #manage-cookies-btn (prop manageCookiesLabel) — reabre el banner de consentimiento (RGPD)')
+      }
+    }
+
+    // 8b — el enlace de la política de cookies debe RESOLVER (RGPD). En dos
+    // descendientes el banner enlazaba a /legal/cookies… que no existía (404
+    // en vivo): la clase exacta de silencio que este checker persigue.
+    {
+      const firstPageByHref = new Map()
+      for (const [rel, p] of Object.entries(pages)) {
+        if (p.cookiePolicyHref && !firstPageByHref.has(p.cookiePolicyHref)) {
+          firstPageByHref.set(p.cookiePolicyHref, rel)
+        }
+      }
+      for (const [href, rel] of firstPageByHref) {
+        if (/^https?:\/\//.test(href)) continue // externo: fuera del alcance del checker
+        let ok = false
+        if (mode === 'crawl') {
+          try {
+            const res = await fetch(server.origin + href, {
+              redirect: 'follow',
+              signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+            })
+            ok = res.ok
+          } catch {
+            ok = false
+          }
+        } else {
+          const clean = href.replace(/^\//, '').replace(/\/$/, '')
+          ok = clean === ''
+            ? distKeySet.has('index.html')
+            : distKeySet.has(`${clean}/index.html`) || distKeySet.has(`${clean}.html`)
+        }
+        if (!ok) {
+          fail('cookie-policy', rel, href,
+            `el banner de cookies enlaza a "${href}" y esa ruta NO ${mode === 'crawl' ? 'responde con HTTP ok en el server local' : 'existe en dist'}`,
+            'RGPD: la política de cookies enlazada debe existir — crea la página (p.ej. src/pages/legal/…) o corrige la prop cookiesPolicyHref del CookieBanner')
+        }
       }
     }
 
