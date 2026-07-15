@@ -643,10 +643,10 @@
   },
   "architectureHashes": {
     "astro.config.mjs": "sha256:a2606bb4caf660932d9b33df3a928fec037c3c35babfcd8cf3a4a35733f86760",
-    "saastro.template.json": "sha256:b93760bee40e7b7e18f5d47bcdf15b30742d51e4acd81e3ba9152ff41f16824b",
+    "saastro.template.json": "sha256:2c9a01844156c58f4bb98dbfc53ea89c269e640c8fdcd9352459a09070878156",
     "saastrocms.config.ts": "sha256:73f1cd129ce7fb943a629bd5bcc07ca22c0f107f8e490211d8312998b99f65e2",
-    "scripts/studio-check.mjs": "sha256:274fbd06aebed988632446aa1d02f7f529d249e41b8d217e94ee0b8986dac880",
-    "scripts/studio-contract-check.mjs": "sha256:c4f01941021eee36c7bee471f9eeced132e0eaeefaae51f098169cae48a1573f",
+    "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
+    "scripts/studio-contract-check.mjs": "sha256:f051ae6124a898003d7c2635fe7aa018a3b11ae123b1305f7022000568dcc6b7",
     "src/content.config.ts": "sha256:f89854b19063822732518cf911f5373e934b0e158ca78f7fa412d79a7efb2539",
     "src/env.d.ts": "sha256:2f2914b361994d5464b566e8489886697e2b537eb3e10f313e463ef9dbbecbe0",
     "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
@@ -655,7 +655,7 @@
     "src/i18n/types.ts": "sha256:0576fef21b5c61ee4312cc5c9c234d20e125dda295a805115cdaa84e775c37b8",
     "src/i18n/utils.ts": "sha256:89ee3b4e2b0fe8d180132e6118a3dd3fe276b92129a10d7f666eb1320a55cdb8",
     "src/integrations/strip-studio-meta-middleware.ts": "sha256:012405e52443b3de3775cb9575eb0d9494c28b8a7202fab3b43246733c109abe",
-    "src/lib/settings.ts": "sha256:8afaea601af6725fcd832762eb5f42f013cc53430b4c540c4d61259b9f1b48a8",
+    "src/lib/settings.ts": "sha256:f9e44fce23b454f00394783bc5a18f9d61dbf664662b496babb1236cf8883574",
     "src/middleware.ts": "sha256:f4dc8dc983da1f49e262eddc1c374031196fed3b770ac0fc56d3b36acd246161"
   }
 }
