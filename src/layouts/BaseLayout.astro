@@ -136,7 +136,14 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
         (where it would fire under the Hub origin and trip the Hub's CSP).
         Only renders when a token is set. The onload shim normalizes
         same-origin URLs to root-relative so the beacon's SPA tracker doesn't
-        emit `https:://` on ClientRouter anchor navigations. */}
+        emit `https:://` on ClientRouter anchor navigations.
+
+        Consentimiento: el beacon es cookieless (defendible sin banner), pero el
+        criterio de la flota es consentimiento EXPLÍCITO — mismo patrón que
+        GA/GTM en Analytics.astro: no cargar sin analytics===true; si aún no hay
+        consentimiento, escuchar cookie-consent-updated e inyectar sin recarga.
+        window.__cfBeaconLoaded evita la doble carga (y lo lee el CookieBanner
+        para la revocación on→off). */}
     {cfWebAnalyticsToken && (
       <script is:inline define:vars={{ token: cfWebAnalyticsToken }}>
         {
@@ -147,7 +154,23 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
             h.endsWith('.saastro.io') ||
             h.endsWith('.saastro.test') ||
             h.endsWith('.local')
-          if (!blocked) {
+
+          const hasAnalyticsConsent = () => {
+            try {
+              const match = document.cookie
+                .split('; ')
+                .find((c) => c.startsWith('cookie_consent='))
+              if (!match) return false
+              const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')))
+              return !!consent.analytics
+            } catch {
+              return false
+            }
+          }
+
+          const loadBeacon = () => {
+            if (window.__cfBeaconLoaded) return
+            window.__cfBeaconLoaded = true
             const s = document.createElement('script')
             s.defer = true
             s.src = 'https://static.cloudflareinsights.com/beacon.min.js'
@@ -167,6 +190,16 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
               }
             }
             document.head.appendChild(s)
+          }
+
+          if (!blocked) {
+            if (hasAnalyticsConsent()) {
+              loadBeacon()
+            } else {
+              window.addEventListener('cookie-consent-updated', (e) => {
+                if (e.detail?.analytics) loadBeacon()
+              })
+            }
           }
         }
       </script>

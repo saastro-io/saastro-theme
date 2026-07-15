@@ -20,11 +20,12 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import { resolveDefaultLocale } from './lib/default-locale.mjs'
 
 const ROOT = process.cwd()
 const SRC = join(ROOT, 'src')
 const I18N_DIR = join(SRC, 'i18n', 'translations')
-const DEFAULT_LOCALE = 'en'
+const DEFAULT_LOCALE = resolveDefaultLocale(ROOT).locale
 
 // ── load the shared doctor (published package, or a local build override) ─────
 const doctorSpecifier = process.env.DOCTOR_MODULE

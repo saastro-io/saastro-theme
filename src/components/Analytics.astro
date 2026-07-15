@@ -68,7 +68,11 @@ const { googleAnalyticsId, googleTagManagerId } = Astro.props;
   </script>
 )}
 
-{/* Google Tag Manager - Only loads if user consented to analytics or marketing */}
+{/* Google Tag Manager - Only loads if user consented to analytics.
+    NOTA: el banner del theme solo tiene las categorías essential/analytics/
+    personalization — aquí se gatea por `analytics` a secas. Si algún día se
+    añade una categoría `marketing` al CookieBanner (y a lib/cookies.ts),
+    reintroducir `analytics || marketing` en esta condición. */}
 {googleTagManagerId && (
   <script is:inline define:vars={{ id: googleTagManagerId }}>
     (function() {
@@ -87,19 +91,16 @@ const { googleAnalyticsId, googleTagManagerId } = Astro.props;
       }
       
       function loadGoogleTagManager() {
-        const hasAnalyticsConsent = hasConsent("analytics");
-        const hasMarketingConsent = hasConsent("marketing");
-        
-        if (!hasAnalyticsConsent && !hasMarketingConsent) {
+        if (!hasConsent("analytics")) {
           // Listen for consent updates
           window.addEventListener("cookie-consent-updated", function(e) {
-            if ((e.detail.analytics || e.detail.marketing) && !window.gtmLoaded) {
+            if (e.detail.analytics && !window.gtmLoaded) {
               loadGoogleTagManagerScript();
             }
           });
           return;
         }
-        
+
         loadGoogleTagManagerScript();
       }
       
