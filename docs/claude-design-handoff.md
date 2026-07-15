@@ -19,9 +19,15 @@ Two sources of truth, and Claude Code reconciles them:
 | `.dc.html` (Claude Design) | the **visual** truth — layout, hierarchy, spacing rhythm |
 | this theme | the **technical** truth — markers, i18n, HubForm, tokens, islands |
 
+> **Where this sits in the pipeline:** step 3 of `pipeline.md` (repo → design → **apply**
+> → ship). The repo should already exist, created with `pnpm scaffold client` from the
+> Hub repo. The **`apply-handoff` skill** (`.claude/skills/apply-handoff/`) drives this
+> playbook as a loop — invoke it instead of doing this by hand.
+
 ## 0. Pre-flight
 
-1. Confirm the repo is a theme copy: `astro.config.mjs` with `saastroStudio({ autoWrap: true, autoWrapPages: true })`, `studio.config.json`, `saastrocms.config.ts`, `src/i18n/translations/*.json`.
+1. Confirm the repo is a theme copy: `astro.config.mjs` with `saastroStudio({ autoWrap: true, autoWrapPages: true })`, `studio.config.json`, `saastrocms.config.ts`, `src/i18n/translations/*.json`. A repo made with `scaffold client` has `upstream` pointing at the theme (`git remote -v`) — if it doesn't, it was created with *"Use this template"* and can never merge theme fixes.
+2. **Read the site's locales from `src/i18n/config.ts`** — the scaffold parametrizes them; a client may be `es`-only. Everything below that says "EN/ES" means "every locale this site declares".
 2. Connect the MCP: `/design-login` (grants `user:design:read/write`). If `api.anthropic.com/v1/design/mcp` returns 401/404, that's the known beta flake — retry, or use the exported `.dc.html` as the reference.
 3. Import the design project and open the `.dc.html` **as a reference only**. Do **not** copy it into `src/`.
 
@@ -44,9 +50,9 @@ For each visual block in the design:
 3. **Adapter** — author `src/components/blocks/<Name>.astro`: wrap the block in
    `<div data-saastro={\`sec:${fieldPrefix}\`}>`, map the i18n object → the block's
    typed props, choose hydration (static → SSR / 0 JS; interactive → `client:visible`).
-4. **Content** — put all copy into `src/i18n/translations/en.json` **and** `es.json`
-   (full parity; generate `es` from `en` if needed). Never hardcode copy in the block
-   or adapter.
+4. **Content** — put all copy into the translation JSON of **every locale this site
+   declares** (`src/i18n/config.ts` is the source of truth — often just `es`), with full
+   parity between them. Never hardcode copy in the block or adapter.
 5. **Color** — map design hex → **oklch tokens** in `src/styles/global.css` (the
    single source of truth). A new brand color is a **new/edited token**, never an
    inline hex (see §3).
@@ -94,12 +100,13 @@ doctor** (`@saastro/studio/doctor`), so green here ⇒ green "Connect" in the Hu
 It fails on:
 
 1. missing `data-saastro` marker on a section
-2. i18n EN/ES parity gaps
+2. i18n parity gaps between the site's declared locales
 3. hardcoded hex (oklch tokens only)
 4. raw `<form>` (must be `<HubForm>`)
 5. `astro build` failure
 6. (advisory) hardcoded copy in a marked section outside the i18n allowlist
-7. **contract drift on the BUILT DOM** — after the build, `scripts/studio-contract-check.mjs` re-validates `dist/` against `studio-contract.json` + the i18n JSONs (section/field markers per page, i18n text verbatim, schema scripts, locale parity, CSS tokens, architecture hashes); deliberate structural changes are recorded with `pnpm studio:contract:update`
+7. **the cookie-policy link resolving** — if the banner links to a policy page that doesn't exist, that's a 404 in production (it happened on two live sites) and the gate now catches it
+8. **contract drift on the BUILT DOM** — after the build, `scripts/studio-contract-check.mjs` re-validates `dist/` against `studio-contract.json` + the i18n JSONs (section/field markers per page, i18n text verbatim, schema scripts, locale parity, CSS tokens, architecture hashes); deliberate structural changes are recorded with `pnpm studio:contract:update`
 
 > Note: `studio:check` is implemented over the shared `@saastro/studio/doctor` subpath.
 
