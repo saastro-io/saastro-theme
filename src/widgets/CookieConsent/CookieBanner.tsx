@@ -59,7 +59,12 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
     const consent = getConsent()
     if (!consent) setVisible(true)
 
+    const w = window as Window & { __cookieReopenPending?: boolean }
     const handleReopen = () => {
+      // Consume SIEMPRE el pending-flag (el script del Footer lo marca en cada
+      // click): si quedara a true, una remontada de la isla tras un swap de
+      // ClientRouter reabriría el banner espuriamente.
+      delete w.__cookieReopenPending
       const existing = getConsent()
       if (existing) {
         setAnalytics(existing.analytics)
@@ -69,6 +74,13 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
       setVisible(true)
     }
     window.addEventListener("cookie-consent-reopen", handleReopen)
+
+    // Race click-antes-de-hidratar: la isla es client:idle — un click en
+    // #manage-cookies-btn antes de que este listener exista perdería el evento.
+    // El script delegado del Footer deja además window.__cookieReopenPending;
+    // aquí se consume al montar y se abre el banner.
+    if (w.__cookieReopenPending) handleReopen()
+
     return () => window.removeEventListener("cookie-consent-reopen", handleReopen)
   }, [])
 

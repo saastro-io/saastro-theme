@@ -153,11 +153,18 @@ const copyrightLine = `© ${currentYear} ${siteName}. ${copyright}`;
       Delegated to document because ClientRouter (view transitions) swaps the
       footer node on each navigation — a listener bound to the button would die
       with it. This module runs once. The CookieBanner widget listens for the
-      `cookie-consent-reopen` event. */}
+      `cookie-consent-reopen` event.
+
+      Race click-antes-de-hidratar: la isla CookieBanner es client:idle — en los
+      primeros segundos tras cargar aún no escucha, y un click ahí perdería el
+      evento (RGPD: el usuario cree que no funciona). Además de despachar, se
+      marca window.__cookieReopenPending; la isla lo consume al montar y abre.
+      (Mismo idioma que el pending-flag de __startProjectSheetPending.) */}
   <script>
     document.addEventListener('click', (e) => {
       const target = e.target as Element | null
       if (target?.closest?.('#manage-cookies-btn')) {
+        ;(window as Window & { __cookieReopenPending?: boolean }).__cookieReopenPending = true
         window.dispatchEvent(new CustomEvent('cookie-consent-reopen'))
       }
     })
