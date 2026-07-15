@@ -47,7 +47,10 @@ HTML against two sources of truth: the i18n JSONs and **`studio-contract.json`**
 (committed manifest at the repo root) — per-page section/field markers, i18n
 text verbatim in the HTML (stega/click-to-edit precondition), raw editable
 images, schema scripts, locale parity, emitted CSS tokens (`--font-body`/
-`--font-display`/`.ac`), the `#manage-cookies-btn`, form-primitive exports, and
+`--font-display`/`.ac`), the `#manage-cookies-btn`, the cookie-policy link
+resolving, **the Gen beacon's legal declaration** (`gen-legal`: if the served DOM
+emits the Gen beacon, the cookie policy must declare that processing — canonical
+text ready to copy in `docs/legal-gen-tracking.md`), form-primitive exports, and
 sha256 hashes of pure-architecture files.
 
 The manifest is **never regenerated automatically**: after a deliberate
