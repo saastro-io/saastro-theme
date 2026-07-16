@@ -38,9 +38,20 @@ if (!process.env.SITE_URL) {
   );
 }
 
+// Dev-server port for local preview. The Hub's `pnpm local` bridge assigns each
+// site its own port and injects it as the DEV_PORT env var, so several sites can
+// run their `astro dev` at once WITHOUT fighting over one hardcoded port. A plain
+// `astro dev` (no DEV_PORT) falls back to Astro's default (4321). Never hardcode a
+// port in the `dev` script again — a leaked `--port 4930` is what made every theme
+// descendant collide.
+const DEV_PORT = process.env.DEV_PORT ? Number(process.env.DEV_PORT) : undefined;
+
 export default defineConfig({
   site: SITE_URL,
   output: 'server',
+  // Astro dev-server bind port (see DEV_PORT above). Unset → Astro's default 4321.
+  // The `--port` CLI flag, if ever passed, still overrides this.
+  server: { port: DEV_PORT },
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
@@ -95,12 +106,13 @@ export default defineConfig({
       allowedHosts: true,
       // Pin Vite's HMR client straight at this dev server so it connects on the
       // first try when proxied (otherwise it targets the Hub origin, fails, and
-      // logs noise before falling back). Harmless standalone — this IS the dev
-      // server's own host/port. Dev-only.
+      // logs noise before falling back). Tracks the actual dev port (DEV_PORT),
+      // falling back to Astro's default when standalone. Harmless standalone —
+      // this IS the dev server's own host/port. Dev-only.
       hmr: {
         host: 'localhost',
         protocol: 'ws',
-        clientPort: 4930,
+        clientPort: DEV_PORT ?? 4321,
       },
     },
     optimizeDeps: {

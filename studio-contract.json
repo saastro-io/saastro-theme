@@ -642,7 +642,7 @@
     ]
   },
   "architectureHashes": {
-    "astro.config.mjs": "sha256:a2606bb4caf660932d9b33df3a928fec037c3c35babfcd8cf3a4a35733f86760",
+    "astro.config.mjs": "sha256:67e04e04cf833d26c87b7bf3507aa857bafcfc86c013c75d408c76293aa2467f",
     "saastro.template.json": "sha256:2c9a01844156c58f4bb98dbfc53ea89c269e640c8fdcd9352459a09070878156",
     "saastrocms.config.ts": "sha256:73f1cd129ce7fb943a629bd5bcc07ca22c0f107f8e490211d8312998b99f65e2",
     "scripts/lib/default-locale.mjs": "sha256:0e83b15a49275027c725e45c7b5b0c10e36c3ea0a73b7f7c3d273dabfd236397",
