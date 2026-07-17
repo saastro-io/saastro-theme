@@ -39,13 +39,14 @@ Auditado en `src/components/GenTracking.astro` (emisor) y en
 | **Finalidad** | Atribución de leads (primer/último contacto) y embudo/coste por lead por canal. |
 | **Destinatario** | SAASTRO Gen (`gen.saastro.io`). |
 
-⚠️ **Conservación — leer antes de publicar.** Hoy, en el código de Gen, las
-vistas de página de visitantes que **nunca convierten** (`entity_type = NULL`)
-**no las borra ningún proceso**: el purgado programado filtra por
-`entity_type = 'lead'`, y la retención por workspace está **desactivada por
-defecto**. En la práctica esos eventos se conservan indefinidamente. No pongas
-un plazo en la política que el sistema no cumple: decide el plazo, configúralo
-en Gen, y **entonces** escríbelo.
+✅ **Conservación — RESUELTO (gen#56, 17-jul-2026).** Gen purga las vistas de
+visitantes que nunca convierten (`entity_type = NULL`) con un TTL **siempre
+activo de 398 días (13 meses)** — el techo CNIL/AEPD para identificadores de
+medición — independiente del toggle `retention.enabled` (que gobierna leads).
+Override por workspace: `flags.retention.anonymousDays`. Además el erase DSAR
+barre también el rastro anónimo del mismo `visitor_id` y el export lo entrega
+(Art. 15). El plazo de abajo ya es un hecho del sistema, no una promesa —
+si un workspace configura un `anonymousDays` distinto, ajusta el texto.
 
 ## El texto — español
 
@@ -86,8 +87,10 @@ que habías visitado quedan vinculadas a los datos de contacto que nos facilitas
   correo de contacto del titular del sitio]
 - **Base jurídica:** [PENDIENTE: decidir consentimiento o interés legítimo —
   depende del modo de consentimiento configurado; ver nota abajo]
-- **Plazo de conservación:** [PENDIENTE: fijar el plazo y configurarlo en Gen —
-  ver la advertencia de conservación en docs/legal-gen-tracking.md]
+- **Plazo de conservación:** las vistas de página anónimas se conservan un
+  máximo de **13 meses**; si nos facilitas tus datos en un formulario, tu
+  actividad pasa a conservarse junto a tu solicitud, con el plazo indicado en
+  esta política para ella.
 - **Transferencias internacionales:** [PENDIENTE: confirmar dónde se procesan
   los datos y con qué garantías]
 ````
@@ -129,28 +132,30 @@ pages you had visited become linked to the contact details you provide.
   email of the site owner]
 - **Legal basis:** [PENDIENTE: decide consent or legitimate interest — depends
   on the configured consent mode; see note below]
-- **Retention period:** [PENDIENTE: set the period and configure it in Gen —
-  see the retention warning in docs/legal-gen-tracking.md]
+- **Retention period:** anonymous page views are kept for a maximum of
+  **13 months**; if you submit your details through a form, your activity is
+  then kept alongside your enquiry, for the period stated in this policy.
 - **International transfers:** [PENDIENTE: confirm where data is processed and
   under which safeguards]
 ````
 
 ## Los huecos `[PENDIENTE: …]` — por qué siguen abiertos
 
-Ninguno se puede rellenar leyendo el código; los cuatro son decisiones del
-titular del site, no hechos del repo. Rellénalos **antes** de publicar.
+Ninguno se puede rellenar leyendo el código; son decisiones del titular del
+site, no hechos del repo. Rellénalos **antes** de publicar. (El plazo de
+conservación dejó de ser un hueco el 17-jul-2026: gen lo cumple de serie —
+13 meses — y el texto canónico ya lo declara.)
 
 | Hueco | Por qué no lo decide el código |
 |---|---|
 | Responsable del tratamiento | Es el titular del site, distinto en cada descendiente del theme. |
 | Base jurídica | Es una calificación jurídica, no una propiedad del código. Depende además del modo: `settings.gen.consent: "none"` (por defecto) **dispara el beacon inmediatamente, antes de que el visitante toque el banner**; `"required"` espera a `localStorage['gen-consent'] === 'granted'`. Que guardar un id en `sessionStorage` esté o no exento de consentimiento (art. 22.2 LSSI / ePrivacy) es un juicio legal — el comentario de `GenTracking.astro` lo da por hecho («cookieless → no banner needed»), pero eso es una opinión, no un hecho del código. |
-| Plazo de conservación | Hoy Gen **no borra** las vistas de visitantes no convertidos (ver advertencia arriba). Escribir un plazo sin configurarlo sería declarar algo falso. |
 | Transferencias internacionales | El código no fija región de procesamiento. |
 
 ## Al activar Gen — checklist
 
 1. Rellena `settings.gen.workspaceId` (o deja que lo escriba Hub → Site → Settings).
 2. Copia la sección de arriba al `cookies.md` de **cada locale**, con su ancla.
-3. Rellena los cuatro `[PENDIENTE: …]`.
+3. Rellena los tres `[PENDIENTE: …]` restantes (responsable, base jurídica, transferencias).
 4. `pnpm studio:check` → verde.
 </content>
