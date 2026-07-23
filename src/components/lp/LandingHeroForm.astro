@@ -1,0 +1,134 @@
+---
+import Img from '@saastro/studio/Img.astro';
+import { LandingForm } from './LandingForm';
+import LandingFaq from './LandingFaq.astro';
+import type { LandingData, LandingNotConfiguredCopy } from '@/lib/landings';
+
+// Collection-backed layout — NO fieldPrefix, NO data-saastro. The content is a
+// `landings` entry, edited in Hub → Collections, so these are plain props, not
+// Studio-editable i18n fields. Passing them as an editable prop would expose a
+// dead write (CLAUDE.md → collection-backed sections). Only the section chrome
+// (faqTitle, notConfigured) is i18n — fed by the route, still not editable here.
+interface Props {
+  landing: LandingData;
+  siteId: string;
+  locale: string;
+  /** i18n `lp.faqTitle` — the FAQ section heading. */
+  faqTitle: string;
+  /** i18n `lp.notConfigured` — placeholder copy when forms.siteId is empty. */
+  notConfigured: LandingNotConfiguredCopy;
+}
+
+const { landing, siteId, locale, faqTitle, notConfigured } = Astro.props;
+
+// The landing's markdown body (the punchy blocks) renders below the hero, when
+// the entry has one. Landings that are pure form + bullets simply pass no body.
+const hasBody = Astro.slots.has('default');
+---
+
+<section class="px-6 pb-10 pt-12 lg:px-10">
+  <div class="mx-auto grid max-w-6xl items-start gap-9 lg:grid-cols-2">
+    {/* ---------- left: the pitch ---------- */}
+    <div class="flex flex-col">
+      {landing.eyebrow && (
+        <span class="mb-6 inline-flex items-center gap-2 self-start rounded-xl border-[1.4px] border-foreground px-3.5 py-1.5 text-xs font-bold tracking-wide">
+          <span class="size-2 rounded-full bg-primary"></span>
+          {landing.eyebrow}
+        </span>
+      )}
+
+      <h1 class="font-heading text-[clamp(2rem,4.4vw,3rem)] font-bold leading-[1.05] tracking-tight text-foreground">
+        {landing.title}
+      </h1>
+
+      <p class="mt-5 max-w-[46ch] text-[15px] leading-relaxed text-muted-foreground">{landing.subtitle}</p>
+
+      {(landing.badge || landing.priceNote) && (
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          {landing.priceNote && (
+            <span class="rounded-xl bg-primary px-4 py-2 font-heading text-base font-bold text-primary-foreground">
+              {landing.priceNote}
+            </span>
+          )}
+          {landing.badge && (
+            <span class="rounded-xl border-[1.4px] border-foreground px-3.5 py-2 text-[12.5px] font-bold text-foreground">
+              {landing.badge}
+            </span>
+          )}
+        </div>
+      )}
+
+      {landing.bullets.length > 0 && (
+        <ul class="mt-7 flex flex-col gap-4" role="list">
+          {landing.bullets.map((b) => (
+            <li class="flex items-start gap-3">
+              <span
+                class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground"
+                aria-hidden="true"
+              >
+                ✓
+              </span>
+              {typeof b === 'string' ? (
+                <span class="text-[14.5px] leading-snug text-foreground">{b}</span>
+              ) : (
+                <span>
+                  <span class="block font-heading text-[15px] font-bold text-foreground">{b.title}</span>
+                  <span class="block text-[13.5px] leading-snug text-muted-foreground">{b.description}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {landing.image && (
+        <div class="mt-7 overflow-hidden rounded-[26px]">
+          <Img
+            src={landing.image}
+            alt={landing.imageAlt}
+            width={1120}
+            height={720}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            class="w-full object-cover"
+            loading="lazy"
+            raw={!/^https?:\/\//.test(landing.image)}
+          />
+        </div>
+      )}
+    </div>
+
+    {/* ---------- right: the Hub form ---------- */}
+    <div class="rounded-3xl border-[1.4px] border-foreground bg-card p-5.5 lg:sticky lg:top-20">
+      {landing.formTitle && (
+        <h2 class="mb-1.5 font-heading text-xl font-bold leading-tight text-foreground">{landing.formTitle}</h2>
+      )}
+      {landing.formNote && <p class="mb-4 text-[13px] leading-snug text-muted-foreground">{landing.formNote}</p>}
+
+      <LandingForm
+        siteId={siteId}
+        formSlug={landing.form}
+        locale={locale}
+        notConfigured={notConfigured}
+        client:only="react"
+      />
+    </div>
+  </div>
+</section>
+
+{hasBody && (
+  <div class="px-6 pb-4 lg:px-10">
+    <div
+      class="prose mx-auto max-w-2xl prose-headings:font-heading prose-headings:tracking-tight prose-p:leading-relaxed prose-strong:text-foreground dark:prose-invert"
+    >
+      <slot />
+    </div>
+  </div>
+)}
+
+{landing.faq.length > 0 && <LandingFaq title={faqTitle} items={landing.faq} />}
+
+{landing.disclaimer && (
+  <p class="mx-auto max-w-6xl px-6 pb-12 text-xs leading-relaxed text-muted-foreground lg:px-10">
+    {landing.disclaimer}
+  </p>
+)}

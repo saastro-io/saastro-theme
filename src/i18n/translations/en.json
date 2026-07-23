@@ -149,5 +149,13 @@
     "span": {
       "toggle_theme": "Toggle theme"
     }
+  },
+  "lp": {
+    "faqTitle": "Frequently asked questions",
+    "notConfigured": {
+      "title": "Form not connected yet",
+      "body": "This landing has no form connected yet: the site is not linked to the Saastro Hub and the form has not been designed. Until then no data is sent or stored.",
+      "hint": "Set forms.siteId in src/data/settings.yaml and design this landing's form in the Hub with the slug its \"form\" field points to."
+    }
   }
 }

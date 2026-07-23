@@ -149,5 +149,13 @@
     "span": {
       "toggle_theme": "Cambiar tema"
     }
+  },
+  "lp": {
+    "faqTitle": "Preguntas frecuentes",
+    "notConfigured": {
+      "title": "Formulario no conectado todavía",
+      "body": "Esta landing aún no tiene formulario conectado: falta enlazar el sitio al Saastro Hub y diseñar el formulario. Hasta entonces no se envía ni se guarda ningún dato.",
+      "hint": "Configura forms.siteId en src/data/settings.yaml y diseña el formulario de esta landing en el Hub con el slug que indica su campo \"form\"."
+    }
   }
 }

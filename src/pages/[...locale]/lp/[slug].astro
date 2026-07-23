@@ -1,0 +1,66 @@
+---
+import { getCollection, render } from 'astro:content';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
+import LandingLong from '../../../components/lp/LandingLong.astro';
+import { getSettings } from '../../../lib/settings';
+import type { LandingData } from '../../../lib/landings';
+
+// SSR, not prerendered — deliberately. Prerendered collection routes make CI
+// red every time the client publishes a new entry (the contract sees a route it
+// has no record of). Server-rendering the landing pages keeps them OUT of
+// studio-contract.json (dynamic routes only enter it when prerendered), so the
+// client can publish landings freely — publishing a landing never reddens CI.
+// The whole site is `output: 'server'`, so this costs nothing extra. Side
+// effect (also deliberate): SSR pages are absent from the sitemap — paid
+// landings are reached from the ad that carries their URL, not organically.
+//
+// There is deliberately NO /lp/ index route: paid landings must not be
+// enumerable on the site — each campaign owns its URL, nothing lists them.
+export const prerender = false;
+
+const { slug } = Astro.params;
+const t = Astro.locals.t;
+const lp = Astro.locals.localePath;
+const locale = Astro.locals.lang;
+
+const entries = await getCollection('landings');
+const entry = entries.find((l) => l.id === slug && !l.data.draft);
+
+// A typo'd or draft landing slug goes home rather than 404-blank (same stance
+// as blog/[slug]). The common path is a valid slug reached from an ad.
+if (!entry) {
+  return Astro.redirect(lp('/'));
+}
+
+const landing = entry.data as LandingData;
+const { siteId } = getSettings().forms;
+
+// Both layouts render the markdown body — hero-form shows it below the pitch,
+// long-form as the main read — so always render(). The layout is picked from a
+// closed map; an unknown value (which the enum already prevents) cannot reach
+// here.
+const rendered = await render(entry);
+const Content = rendered.Content;
+const LAYOUTS = { 'hero-form': LandingHeroForm, largo: LandingLong };
+const Layout = LAYOUTS[landing.layout];
+
+const siteName = t.meta.siteName ?? getSettings().site.name;
+// SEO landings carry a SERP-tuned title/description in frontmatter; the H1 and
+// subtitle are the fallback when they don't. A provided metaTitle is used as-is
+// (it already includes the brand), so the site name is only appended to the H1.
+const seoTitle = landing.metaTitle ?? `${landing.title} · ${siteName}`;
+const seoDescription = landing.metaDescription ?? landing.subtitle;
+---
+
+<SiteLayout title={seoTitle} description={seoDescription}>
+  <Layout
+    landing={landing}
+    siteId={siteId}
+    locale={locale}
+    faqTitle={t.lp.faqTitle}
+    notConfigured={t.lp.notConfigured}
+  >
+    {Content && <Content />}
+  </Layout>
+</SiteLayout>

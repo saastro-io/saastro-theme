@@ -1,0 +1,117 @@
+---
+import Img from '@saastro/studio/Img.astro';
+import { LandingForm } from './LandingForm';
+import LandingFaq from './LandingFaq.astro';
+import type { LandingData, LandingNotConfiguredCopy } from '@/lib/landings';
+
+// Long-form variant of the same collection-backed landing. NO fieldPrefix (see
+// LandingHeroForm). The markdown body of the entry renders through the default
+// <slot />; the form sits at the end, after the reader has the full pitch.
+interface Props {
+  landing: LandingData;
+  siteId: string;
+  locale: string;
+  /** i18n `lp.faqTitle` — the FAQ section heading. */
+  faqTitle: string;
+  /** i18n `lp.notConfigured` — placeholder copy when forms.siteId is empty. */
+  notConfigured: LandingNotConfiguredCopy;
+}
+
+const { landing, siteId, locale, faqTitle, notConfigured } = Astro.props;
+---
+
+<article class="px-6 pb-10 pt-12 lg:px-10">
+  <div class="mx-auto max-w-3xl">
+    {landing.eyebrow && (
+      <span class="mb-5 inline-block rounded-xl border-[1.4px] border-foreground px-4 py-2 text-[12.5px] font-bold">
+        {landing.eyebrow}
+      </span>
+    )}
+    <h1 class="mb-4 font-heading text-[clamp(2rem,4.4vw,3rem)] font-bold leading-[1.05] tracking-tight text-foreground">
+      {landing.title}
+    </h1>
+    <p class="mb-6 text-[15px] leading-relaxed text-muted-foreground">{landing.subtitle}</p>
+
+    {(landing.badge || landing.priceNote) && (
+      <div class="mb-8 flex flex-wrap items-center gap-3">
+        {landing.priceNote && (
+          <span class="rounded-xl bg-primary px-4 py-2 font-heading text-base font-bold text-primary-foreground">
+            {landing.priceNote}
+          </span>
+        )}
+        {landing.badge && (
+          <span class="rounded-xl border-[1.4px] border-foreground px-3.5 py-2 text-[12.5px] font-bold text-foreground">
+            {landing.badge}
+          </span>
+        )}
+      </div>
+    )}
+
+    {landing.image && (
+      <div class="mb-8 overflow-hidden rounded-[26px]">
+        <Img
+          src={landing.image}
+          alt={landing.imageAlt}
+          width={1280}
+          height={720}
+          sizes="(min-width: 768px) 48rem, 100vw"
+          class="w-full object-cover"
+          loading="lazy"
+          raw={!/^https?:\/\//.test(landing.image)}
+        />
+      </div>
+    )}
+
+    <div
+      class="prose max-w-none prose-headings:font-heading prose-headings:tracking-tight prose-strong:text-foreground dark:prose-invert"
+    >
+      <slot />
+    </div>
+
+    {landing.bullets.length > 0 && (
+      <ul class="mt-8 grid gap-4 sm:grid-cols-2" role="list">
+        {landing.bullets.map((b) => (
+          <li class="rounded-3xl border border-border bg-card p-5">
+            <span
+              class="mb-3 flex size-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+            {typeof b === 'string' ? (
+              <span class="block text-[14.5px] leading-snug text-foreground">{b}</span>
+            ) : (
+              <Fragment>
+                <span class="block font-heading font-bold text-foreground">{b.title}</span>
+                <span class="mt-1 block text-[13.5px] leading-snug text-muted-foreground">{b.description}</span>
+              </Fragment>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {/* form at the end of the read */}
+    <div class="mt-10 rounded-3xl border-[1.4px] border-foreground bg-card p-6">
+      {landing.formTitle && (
+        <h2 class="mb-1.5 font-heading text-xl font-bold leading-tight text-foreground">{landing.formTitle}</h2>
+      )}
+      {landing.formNote && <p class="mb-4 text-[13px] leading-snug text-muted-foreground">{landing.formNote}</p>}
+      <LandingForm
+        siteId={siteId}
+        formSlug={landing.form}
+        locale={locale}
+        notConfigured={notConfigured}
+        client:only="react"
+      />
+    </div>
+  </div>
+</article>
+
+{landing.faq.length > 0 && <LandingFaq title={faqTitle} items={landing.faq} />}
+
+{landing.disclaimer && (
+  <p class="mx-auto max-w-3xl px-6 pb-12 text-xs leading-relaxed text-muted-foreground lg:px-10">
+    {landing.disclaimer}
+  </p>
+)}
