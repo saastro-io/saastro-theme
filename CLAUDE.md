@@ -140,7 +140,7 @@ Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `s
 ## Landings (`/lp/<slug>`) — collection-backed campaign pages
 
 Paid-campaign landing pages, modelled on esosique's `ofertas` and generalized
-for the bilingual theme. one markdown entry in the **`lp` collection** (named `lp` so collection key, content dir and URL prefix all match) =
+for the bilingual theme. One markdown entry in the **`lp` collection** (named `lp` so collection key, content dir and URL prefix all match) =
 one landing at `/lp/<slug>` (locale-prefixed like every route): the entry picks
 its `layout` from a closed enum (`hero-form` | `largo` — dispatch map in
 `src/pages/[...locale]/lp/[slug].astro`) and its `form` (a Hub form slug
