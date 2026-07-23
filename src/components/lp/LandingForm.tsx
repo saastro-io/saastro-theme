@@ -1,5 +1,5 @@
 import { HubForm, parseGlobModules } from '@saastro/forms';
-import type { LandingNotConfiguredCopy } from '@/lib/landings';
+import type { LandingNotConfiguredCopy } from '@/lib/lp';
 
 // Same wiring as the ContactSheet: <HubForm> renders a form DESIGNED IN THE HUB
 // (fetched by slug at runtime) through the host's shadcn primitives, resolved by

@@ -1,8 +1,8 @@
 /**
- * Shape of one `landings` collection entry's frontmatter.
+ * Shape of one `lp` collection entry's frontmatter (the landing pages).
  *
  * Mirrors the zod schema in src/content.config.ts. Declared here (not imported
- * as `CollectionEntry<'landings'>['data']`) so the layouts and route share one
+ * as `CollectionEntry<'lp'>['data']`) so the layouts and route share one
  * explicit type that does not depend on Astro's generated content types being
  * in sync while editing.
  */

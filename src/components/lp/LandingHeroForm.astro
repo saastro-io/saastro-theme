@@ -2,10 +2,10 @@
 import Img from '@saastro/studio/Img.astro';
 import { LandingForm } from './LandingForm';
 import LandingFaq from './LandingFaq.astro';
-import type { LandingData, LandingNotConfiguredCopy } from '@/lib/landings';
+import type { LandingData, LandingNotConfiguredCopy } from '@/lib/lp';
 
 // Collection-backed layout — NO fieldPrefix, NO data-saastro. The content is a
-// `landings` entry, edited in Hub → Collections, so these are plain props, not
+// `lp` entry, edited in Hub → Collections, so these are plain props, not
 // Studio-editable i18n fields. Passing them as an editable prop would expose a
 // dead write (CLAUDE.md → collection-backed sections). Only the section chrome
 // (faqTitle, notConfigured) is i18n — fed by the route, still not editable here.

@@ -27,7 +27,7 @@ docs), locales (i18n config + JSONs + tipos), colecciones (poda incluida) y domi
 regenera el contrato, y **solo commitea si `studio:check` sale verde** — si no, falla
 con el informe y deja el repo en disco para inspección.
 
-Colecciones del theme: `blog`, `legal` (no podable) y `landings` (páginas de
+Colecciones del theme: `blog`, `legal` (no podable) y `lp` (páginas de
 campaña en `/lp/<slug>`, SSR — ver la sección *Landings* del CLAUDE.md). El
 scaffold poda por anclas textuales sobre `src/content.config.ts` y
 `saastrocms.config.ts`: si tocas esos bloques en el theme, actualiza el

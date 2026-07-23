@@ -140,13 +140,13 @@ Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `s
 ## Landings (`/lp/<slug>`) — collection-backed campaign pages
 
 Paid-campaign landing pages, modelled on esosique's `ofertas` and generalized
-for the bilingual theme. One markdown entry in the **`landings` collection** =
+for the bilingual theme. One markdown entry in the **`lp` collection** (named `lp` so collection key, content dir and URL prefix all match) =
 one landing at `/lp/<slug>` (locale-prefixed like every route): the entry picks
 its `layout` from a closed enum (`hero-form` | `largo` — dispatch map in
 `src/pages/[...locale]/lp/[slug].astro`) and its `form` (a Hub form slug
 rendered by `<HubForm>`). A new landing is a `.md` the client writes in
 Hub → Collections — no code, no deploy per landing. Pieces: schema in
-`src/content.config.ts`, explicit types in `src/lib/landings.ts` (deliberately
+`src/content.config.ts`, explicit types in `src/lib/lp.ts` (deliberately
 not `CollectionEntry` codegen), layouts in `src/components/lp/`, chrome copy
 (FAQ heading + form-not-configured placeholder) in i18n under the top-level
 `lp` key.
@@ -162,7 +162,7 @@ not `CollectionEntry` codegen), layouts in `src/components/lp/`, chrome copy
   campaigns must not be enumerable on the site.
 - **Draft or unknown slug → redirect home** (never a blank 404 — the common
   path is a valid slug reached from an ad). `draft: true` until a human
-  publishes. `src/content/landings/demo-landing.md` is the schema example +
+  publishes. `src/content/lp/demo-landing.md` is the schema example +
   smoke fixture, permanently draft.
 - **NOT Studio-editable**: components under `src/components/lp/` carry NO
   `fieldPrefix` / NO `data-saastro` (collection-backed sections rule below).
@@ -173,7 +173,7 @@ not `CollectionEntry` codegen), layouts in `src/components/lp/`, chrome copy
   `git merge upstream/main` — merge both lists in the `export const
   collections = { … }` line of `src/content.config.ts` — and append blocks in
   `saastrocms.config.ts`'s `collections` map. The scaffold (`@saastro/scaffold`
-  in the Hub repo) textually anchors this file's `landings` literals — keep
+  in the Hub repo) textually anchors this file's `lp` literals — keep
   scaffold + theme in lockstep when touching them.
 
 ## Commands / deploy
