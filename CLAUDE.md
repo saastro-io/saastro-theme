@@ -137,6 +137,45 @@ const faq = t?.faq ?? { title: 'FAQ', items: [] }
 
 Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `src/pages/[locale]/*`. `src/middleware.ts` only resolves the locale into `Astro.locals` (no auth, no stega). The native `i18n` block in `astro.config.mjs` uses `routing: 'manual'` — purely a detection signal; Astro does not own routing here.
 
+## Landings (`/lp/<slug>`) — collection-backed campaign pages
+
+Paid-campaign landing pages, modelled on esosique's `ofertas` and generalized
+for the bilingual theme. One markdown entry in the **`landings` collection** =
+one landing at `/lp/<slug>` (locale-prefixed like every route): the entry picks
+its `layout` from a closed enum (`hero-form` | `largo` — dispatch map in
+`src/pages/[...locale]/lp/[slug].astro`) and its `form` (a Hub form slug
+rendered by `<HubForm>`). A new landing is a `.md` the client writes in
+Hub → Collections — no code, no deploy per landing. Pieces: schema in
+`src/content.config.ts`, explicit types in `src/lib/landings.ts` (deliberately
+not `CollectionEntry` codegen), layouts in `src/components/lp/`, chrome copy
+(FAQ heading + form-not-configured placeholder) in i18n under the top-level
+`lp` key.
+
+- **SSR, never prerendered** (`export const prerender = false`): prerendered
+  collection routes redden CI every time the client publishes an entry (the
+  contract sees a route it has no record of). SSR keeps client-published
+  landings OUT of `studio-contract.json`, so publishing a landing never touches
+  the contract. Free — the whole site is `output: 'server'`.
+- **Absent from the sitemap — deliberate.** SSR pages aren't enumerated by
+  `@astrojs/sitemap`; paid landings are reached from the ad that carries their
+  URL, not organically. There is also deliberately **no `/lp/` index route** —
+  campaigns must not be enumerable on the site.
+- **Draft or unknown slug → redirect home** (never a blank 404 — the common
+  path is a valid slug reached from an ad). `draft: true` until a human
+  publishes. `src/content/landings/demo-landing.md` is the schema example +
+  smoke fixture, permanently draft.
+- **NOT Studio-editable**: components under `src/components/lp/` carry NO
+  `fieldPrefix` / NO `data-saastro` (collection-backed sections rule below).
+  Entry content is edited in Hub → Collections; only `lp.*` chrome copy is
+  i18n.
+- **Downstream merge note**: descendants that already added their own
+  collections (e.g. esosique's `ofertas`) resolve ONE line on
+  `git merge upstream/main` — merge both lists in the `export const
+  collections = { … }` line of `src/content.config.ts` — and append blocks in
+  `saastrocms.config.ts`'s `collections` map. The scaffold (`@saastro/scaffold`
+  in the Hub repo) textually anchors this file's `landings` literals — keep
+  scaffold + theme in lockstep when touching them.
+
 ## Commands / deploy
 
 - Package manager: **pnpm**. `pnpm dev` (port 4930) · `pnpm build` · `pnpm preview`.

@@ -79,5 +79,18 @@ export interface Translations {
       toggle_theme: string;
     };
   };
+  /** Landing pages (/lp/<slug>) chrome copy: the FAQ heading + the placeholder
+   *  shown when no Hub site is connected yet (forms.siteId empty). The landing
+   *  CONTENT itself lives in the `landings` collection, never here. Widget copy
+   *  like `contactForm` — NOT a marked Studio section. Always shipped by the
+   *  theme (en + es), so required. */
+  lp: {
+    faqTitle: string;
+    notConfigured: {
+      title: string;
+      body: string;
+      hint: string;
+    };
+  };
   [key: string]: unknown;
 }

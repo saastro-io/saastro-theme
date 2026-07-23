@@ -1,0 +1,42 @@
+---
+import type { LandingFaqItem } from '@/lib/landings';
+
+// No fieldPrefix on purpose: a landing's FAQ is collection content, edited in
+// Hub → Collections, not click-to-edit i18n (CLAUDE.md → collection-backed
+// sections). The title arrives as a prop fed from i18n `lp.faqTitle` — section
+// chrome, not entry content. <details> keeps the answers in the served HTML
+// (indexable, no-JS friendly) at zero JS cost.
+interface Props {
+  title: string;
+  items: LandingFaqItem[];
+}
+
+const { title, items } = Astro.props;
+---
+
+<section class="px-6 py-10 lg:px-10">
+  <div class="mx-auto max-w-3xl">
+    <h2 class="mb-4 font-heading text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-tight text-foreground">
+      {title}
+    </h2>
+    <div class="flex flex-col">
+      {items.map((f) => (
+        <details class="group border-b border-border">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-4 py-4.5 [&::-webkit-details-marker]:hidden"
+          >
+            <span class="flex-1 font-heading text-base font-bold text-foreground">{f.q}</span>
+            <span
+              class="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-primary text-[19px] font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              <span class="group-open:hidden">+</span>
+              <span class="hidden group-open:inline">−</span>
+            </span>
+          </summary>
+          <p class="pb-5 pr-1 text-[13.5px] leading-relaxed text-muted-foreground">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

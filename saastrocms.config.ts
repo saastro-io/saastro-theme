@@ -66,6 +66,11 @@ const config: SaastroCMSConfig = {
       icon: 'pen-line',
       description: 'Blog posts',
     },
+    landings: {
+      name: 'Landing Pages',
+      icon: 'megaphone',
+      description: 'Landings de campaña servidas en /lp/<slug> — layout y formulario propios por landing; en borrador (draft) hasta publicación humana',
+    },
     legal: {
       name: 'Legal Pages',
       icon: 'scale',
