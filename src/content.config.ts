@@ -25,14 +25,16 @@ const blog = defineCollection({
   }),
 });
 
-// Landings — one markdown entry per paid-campaign landing page, served at
-// /lp/<slug>. Each entry picks its own `layout` (from a closed enum, so the
-// client can only choose one that exists) and its own `form` (a Hub form slug
-// rendered by <HubForm>). That is the whole point: a new landing is a .md the
-// client writes in the Hub — no code, no new namespace, no deploy per landing.
+// lp — one markdown entry per paid-campaign landing page, served at
+// /lp/<slug>. The collection is named `lp` ON PURPOSE so collection key,
+// content dir and URL prefix all match. Each entry picks its own `layout`
+// (from a closed enum, so the client can only choose one that exists) and its
+// own `form` (a Hub form slug rendered by <HubForm>). That is the whole point:
+// a new landing is a .md the client writes in the Hub — no code, no new
+// namespace, no deploy per landing.
 // Content lives HERE, in the collection — never as editable Studio i18n.
-const landings = defineCollection({
-  loader: glob({ pattern: '*.md', base: './src/content/landings' }),
+const lp = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/lp' }),
   schema: z.object({
     title: z.string(),
     subtitle: z.string(),
@@ -69,4 +71,4 @@ const landings = defineCollection({
   }),
 });
 
-export const collections = { legal, blog, landings };
+export const collections = { legal, blog, lp };

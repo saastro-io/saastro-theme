@@ -4,7 +4,7 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
 import LandingLong from '../../../components/lp/LandingLong.astro';
 import { getSettings } from '../../../lib/settings';
-import type { LandingData } from '../../../lib/landings';
+import type { LandingData } from '../../../lib/lp';
 
 // SSR, not prerendered — deliberately. Prerendered collection routes make CI
 // red every time the client publishes a new entry (the contract sees a route it
@@ -24,7 +24,7 @@ const t = Astro.locals.t;
 const lp = Astro.locals.localePath;
 const locale = Astro.locals.lang;
 
-const entries = await getCollection('landings');
+const entries = await getCollection('lp');
 const entry = entries.find((l) => l.id === slug && !l.data.draft);
 
 // A typo'd or draft landing slug goes home rather than 404-blank (same stance
