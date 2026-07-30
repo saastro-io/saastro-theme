@@ -159,13 +159,22 @@ const {
             };
             var json = JSON.stringify(body);
             var url = endpoint + '/collect';
+            // sendBeacon con Blob text/plain A PROPÓSITO (no application/json):
+            // un beacon cross-origin con content-type no safelisted exige un
+            // preflight que sendBeacon no puede hacer — Chrome lo BLOQUEA por
+            // CORS pero devuelve `true`, así que el fallback nunca corría y el
+            // evento moría en silencio. Ese fue el bug de los «cero page_view
+            // jamás» (30-jul-2026). text/plain es simple request (sin
+            // preflight) y el colector parsea el JSON sin mirar el header.
             if (navigator.sendBeacon) {
-              var blob = new Blob([json], { type: 'application/json' });
+              var blob = new Blob([json], { type: 'text/plain;charset=UTF-8' });
               if (navigator.sendBeacon(url, blob)) return;
             }
             fetch(url, {
               method: 'POST',
-              headers: { 'content-type': 'application/json' },
+              // También simple request: mismo motivo, y así los dos caminos
+              // se comportan igual ante el colector.
+              headers: { 'content-type': 'text/plain;charset=UTF-8' },
               body: json,
               keepalive: true,
               mode: 'cors',
