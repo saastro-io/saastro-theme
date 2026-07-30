@@ -5,6 +5,13 @@ on:
   push:
     branches: [main]
 
+# Un push nuevo sobre la misma rama cancela el run anterior: sin esto cada
+# corrección durante una revisión pagaba minutos por un resultado que ya
+# nadie iba a leer. (La cuota de Actions de la org llegó al 90% el 30-jul.)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   studio-check:
     runs-on: ubuntu-latest
