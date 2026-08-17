@@ -11,3 +11,4 @@ minimumReleaseAgeExclude:
   - '@saastro/studio'
   - '@astrojs/cloudflare@14.0.1'
   - astro@7.0.3
+  - '@saastro/forms@0.18.0'
