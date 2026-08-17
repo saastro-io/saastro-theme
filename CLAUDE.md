@@ -97,6 +97,32 @@ the owner and decided. Revisit only if the owner asks.
 The base palette is neutral (chroma 0); a brand color means giving `--primary`/`--accent`
 real chroma or adding `--brand` in `:root` + `.dark`, never an inline hex.
 
+## Base de primitivas — Base UI, no Radix (migración de agosto 2026)
+
+Los `src/components/ui/*` de este theme se construyen sobre **Base UI**. Radix
+salió del `package.json` entero.
+
+- **La base va dentro del campo `style` de `components.json`**: `"style": "base-nova"`
+  (antes `radix-nova`). No hay un campo aparte para elegirla — shadcn 4 la codifica
+  ahí. Si un `shadcn add` te trae un componente que importa `@radix-ui/*`, lo que
+  está mal es ese campo.
+- Equivalencias que salen a cada paso: `Slot` → el hook `useRender`; `asChild` →
+  la prop `render` (+ `nativeButton` en los triggers); la variable CSS
+  `--radix-popover-trigger-width` → `--anchor-width`.
+- Deps que shadcn pide sobre Base UI y que ya están puestas: `cmdk` (command),
+  `input-otp`, `react-day-picker` (calendar).
+
+### `form.tsx` NO se regenera con `shadcn add form`
+
+`src/components/ui/form.tsx` está escrito a mano **a propósito**. El `FormControl`
+oficial de shadcn llama a `useFormField()` y exige un `FormItem` como ancestro;
+`@saastro/forms` no monta ese `FormItem`, así que el oficial revienta en runtime.
+El nuestro fusiona las props con `useRender` y no depende de ese contexto.
+
+Regenerarlo lo pisa y rompe todos los formularios del sitio: si el CLI ofrece
+sobrescribirlo (o le pasas `--overwrite`), di que no. El aviso está también en la
+cabecera del propio fichero; si lo pisas, recupéralo de git.
+
 ## UI blocks — `ui.saastro.io` compatibility (the methodology)
 
 `ui.saastro.io` (repo `saastro-ui`) is a **shadcn-style registry** (`@saastro/ui-registry`, ~15 blocks: hero-01/02/03, features-01/02, pricing-01, cta-01, faq-01, testimonials-01, navbar-01, footer-01, blog-grid-01, newsletter-01, stats-01, logos-01). Every block is a **pure presentational React `.tsx`**: typed props, content **only** via props (never hardcoded), `cn` + `@/components/ui/*` + `asChild`. Blocks are served as JSON at `https://ui.saastro.io/r/<name>.json` and pulled with `npx shadcn add @saastro/<block>` (configure the `@saastro` registry in `components.json`; the CLI also pulls each block's `registryDependencies` primitives, filling this theme's primitive set on demand — it ships ~13 of the registry's ~43). This theme already has the matching stack — Tailwind 4 + `cn` (`@/lib/utils`) + `@/*` alias + the shadcn tokens (`--primary`, `--muted-foreground`, …) — so registry blocks drop in unchanged.
