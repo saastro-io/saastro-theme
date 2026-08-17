@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const prerender = true;
 ---
@@ -13,9 +14,7 @@ export const prerender = true;
       Sorry, an unexpected error occurred. Please try again later.
     </p>
     <div class="mt-6">
-      <Button asChild>
-        <a href="/">Go back home</a>
-      </Button>
+      <a href="/" class={cn(buttonVariants())}>Go back home</a>
     </div>
   </div>
 </BaseLayout>

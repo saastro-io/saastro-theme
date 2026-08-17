@@ -43,13 +43,22 @@ export function DesktopMenu({ menu, currentPath = '' }: Props) {
                   <ul className="grid w-48 gap-1 p-2">
                     {item.items.map((sub) => (
                       <li key={sub.url}>
-                        <NavigationMenuLink asChild active={isActive(sub.url, currentPath)}>
-                          <a href={sub.url} className="block rounded-md px-3 py-2 text-sm hover:bg-accent">
-                            <span className="font-medium">{sub.title}</span>
-                            {sub.description && (
-                              <span className="block text-xs text-muted-foreground">{sub.description}</span>
-                            )}
-                          </a>
+                        {/* Base UI no expone la prop `active` de Radix: el wrapper
+                            de shadcn estila con la variante `data-active:`, así que
+                            el estado se pasa como atributo. VERIFICAR A OJO. */}
+                        <NavigationMenuLink
+                          render={
+                            <a
+                              href={sub.url}
+                              className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+                            />
+                          }
+                          data-active={isActive(sub.url, currentPath) || undefined}
+                        >
+                          <span className="font-medium">{sub.title}</span>
+                          {sub.description && (
+                            <span className="block text-xs text-muted-foreground">{sub.description}</span>
+                          )}
                         </NavigationMenuLink>
                       </li>
                     ))}
@@ -57,10 +66,11 @@ export function DesktopMenu({ menu, currentPath = '' }: Props) {
                 </NavigationMenuContent>
               </>
             ) : (
-              <NavigationMenuLink asChild active={isActive(item.url, currentPath)}>
-                <a href={item.url} className={navigationMenuTriggerStyle()}>
-                  {item.title}
-                </a>
+              <NavigationMenuLink
+                render={<a href={item.url} className={navigationMenuTriggerStyle()} />}
+                data-active={isActive(item.url, currentPath) || undefined}
+              >
+                {item.title}
               </NavigationMenuLink>
             )}
           </NavigationMenuItem>

@@ -159,12 +159,16 @@
   }
 }
 
+/* Base UI expone la altura del panel como --accordion-panel-height (Radix la
+   llamaba --radix-accordion-content-height). Estos keyframes viven aquí, fuera
+   del alcance de `shadcn add`: si no se actualizan, el acordeón anima a altura
+   0 SIN dar ningún error. */
 @keyframes accordion-down {
   from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  to { height: var(--accordion-panel-height); }
 }
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
+  from { height: var(--accordion-panel-height); }
   to { height: 0; }
 }
 @layer utilities {

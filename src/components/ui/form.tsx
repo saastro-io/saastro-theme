@@ -7,7 +7,12 @@
  *
  * Exposes:
  *   - FormField: Controller wrapper that exposes `field` props to children
- *   - FormControl: Slot that forwards id/aria-* into the underlying input
+ *   - FormControl: reenvía id/aria-* al input subyacente. Con Radix esto era
+ *     `Slot`; en Base UI el equivalente es el hook `useRender`, que fusiona las
+ *     props sobre el hijo. Se mantiene hecho a mano A PROPÓSITO: el `FormControl`
+ *     oficial de shadcn usa `useFormField()` y exige un `FormItem` alrededor,
+ *     que @saastro/forms no monta — usarlo reventaría en runtime.
+ *     NO regenerar este fichero con `shadcn add form`.
  *
  * The remaining named primitives @saastro/forms looks up (Field,
  * FieldLabel, FieldDescription, FieldError) come from the standard
@@ -15,7 +20,7 @@
  */
 import * as React from 'react';
 import { Controller, type ControllerProps, type FieldValues } from 'react-hook-form';
-import { Slot } from 'radix-ui';
+import { useRender } from '@base-ui/react/use-render';
 
 export function FormField<TFieldValues extends FieldValues = FieldValues>(
   props: ControllerProps<TFieldValues>,
@@ -23,13 +28,17 @@ export function FormField<TFieldValues extends FieldValues = FieldValues>(
   return <Controller {...props} />;
 }
 
-export interface FormControlProps extends React.ComponentProps<typeof Slot.Root> {
-  asChild?: boolean;
+export interface FormControlProps extends React.ComponentProps<'div'> {
+  children?: React.ReactElement;
 }
 
 export const FormControl = React.forwardRef<HTMLElement, FormControlProps>(
-  function FormControl({ ...props }, ref) {
-    return <Slot.Root ref={ref as React.Ref<HTMLElement>} {...props} />;
+  function FormControl({ children, ...props }, ref) {
+    return useRender({
+      render: children as React.ReactElement,
+      props,
+      ref: ref as React.Ref<HTMLElement>,
+    });
   },
 );
 
