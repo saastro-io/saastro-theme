@@ -115,12 +115,6 @@ export default defineConfig({
         clientPort: DEV_PORT ?? 4321,
       },
     },
-    optimizeDeps: {
-      include: [
-        'use-sync-external-store/shim/index.js',
-        'use-sync-external-store/shim/with-selector.js',
-      ],
-    },
     resolve: {
       alias: {
         '@': '/src',

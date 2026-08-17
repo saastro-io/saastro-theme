@@ -30,6 +30,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # `astro check` NO estaba en CI y `tsc` llevaba roto en local
+      # (`ignoreDeprecations: "6.0"` con TS 5.9.3 aborta antes de comprobar
+      # nada). Resultado: el `<Accordion type="single" collapsible>` que dejó
+      # la migración a Base UI no lo cazó ningún check — sólo un typecheck a
+      # mano. El build pasa igual porque el error es de tipos, no de runtime.
+      - name: Typecheck
+        run: pnpm run typecheck
+
       # The Studio contract gate: runs the SAME validator as the Hub Setup doctor
       # (@saastro/studio/doctor) — missing markers, i18n EN/ES parity, hardcoded
       # hex vs tokens, raw <form> vs HubForm, allowlist — then `astro build`.
