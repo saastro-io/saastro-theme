@@ -30,3 +30,9 @@ pnpm-debug.log*
 # claude-mem per-directory memory — internal only. Never let these become Astro
 # routes (any CLAUDE.md under src/pages/ would be served as a page + sitemapped).
 src/pages/**/CLAUDE.md
+
+# Artefactos locales de saastro-relay: `knowledge/` se REGENERA en cada sync
+# (INDEX.md lleva un `last_sync` que cambia solo) y ensuciaba todos los commits.
+# Mismo criterio que hub, platform y forms.
+.saastro-relay
+knowledge/
