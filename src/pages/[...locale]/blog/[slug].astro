@@ -4,7 +4,8 @@ import { locales, defaultLocale } from '../../../i18n/config';
 import { pageOverride, pageKeyFromPath } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { calculateReadingTime } from '../../../lib/reading-time';
 
@@ -108,9 +109,9 @@ const related = allPosts
         <Separator className="my-12" />
 
         <div class="flex items-center justify-between">
-          <Button asChild variant="ghost">
-            <a href={lp('/blog')}>&larr; All posts</a>
-          </Button>
+          <a href={lp('/blog')} class={cn(buttonVariants({ variant: 'ghost' }))}>
+            &larr; All posts
+          </a>
         </div>
 
         {related.length > 0 && (

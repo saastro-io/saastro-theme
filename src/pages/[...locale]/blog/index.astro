@@ -4,7 +4,8 @@ import { locales, defaultLocale } from '../../../i18n/config';
 import { resolveMeta } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const prerender = true;
 
@@ -94,9 +95,9 @@ const paginatedPosts = posts.slice((page - 1) * postsPerPage, page * postsPerPag
         {totalPages > 1 && (
           <nav class="flex items-center justify-center gap-4 mt-12" aria-label="Blog pagination">
             {page > 1 ? (
-              <Button asChild variant="outline">
-                <a href={`?page=${page - 1}`}>&larr; Previous</a>
-              </Button>
+              <a href={`?page=${page - 1}`} class={cn(buttonVariants({ variant: 'outline' }))}>
+                &larr; Previous
+              </a>
             ) : (
               <div />
             )}
@@ -104,9 +105,9 @@ const paginatedPosts = posts.slice((page - 1) * postsPerPage, page * postsPerPag
               Page {page} of {totalPages}
             </span>
             {page < totalPages ? (
-              <Button asChild variant="outline">
-                <a href={`?page=${page + 1}`}>Next &rarr;</a>
-              </Button>
+              <a href={`?page=${page + 1}`} class={cn(buttonVariants({ variant: 'outline' }))}>
+                Next &rarr;
+              </a>
             ) : (
               <div />
             )}

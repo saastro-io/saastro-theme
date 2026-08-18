@@ -116,6 +116,12 @@ export default defineConfig({
       },
     },
     optimizeDeps: {
+      // NO borrar por "config muerta": `use-sync-external-store` no aparece en
+      // las `dependencies` de zustand ni en node_modules/ raíz — es una
+      // peerDependency OPCIONAL (instalada, 1.6.0, en el store de pnpm). Sin
+      // pre-bundlearla, Vite re-optimiza en caliente y el SSR acaba con dos
+      // copias de React: "Invalid hook call" + `useState` de null en TODOS los
+      // widgets. Comprobado el 17-ago-2026 quitándola: el dev server da 500.
       include: [
         'use-sync-external-store/shim/index.js',
         'use-sync-external-store/shim/with-selector.js',

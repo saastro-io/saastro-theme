@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { editableField, editableSection } from '@saastro/studio/markers';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -73,9 +73,15 @@ export function Announcement({
       </span>
 
       {buttonText && buttonHref && (
-        <Button asChild size="sm" variant="outline" className="h-6 shrink-0 px-2 text-xs">
-          <a href={buttonHref}>{buttonText}</a>
-        </Button>
+        <a
+          href={buttonHref}
+          className={cn(
+            buttonVariants({ size: 'sm', variant: 'outline' }),
+            'h-6 shrink-0 px-2 text-xs',
+          )}
+        >
+          {buttonText}
+        </a>
       )}
 
       <Button

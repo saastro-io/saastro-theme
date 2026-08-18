@@ -35,17 +35,21 @@ function isActive(url: string, current: string) {
 export function MobileMenu({ menu, currentPath = '' }: Props) {
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Open menu">
-          <Menu className="h-4 w-4" />
-        </Button>
+      <SheetTrigger
+        render={<Button variant="outline" size="icon" />}
+        aria-label="Open menu"
+      >
+        <Menu className="h-4 w-4" />
       </SheetTrigger>
       <SheetContent side="right" className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="sr-only">Navigation</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-4 p-4">
-          <Accordion type="single" collapsible className="w-full">
+          {/* Base UI: no existen `type` ni `collapsible`. Un solo panel abierto
+              es el comportamiento por defecto (sin `multiple`), y el colapso
+              libre también. */}
+          <Accordion className="w-full">
             {menu.map((item) =>
               item.items && item.items.length > 0 ? (
                 <AccordionItem key={item.url} value={item.title} className="border-b-0">
