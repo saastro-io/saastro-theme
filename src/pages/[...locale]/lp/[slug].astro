@@ -4,6 +4,7 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
 import LandingLong from '../../../components/lp/LandingLong.astro';
 import { getSettings } from '../../../lib/settings';
+import { fetchHubFormSchema } from '../../../lib/hub-form-schema';
 import type { LandingData } from '../../../lib/lp';
 
 // SSR, not prerendered — deliberately. Prerendered collection routes make CI
@@ -36,6 +37,15 @@ if (!entry) {
 const landing = entry.data as LandingData;
 const { siteId } = getSettings().forms;
 
+// Prefetch the Hub form schema HERE, on the server, so the landing ships the
+// real form in its HTML. <HubForm> would otherwise fetch it from a useEffect,
+// which never runs during SSR — the page would send "Loading…" and a visitor
+// without JS (or a crawler) would see no form at all. This route is
+// `prerender = false`, so this runs per request and the schema is never stale.
+// Returns null on any failure; the component then fetches client-side as
+// before, so a slow endpoint degrades to the old behaviour instead of a 500.
+const formSchema = await fetchHubFormSchema(siteId, landing.form);
+
 // Both layouts render the markdown body — hero-form shows it below the pitch,
 // long-form as the main read — so always render(). The layout is picked from a
 // closed map; an unknown value (which the enum already prevents) cannot reach
@@ -57,6 +67,7 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   <Layout
     landing={landing}
     siteId={siteId}
+    formSchema={formSchema}
     locale={locale}
     faqTitle={t.lp.faqTitle}
     notConfigured={t.lp.notConfigured}

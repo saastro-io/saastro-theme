@@ -20,6 +20,14 @@ interface LandingFormProps {
   locale: string;
   /** Localized placeholder copy (i18n `lp.notConfigured`) shown when siteId is empty. */
   notConfigured: LandingNotConfiguredCopy;
+  /**
+   * The form schema, already fetched on the server by the route (see
+   * `@/lib/hub-form-schema`). Passing it makes HubForm render on its FIRST
+   * paint, so the form is in the SSR'd HTML rather than a "Loading…" fallback
+   * that only resolves once JS runs. `null` ⇒ the prefetch failed, and HubForm
+   * fetches in the browser exactly as it did before.
+   */
+  initialSchema?: unknown;
 }
 
 /**
@@ -29,7 +37,7 @@ interface LandingFormProps {
  * renders that Hub form on the page. When no Hub site is connected it announces
  * itself instead of pretending to work — no data is sent or stored.
  */
-export function LandingForm({ siteId, formSlug, locale, notConfigured }: LandingFormProps) {
+export function LandingForm({ siteId, formSlug, locale, notConfigured, initialSchema }: LandingFormProps) {
   if (!siteId) {
     return (
       <div className="rounded-2xl border border-dashed border-foreground/40 bg-card p-5">
@@ -46,6 +54,7 @@ export function LandingForm({ siteId, formSlug, locale, notConfigured }: Landing
       siteId={siteId}
       formSlug={formSlug}
       locale={locale}
+      initialSchema={initialSchema}
       formProps={{ components: uiComponents }}
     />
   );

@@ -10,6 +10,12 @@ import type { LandingData, LandingNotConfiguredCopy } from '@/lib/lp';
 interface Props {
   landing: LandingData;
   siteId: string;
+  /**
+   * The Hub form schema, already fetched by the route on the server. Lets the
+   * form render in the HTML instead of a "Loading…" placeholder. `null` when
+   * the prefetch failed — the component then fetches it in the browser.
+   */
+  formSchema: unknown;
   locale: string;
   /** i18n `lp.faqTitle` — the FAQ section heading. */
   faqTitle: string;
@@ -17,7 +23,7 @@ interface Props {
   notConfigured: LandingNotConfiguredCopy;
 }
 
-const { landing, siteId, locale, faqTitle, notConfigured } = Astro.props;
+const { landing, siteId, formSchema, locale, faqTitle, notConfigured } = Astro.props;
 ---
 
 <article class="px-6 pb-10 pt-12 lg:px-10">
@@ -102,7 +108,8 @@ const { landing, siteId, locale, faqTitle, notConfigured } = Astro.props;
         formSlug={landing.form}
         locale={locale}
         notConfigured={notConfigured}
-        client:only="react"
+        initialSchema={formSchema}
+        client:load
       />
     </div>
   </div>
