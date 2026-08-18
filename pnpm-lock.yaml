@@ -33,8 +33,8 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2(react@19.2.7)
       '@saastro/forms':
-        specifier: ^0.18.0
-        version: 0.18.0(date-fns@4.1.0)(react-day-picker@10.0.1(@types/react@19.2.14)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.80.0(react@19.2.7))(react@19.2.7)(zod@4.4.3)
+        specifier: ^0.19.0
+        version: 0.19.0(date-fns@4.1.0)(react-day-picker@10.0.1(@types/react@19.2.14)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.80.0(react@19.2.7))(react@19.2.7)(zod@4.4.3)
       astro:
         specifier: ^7.0.3
         version: 7.0.3(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.6.0)(jiti@2.6.1)(rollup@4.60.2)(yaml@2.8.4)
@@ -1494,8 +1494,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@saastro/forms@0.18.0':
-    resolution: {integrity: sha512-p4AydJU/LNDHjrm7gY84Hx3aVbrsfJmt/2Hk7dOWTI82sCG1iBeV9z3mIOfdG3HGTErEQ3CKlzFwHzwa1eJR4Q==}
+  '@saastro/forms@0.19.0':
+    resolution: {integrity: sha512-6eNtaz4N/E1kPJjl4RZsoPwK2A46+Kq9I6DNTuLGhqX2VVILap3bXFKlM0mry6XCIJzwPtnP0aor9LqaWIQBkg==}
     hasBin: true
     peerDependencies:
       date-fns: ^4.1.0
@@ -5582,7 +5582,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.60.2':
     optional: true
 
-  '@saastro/forms@0.18.0(date-fns@4.1.0)(react-day-picker@10.0.1(@types/react@19.2.14)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.80.0(react@19.2.7))(react@19.2.7)(zod@4.4.3)':
+  '@saastro/forms@0.19.0(date-fns@4.1.0)(react-day-picker@10.0.1(@types/react@19.2.14)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.80.0(react@19.2.7))(react@19.2.7)(zod@4.4.3)':
     dependencies:
       '@hookform/resolvers': 5.4.0(react-hook-form@7.80.0(react@19.2.7))
       '@iconify/react': 6.0.2(react@19.2.7)
