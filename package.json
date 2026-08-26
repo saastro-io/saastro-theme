@@ -8,6 +8,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "typecheck": "astro check",
+    "ui:check": "node scripts/ui-check.mjs",
+    "ui:sync": "node scripts/ui-sync.mjs",
     "studio:check": "node scripts/studio-check.mjs && astro build && node scripts/studio-contract-check.mjs",
     "studio:contract:update": "astro build && node scripts/studio-contract-check.mjs --update",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",

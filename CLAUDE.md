@@ -97,6 +97,35 @@ the owner and decided. Revisit only if the owner asks.
 The base palette is neutral (chroma 0); a brand color means giving `--primary`/`--accent`
 real chroma or adding `--brand` in `:root` + `.dark`, never an inline hex.
 
+## Las primitivas se BAJAN del registry — `ui:check` / `ui:sync`
+
+Desde el 26-ago-2026 las primitivas viven en **`saastro-ui`** (25 en el
+registry) y este theme es **un consumidor más**, igual que cualquier site. No es
+el dueño: si corriges una primitiva aquí, la corrección hay que subirla al
+registry o se pierde en el siguiente sync.
+
+```bash
+pnpm ui:check          # ¿alguna difiere del registry? Solo lee. Sale 1 si hay drift
+pnpm ui:check --diff   # y enséñame qué cambia
+pnpm ui:sync           # tráelas — escribe los ficheros y NO commitea
+pnpm ui:sync --dry     # dime qué harías
+```
+
+**`ui:sync` no commitea a propósito**: en el modelo copy-in el `git diff` ES la
+revisión. Un `--overwrite` a ciegas te borra los ajustes locales en silencio, y
+eso es lo que da mala fama a este modelo. Revisa siempre con
+`git diff -- src/components/ui` antes de dar nada por bueno.
+
+Contra un ui-docs local: `REGISTRY=http://localhost:4321/r pnpm ui:check`.
+
+**Nunca serán un paquete npm.** Tailwind no escanea `node_modules`, así que las
+clases de dentro del paquete no entran en el CSS generado. Está intentado
+muchas veces y no funciona: la distribución es copy-in y punto.
+
+`calendar` y `command` viven **solo aquí**: arrastran `react-day-picker` y
+`cmdk`, y no se subieron al registry. `ui:check` los marca como «solo local»,
+que no es un error — es el inventario.
+
 ## Base de primitivas — Base UI, no Radix (migración de agosto 2026)
 
 Los `src/components/ui/*` de este theme se construyen sobre **Base UI**. Radix
@@ -125,7 +154,7 @@ cabecera del propio fichero; si lo pisas, recupéralo de git.
 
 ## UI blocks — `ui.saastro.io` compatibility (the methodology)
 
-`ui.saastro.io` (repo `saastro-ui`) is a **shadcn-style registry** (`@saastro/ui-registry`, ~15 blocks: hero-01/02/03, features-01/02, pricing-01, cta-01, faq-01, testimonials-01, navbar-01, footer-01, blog-grid-01, newsletter-01, stats-01, logos-01). Every block is a **pure presentational React `.tsx`**: typed props, content **only** via props (never hardcoded), `cn` + `@/components/ui/*` + `asChild`. Blocks are served as JSON at `https://ui.saastro.io/r/<name>.json` and pulled with `npx shadcn add @saastro/<block>` (configure the `@saastro` registry in `components.json`; the CLI also pulls each block's `registryDependencies` primitives, filling this theme's primitive set on demand — it ships ~13 of the registry's ~43). This theme already has the matching stack — Tailwind 4 + `cn` (`@/lib/utils`) + `@/*` alias + the shadcn tokens (`--primary`, `--muted-foreground`, …) — so registry blocks drop in unchanged.
+`ui.saastro.io` (repo `saastro-ui`) is a **shadcn-style registry** (`@saastro/ui-registry`, **40 items: 15 blocks + 25 primitivas**). Ojo con dos cosas que cambiaron en agosto: **12 de los 15 bloques son `.astro` puros** (cero JS, cero deps) y solo 3 son `.tsx` — `faq-01`, `navbar-01` y `pricing-01`, los que llevan estado; y se usa **`render={<a/>}` de Base UI, no `asChild`** (que era Radix). Contenido **solo** por props, nunca hardcodeado. Blocks are served as JSON at `https://ui.saastro.io/r/<name>.json` and pulled with `npx shadcn add @saastro/<block>` (configure the `@saastro` registry in `components.json`; the CLI also pulls each block's `registryDependencies` primitives, filling this theme's primitive set on demand — it ships ~13 of the registry's ~43). This theme already has the matching stack — Tailwind 4 + `cn` (`@/lib/utils`) + `@/*` alias + the shadcn tokens (`--primary`, `--muted-foreground`, …) — so registry blocks drop in unchanged.
 
 **Three layers, strict separation. A component is touched ONLY on a STRUCTURE change, never on a content change:**
 
