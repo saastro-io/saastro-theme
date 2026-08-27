@@ -31,18 +31,17 @@ Tailwind no escanea `node_modules`, así que las clases que viven dentro de un
 paquete no entran en el CSS generado. Está intentado varias veces y no funciona.
 No se vuelve a proponer.
 
-## El modelo de tres capas — objetivo, hoy sin estrenar
+## El modelo de tres capas — estrenado en `about` (27-ago-2026)
 
-Es el destino del repo para las secciones, y **hoy no está implementado**: no
-existen `src/components/ui/blocks/` ni `src/components/blocks/`, y las 14
-secciones están escritas a mano.
+**Piloto hecho en `AboutContent`**; el resto de secciones siguen escritas a mano
+y se migran una a una con este patrón.
 
-1. **Bloque** — `src/components/ui/blocks/<name>.tsx`, byte a byte del registry.
+1. **Bloque** — `src/components/blocks/<name>.astro`, byte a byte del registry.
    Sin i18n y sin `data-saastro`. Se actualiza con `shadcn add`. **Solo se edita
    aguas arriba, en `saastro-ui`**, y vuelve por el registry: nunca se cambia la
    copia de un site.
-2. **Adaptador** — `src/components/blocks/<Name>.astro`, uno por bloque en uso.
-   Es el único pegamento propio: mapea el objeto i18n a los props tipados del
+2. **Adaptador** — el componente de sección de siempre (`AboutContent.astro`),
+   que pasa a ser fino. Es el único pegamento propio: mapea el objeto i18n a los props tipados del
    bloque y elige hidratación (estático = SSR y cero JS; interactivo =
    `client:visible`). **La «estructura» vive aquí**: cambiar de bloque o de
    layout se hace en el adaptador, jamás en el bloque.
@@ -149,3 +148,29 @@ Dos consecuencias que **sí** son vinculantes:
 2. No gastes una ronda en re-plantearlo: el compromiso —comodidad contra una
    cuestión de transferencia internacional con jurisprudencia detrás— se le puso
    al owner y está decidido. Se revisa solo si él lo pide.
+
+### Lo que enseñó el piloto
+
+**Dónde caen los bloques lo decide el CLI, no nosotros.** `shadcn add` los
+escribe en `src/components/blocks/` (el `target` del item en el registry). La
+versión anterior de esta ficha decía `src/components/ui/blocks/` y era falso:
+manda el CLI. El adaptador es el componente de sección que ya existía.
+
+**El bloque se arregla aguas arriba, y funciona.** `features-01` exigía `icon`
+y caía a `sparkles` si faltaba; los valores de una empresa no llevan icono. En
+vez de tocar la copia local se hizo `icon` opcional en `saastro-ui`
+(PR #24), se desplegó el registry y `shadcn add` lo bajó ya corregido. Ése es
+el ciclo completo del modelo, y es la razón de que el bloque no se edite aquí.
+
+**⚠️ No remapees el array de i18n antes de pasarlo al bloque.** Es la trampa
+cara: si el adaptador hace `const features = valuesItems.map(...)` y pasa
+`features`, **autoWrap pierde el rastro de los items** y esa sección deja de
+ser editable con click-to-edit en Studio. Hay que pasar el array **directo**
+(`features={valuesItems}`), y para eso los props del bloque tienen que encajar
+con la forma del i18n — si no encajan, se ajusta el bloque en el registry, no
+el adaptador. Lo caza `pnpm studio:check` con `[autowrap_gap]`, pero solo si se
+ejecuta: no da la cara en el build.
+
+**No todo tiene que venir del registry.** La intro y la misión de `about` siguen
+siendo markup propio porque ningún bloque las cubre. El modelo no exige que todo
+sea del registry: exige que lo que venga del registry no se toque.

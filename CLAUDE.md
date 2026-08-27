@@ -14,7 +14,6 @@ valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` es un
 descendiente en producción: úsalo de referencia para dudas de cableado. Migrado
 de `@saastro/cms` a `@saastro/studio` en agosto de 2026 (detalle en la ficha).
 
-
 ## Studio instrumentation (the contract)
 
 | Piece | File |
@@ -60,7 +59,6 @@ La ruta completa está en **`docs/pipeline.md`**. En corto: `pnpm scaffold clien
 desde el Hub (clona con historia, parametriza identidad/locales/colecciones y
 **solo commitea si `studio:check` está verde**) → brief y diseño en Claude Design
 → aplicar el handoff con la skill `apply-handoff` → conectar en el Hub.
-
 
 ## Claude Design handoff
 
@@ -113,19 +111,23 @@ Regenerarlo lo pisa y rompe todos los formularios del sitio: si el CLI ofrece
 sobrescribirlo (o le pasas `--overwrite`), di que no. El aviso está también en la
 cabecera del propio fichero; si lo pisas, recupéralo de git.
 
-## Bloques de `ui.saastro.io` — OBJETIVO, hoy sin implementar
+## Bloques de `ui.saastro.io` — modelo de tres capas
 
-Los **primitivos ya se consumen** (arriba). **Los bloques no: este repo no
-consume ninguno.** Las 14 secciones están escritas a mano en `src/components/`,
-y no existen ni `src/components/ui/blocks/` ni `src/components/blocks/`.
+Bloque pristine del registry en `src/components/blocks/` (lo pone ahí
+`shadcn add`) → adaptador, que es el componente de sección de siempre →
+contenido en i18n. **Estrenado en `about`**; el resto se migra una a una. El
+patrón y las lecciones del piloto, en `knowledge/src.md`.
 
-El objetivo es el modelo de tres capas —bloque pristine del registry, adaptador
-con la instrumentación, contenido en i18n—, descrito en `knowledge/src.md`.
+**El bloque no se edita aquí.** Si le falta algo, se arregla en `saastro-ui` y
+vuelve por el registry — así nació el `icon?` opcional de `features-01`.
+
+**⚠️ No remapees el array de i18n antes de pasarlo al bloque**: un
+`const x = items.map(...)` rompe autoWrap y la sección deja de ser editable en
+Studio. Pásalo directo. Lo caza `studio:check`, no el build.
 
 ⚠️ No migres una sección «copiando el bloque encima». Los bloques del registry
 no llevan i18n ni marcador **a propósito**: eso lo pone el adaptador. A lo bruto,
 el site pierde las claves i18n y el marcador que enumera el overlay del Hub.
-
 
 ## i18n routing
 
@@ -163,7 +165,6 @@ propias colecciones, en `knowledge/src.md`.
   propias credenciales: CF construye y despliega en cada push **sin un solo
   token aquí**. Por eso no hay `deploy.yml` — lo tendría que llevar cada repo
   cliente. CI solo corre `pnpm studio:check`, que no necesita secretos.
-
 
 ## SEO + Studio: las trampas que hereda cada site
 
