@@ -31,8 +31,8 @@ pnpm-debug.log*
 # routes (any CLAUDE.md under src/pages/ would be served as a page + sitemapped).
 src/pages/**/CLAUDE.md
 
-# Artefactos locales de saastro-relay: `knowledge/` se REGENERA en cada sync
-# (INDEX.md lleva un `last_sync` que cambia solo) y ensuciaba todos los commits.
-# Mismo criterio que hub, platform y forms.
-.saastro-relay
-knowledge/
+# Del knowledge se ignora SOLO lo generado: los `.snap.md` los rehace
+# `office watch` en cada pasada. Las narrativas son CONTRATO y viajan en git
+# — gitignorearlas enteras dejaba el contrato viviendo en una sola máquina
+# (doctrina de la office, aprendido en el piloto de ui del 27-ago).
+knowledge/*.snap.md

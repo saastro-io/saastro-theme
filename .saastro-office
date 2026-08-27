@@ -1,0 +1,24 @@
+{
+  "project": "saastro-theme",
+  "watch": {
+    "paths": [
+      "./src",
+      "./docs",
+      "./scripts"
+    ],
+    "extensions": [
+      ".ts",
+      ".tsx",
+      ".astro",
+      ".mjs",
+      ".css",
+      ".md"
+    ],
+    "sections": {
+      "src": "src",
+      "docs": "docs",
+      "scripts": "scripts"
+    },
+    "knowledge": "./knowledge"
+  }
+}
