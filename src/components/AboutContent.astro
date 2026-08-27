@@ -1,4 +1,24 @@
 ---
+/**
+ * AboutContent — ADAPTADOR de la sección `about`.
+ *
+ * Primer caso del modelo de tres capas (ver `knowledge/src.md`). El reparto:
+ *
+ *   bloque    src/components/blocks/features-01.astro — pristine del registry,
+ *             bajado con `npx shadcn add @saastro/features-01`. NO se edita
+ *             aquí: si algo le falta, se arregla en saastro-ui y vuelve por el
+ *             registry (así nació el `icon?` opcional que usa esta rejilla).
+ *   adaptador este fichero — mapea el objeto i18n a los props tipados del
+ *             bloque y declara `fieldPrefix`, que es de donde el plugin de
+ *             Studio saca el marcador en build.
+ *   contenido src/i18n/translations/{en,es}.json, namespace `about`.
+ *
+ * La intro y la misión siguen siendo markup propio: no hay bloque del registry
+ * que las cubra, y forzar uno sería peor que escribirlas. El modelo no exige
+ * que TODO venga del registry, solo que lo que venga no se toque.
+ */
+import Features01 from '@/components/blocks/features-01.astro';
+
 interface ValueItem {
   title: string;
   description: string;
@@ -23,11 +43,10 @@ const {
   valuesItems,
   fieldPrefix = 'about',
 } = Astro.props;
+
 ---
 
-<section
-  class="container mx-auto px-4 py-20 md:py-32"
->
+<section class="container mx-auto px-4 py-20 md:py-32">
   <div class="mx-auto max-w-3xl">
     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl mb-6">{title}</h1>
     <p class="text-lg text-muted-foreground leading-relaxed">{subtitle}</p>
@@ -43,16 +62,10 @@ const {
   </div>
 </section>
 
-<section class="py-20 md:py-28">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold tracking-tight text-center mb-12">{valuesTitle}</h2>
-    <div class="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
-      {valuesItems.map((item) => (
-        <div class="rounded-2xl border bg-card p-8">
-          <h3 class="text-xl font-bold mb-3">{item.title}</h3>
-          <p class="text-muted-foreground">{item.description}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
+<!-- `valuesItems` se pasa DIRECTO, sin remapear: `ValueItem {title, description}`
+     ya encaja en el `Feature` del bloque, cuyo `icon` es opcional. Y es
+     obligatorio hacerlo así — derivar el array a otra variable
+     (`valuesItems.map(...)`) rompe autoWrap, que pierde el rastro de los items
+     y deja los valores SIN click-to-edit en Studio. Lo cazó `studio:check`
+     con [autowrap_gap]. -->
+<Features01 title={valuesTitle} features={valuesItems} />
