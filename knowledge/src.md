@@ -4,6 +4,10 @@
 > ENLOLAB y quien monte uno nuevo— antes de derivar o retocar nada. Si cambia el
 > contrato de Studio, el pipeline o el modelo de bloques, cambia esta ficha en el
 > mismo commit.
+>
+> **Describe `main`.** Un site derivado se llevó una copia del template el
+> día que nació: si algo aquí no cuadra con lo que ves en tu site, mira
+> primero de cuándo es tu copia.
 
 ## Qué es
 
