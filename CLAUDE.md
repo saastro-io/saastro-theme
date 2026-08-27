@@ -1,145 +1,106 @@
-# saastro-theme — Studio-ready base template
+# saastro-theme — plantilla base lista para Studio
 
-This repo is the **canonical base template for new Saastro client sites**: a standalone Astro 6 + React 19 + Tailwind 4 + shadcn/ui marketing site, **pre-instrumented for Saastro Studio** (the editor lives in the Saastro Hub, not in this site).
+Plantilla canónica de los sites cliente: Astro 6 + React 19 + Tailwind 4,
+**pre-instrumentada para Saastro Studio** (el editor vive en el Hub, no aquí).
+Repo aparte, fuera del workspace de 3 repos de `~/SAASTRO`.
 
-It is **not** part of the 3-repo `~/SAASTRO` workspace (hub/platform/forms) — it's a separate `saastro-io/saastro-theme` repo.
+**Un site nuevo se crea con `pnpm scaffold client` desde el Hub**, nunca con
+«Use this template» de GitHub: eso da un repo **sin historia común**, incapaz de
+`git merge upstream/main`, y cada fix del theme habría que retroportarlo a mano.
+El scaffold clona este repo con su historia y su remote `upstream`.
 
-**A new client site is created with `pnpm scaffold client` from the Hub repo** (see "New project pipeline" below) — never with GitHub *"Use this template"*, which produces a repo with **no common history** with this theme: such a descendant can never `git merge upstream/main`, so every theme fix has to be back-ported by hand.
+La plantilla ya trae lo que buscan los detectores del Hub, así que **Setup
+valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` es un
+descendiente en producción: úsalo de referencia para dudas de cableado. Migrado
+de `@saastro/cms` a `@saastro/studio` en agosto de 2026 (detalle en la ficha).
 
-## Model (why this exists)
-
-- New projects start from this template via `pnpm scaffold client` (the subcommand clones THIS repo with full history + `upstream`), then connect in the Hub.
-- The template already ships everything the Hub's Setup detectors look for, so **the Setup page validates green with zero instrumentation work** (Install Studio / Generate config / Auto-mark find nothing to do). Setup's role becomes validation, not setup.
-- `@saastro/scaffold` has two paths: `scaffold client` (a descendant of THIS repo — the one you want for a client site) and the blank-greenfield engine the Hub wizard uses, which is not this repo.
-- `enlolab/dorjoiers` is a production descendant of this theme (its `package.json` is still named `saastro-theme`) — use it as the reference for any Studio-wiring question.
 
 ## Studio instrumentation (the contract)
 
 | Piece | File |
 |---|---|
 | `@saastro/studio` Vite plugin (`autoWrap` + `autoWrapPages`) | `astro.config.mjs` |
-| `stripStudioMeta` integration (strips dev meta tags in prod) | `astro.config.mjs` + `src/integrations/strip-studio-meta-middleware.ts` |
 | `data-saastro="sec:<key>"` markers on section roots | auto-injected by the plugin (≥0.10.1) from the `fieldPrefix` destructuring default; islands spread `@saastro/studio/markers` helpers |
 | Global sections (nav/footer) | `studio.config.json` |
 | Collections + i18n shape (parsed by the Hub) | `saastrocms.config.ts` (interface inlined — no `@saastro/cms` dep) |
 | Editable content | `src/i18n/translations/{en,es}.json` |
 
-**Editable = what's in i18n.** A section is editable when its component emits a `data-saastro="sec:<key>"` marker on its root tag (built from the `fieldPrefix` prop the page/layout passes) AND `<key>` is a top-level namespace in the translation JSON. Marked keys: `hero`, `products`, `about`, `nav`, `footer`. Every section component now follows this contract (prop-driven + i18n + marker) — no hardcoded sections remain.
+**Editable = lo que está en i18n.** Una sección es editable cuando emite
+`data-saastro="sec:<key>"` en su raíz —construido desde el prop `fieldPrefix`—
+y `<key>` es un namespace de primer nivel en el JSON de traducciones. Hoy:
+`hero`, `products`, `about`, `nav`, `footer`. No queda ninguna sección hardcodeada.
 
-> Since `@saastro/studio` **0.10.1** the plugin auto-injects BOTH the `sec:` root
-> marker AND the `data-saastro-field` markers in `.astro` sections whose
-> frontmatter declares `fieldPrefix` (the 0.10.0 bug — `instrumentFields` bailing
-> without a literal `data-saastro=` in the source — is fixed). No `.astro` section
-> hand-writes markers anymore: the default lives in the destructuring
-> (`fieldPrefix = 'hero'`) and the plugin does the rest. React islands are never
-> auto-instrumented — they spread the pure helpers from the SSR/browser-safe
-> subpath **`@saastro/studio/markers`** (`editableSection`/`editableField`/
-> `editableSlot`), which the doctor requires (`island_raw_markers` warns on
-> hand-typed attributes). Single exception: `ToggleTheme.astro` keeps its
-> hardcoded marker (no `fieldPrefix` prop — deliberate).
+> **Los marcadores no se escriben a mano.** Desde `@saastro/studio` 0.10.1 el
+> plugin inyecta solos el marcador raíz y los de campo en las secciones `.astro`
+> cuyo frontmatter declara `fieldPrefix` — el valor por defecto vive en el
+> destructuring (`fieldPrefix = 'hero'`) y el plugin hace el resto. Las islas
+> React **nunca** se instrumentan solas: extienden los helpers del subpath
+> `@saastro/studio/markers`, y el doctor avisa (`island_raw_markers`) si ve
+> atributos tecleados a mano. Única excepción: `ToggleTheme.astro`, que no tiene
+> `fieldPrefix` y lleva el suyo fijo a propósito.
 
 ## Contract check over the BUILT DOM — `studio-contract.json`
 
-`pnpm studio:check` is the single full-verdict command: source doctor
-(`scripts/studio-check.mjs`) → `astro build` → **contract check over `dist/`**
-(`scripts/studio-contract-check.mjs`). The contract layer compares the built
-HTML against two sources of truth: the i18n JSONs and **`studio-contract.json`**
-(committed manifest at the repo root) — per-page section/field markers, i18n
-text verbatim in the HTML (stega/click-to-edit precondition), raw editable
-images, schema scripts, locale parity, emitted CSS tokens (`--font-body`/
-`--font-display`/`.ac`), the `#manage-cookies-btn`, the cookie-policy link
-resolving, **the Gen beacon's legal declaration** (`gen-legal`: if the served DOM
-emits the Gen beacon, the cookie policy must declare that processing — canonical
-text ready to copy in `docs/legal-gen-tracking.md`), form-primitive exports, and
-sha256 hashes of pure-architecture files.
+`pnpm studio:check` es el veredicto completo: doctor sobre el fuente →
+`astro build` → **contract check sobre `dist/`**. Compara el HTML construido
+contra los JSON de i18n y contra `studio-contract.json` (manifiesto commiteado
+en la raíz): marcadores por página, el texto i18n literal en el HTML —
+precondición del click-to-edit—, imágenes editables, schemas, paridad de
+locales, tokens CSS emitidos, el botón de cookies, el enlace a la política, la
+**declaración legal del beacon de Gen** y hashes de los ficheros de arquitectura.
 
 The manifest is **never regenerated automatically**: after a deliberate
 structural/architecture change run `pnpm studio:contract:update` and commit the
 diff. A red check = the built DOM diverged from the recorded contract; each
 failure says which invariant, which page/section/field, and what to do.
 
-## New project pipeline (briefing → Design → this template → live)
+## Pipeline de un proyecto nuevo
 
-The full route, and what runs it, is in **`docs/pipeline.md`**. Short version:
+La ruta completa está en **`docs/pipeline.md`**. En corto: `pnpm scaffold client`
+desde el Hub (clona con historia, parametriza identidad/locales/colecciones y
+**solo commitea si `studio:check` está verde**) → brief y diseño en Claude Design
+→ aplicar el handoff con la skill `apply-handoff` → conectar en el Hub.
 
-1. **Create the repo** — from the Hub repo: `pnpm scaffold client <slug> --name "…" --domain … --owner … --locales es --default es`. Clones this theme with **full history** + `upstream`, parametrizes identity/locales/collections, and only commits if `studio:check` is green.
-2. **Design** — brief in Claude.ai → Claude Design → handoff (`.dc.html` / MCP).
-3. **Apply the handoff** — in the client repo, run the **`apply-handoff` skill** (`.claude/skills/apply-handoff/`, inherited by every copy): it ports the design into the free zone and loops until `pnpm studio:check` is green.
-4. **Ship** — branch → PR → deploy → Hub *"Connect existing"* (green here ⇒ green there).
-
-Bring theme fixes down anytime: `git fetch upstream && git merge upstream/main`.
 
 ## Claude Design handoff
 
-When a design from **Claude Design** arrives (a `.dc.html` / the `claude_design` MCP),
-follow **`docs/claude-design-handoff.md`** — or just invoke the **`apply-handoff`
-skill**, which drives that playbook as a loop. Golden rule: **port, never paste**.
-**Nav/Footer are not regenerated** — they carry behavior (mobile menu, locale switcher,
-the "Manage cookies" reopen, contact sheet); take the new look, keep the wiring.
+Cuando llega un diseño de **Claude Design** (`.dc.html` o el MCP `claude_design`):
+sigue `docs/claude-design-handoff.md`, o invoca la skill **`apply-handoff`**, que
+lo conduce como un bucle. Regla de oro: **portar, nunca pegar**.
 
-**Naming convention:** a section's `key = fieldPrefix = top-level i18n namespace` (the
-marker is `data-saastro="sec:<key>"`). There's no canonical key list — sections are
-per-project; `pnpm studio:check` validates internal coherence (marker ↔ i18n ↔ page),
-not membership in a fixed list.
+- **Nav y Footer no se regeneran.** Llevan comportamiento —menú móvil, selector
+  de idioma, reapertura de cookies, contact sheet—: coge el aspecto nuevo, deja
+  el cableado.
+- **Nombres**: `key = fieldPrefix = namespace i18n` de primer nivel, y el
+  marcador es `data-saastro="sec:<key>"`. No hay lista canónica: las secciones
+  son por proyecto y `pnpm studio:check` valida la coherencia interna
+  (marcador ↔ i18n ↔ página), no la pertenencia a una lista.
+- **Tokens, fuente única**: `src/styles/global.css`, variables oklch con
+  `@theme inline`. La paleta base es neutra: una marca es dar croma a
+  `--primary`/`--accent`, jamás un hex suelto.
 
-**Fonts — decision on record (owner, 2026-07-16):** client sites **load Google
-Fonts from Google's CDN; they do NOT self-host**. This template itself bundles
-Geist, but a redesign that pulls fonts from `fonts.googleapis.com` is following
-the owner's explicit call, not a mistake to "fix". Two consequences that ARE
-binding: (1) the site's cookie/privacy policy must **declare** the transfer (the
-visitor's browser sends its IP to Google on every page load, before the consent
-banner exists) — an undeclared third-party font load is the actual problem, not
-the font source; (2) don't spend a round trip re-raising it: the trade-off
-(convenience vs. an EU-transfer question that has case law behind it) was put to
-the owner and decided. Revisit only if the owner asks.
-
-**Tokens SSOT:** `src/styles/global.css` — oklch variables mapped via `@theme inline`.
-The base palette is neutral (chroma 0); a brand color means giving `--primary`/`--accent`
-real chroma or adding `--brand` in `:root` + `.dark`, never an inline hex.
+Sobre las fuentes hay una **decisión del owner tomada** (16-jul-2026) con
+consecuencias vinculantes para la política de privacidad: está en
+`knowledge/src.md`. No se vuelve a plantear.
 
 ## Las primitivas se BAJAN del registry — `ui:check` / `ui:sync`
 
-Desde el 26-ago-2026 las primitivas viven en **`saastro-ui`** (25 en el
-registry) y este theme es **un consumidor más**, igual que cualquier site. No es
-el dueño: si corriges una primitiva aquí, la corrección hay que subirla al
-registry o se pierde en el siguiente sync.
+Viven en **`saastro-ui`** (26, todas sobre **Base UI**; Radix salió del
+`package.json` en agosto). Este theme es **un consumidor más**: si corriges una
+primitiva aquí, súbela al registry o se pierde en el próximo sync.
 
 ```bash
-pnpm ui:check          # ¿alguna difiere del registry? Solo lee. Sale 1 si hay drift
-pnpm ui:check --diff   # y enséñame qué cambia
-pnpm ui:sync           # tráelas — escribe los ficheros y NO commitea
-pnpm ui:sync --dry     # dime qué harías
+pnpm ui:check   # ¿alguna difiere? Solo lee. Sale 1 si hay drift (--diff enseña qué)
+pnpm ui:sync    # tráelas — escribe y NO commitea (--dry para ensayar)
 ```
 
-**`ui:sync` no commitea a propósito**: en el modelo copy-in el `git diff` ES la
-revisión. Un `--overwrite` a ciegas te borra los ajustes locales en silencio, y
-eso es lo que da mala fama a este modelo. Revisa siempre con
-`git diff -- src/components/ui` antes de dar nada por bueno.
+**`ui:sync` no commitea a propósito**: en copy-in el `git diff` ES la revisión.
+Un `--overwrite` a ciegas borra los ajustes locales en silencio.
 
-Contra un ui-docs local: `REGISTRY=http://localhost:4321/r pnpm ui:check`.
+`command` es el único que vive solo aquí (`cmdk` arrastra cuatro paquetes de
+Radix). `ui:check` lo marca «solo local»: es inventario, no error.
 
-**Nunca serán un paquete npm.** Tailwind no escanea `node_modules`, así que las
-clases de dentro del paquete no entran en el CSS generado. Está intentado
-muchas veces y no funciona: la distribución es copy-in y punto.
-
-`calendar` y `command` viven **solo aquí**: arrastran `react-day-picker` y
-`cmdk`, y no se subieron al registry. `ui:check` los marca como «solo local»,
-que no es un error — es el inventario.
-
-## Base de primitivas — Base UI, no Radix (migración de agosto 2026)
-
-Los `src/components/ui/*` de este theme se construyen sobre **Base UI**. Radix
-salió del `package.json` entero.
-
-- **La base va dentro del campo `style` de `components.json`**: `"style": "base-nova"`
-  (antes `radix-nova`). No hay un campo aparte para elegirla — shadcn 4 la codifica
-  ahí. Si un `shadcn add` te trae un componente que importa `@radix-ui/*`, lo que
-  está mal es ese campo.
-- Equivalencias que salen a cada paso: `Slot` → el hook `useRender`; `asChild` →
-  la prop `render` (+ `nativeButton` en los triggers); la variable CSS
-  `--radix-popover-trigger-width` → `--anchor-width`.
-- Deps que shadcn pide sobre Base UI y que ya están puestas: `cmdk` (command),
-  `input-otp`, `react-day-picker` (calendar).
+Por qué copy-in y nunca un paquete npm, en `knowledge/src.md`.
 
 ### `form.tsx` NO se regenera con `shadcn add form`
 
@@ -152,164 +113,65 @@ Regenerarlo lo pisa y rompe todos los formularios del sitio: si el CLI ofrece
 sobrescribirlo (o le pasas `--overwrite`), di que no. El aviso está también en la
 cabecera del propio fichero; si lo pisas, recupéralo de git.
 
-## UI blocks — `ui.saastro.io` compatibility (the methodology)
+## Bloques de `ui.saastro.io` — OBJETIVO, hoy sin implementar
 
-`ui.saastro.io` (repo `saastro-ui`) is a **shadcn-style registry** (`@saastro/ui-registry`, **40 items: 15 blocks + 25 primitivas**). Ojo con dos cosas que cambiaron en agosto: **12 de los 15 bloques son `.astro` puros** (cero JS, cero deps) y solo 3 son `.tsx` — `faq-01`, `navbar-01` y `pricing-01`, los que llevan estado; y se usa **`render={<a/>}` de Base UI, no `asChild`** (que era Radix). Contenido **solo** por props, nunca hardcodeado. Blocks are served as JSON at `https://ui.saastro.io/r/<name>.json` and pulled with `npx shadcn add @saastro/<block>` (configure the `@saastro` registry in `components.json`; the CLI also pulls each block's `registryDependencies` primitives, filling this theme's primitive set on demand — it ships ~13 of the registry's ~43). This theme already has the matching stack — Tailwind 4 + `cn` (`@/lib/utils`) + `@/*` alias + the shadcn tokens (`--primary`, `--muted-foreground`, …) — so registry blocks drop in unchanged.
+Los **primitivos ya se consumen** (arriba). **Los bloques no: este repo no
+consume ninguno.** Las 14 secciones están escritas a mano en `src/components/`,
+y no existen ni `src/components/ui/blocks/` ni `src/components/blocks/`.
 
-**Three layers, strict separation. A component is touched ONLY on a STRUCTURE change, never on a content change:**
+El objetivo es el modelo de tres capas —bloque pristine del registry, adaptador
+con la instrumentación, contenido en i18n—, descrito en `knowledge/src.md`.
 
-1. **Block** — `src/components/ui/blocks/<name>.tsx`, byte-for-byte from the registry. No i18n, no `data-saastro`. Re-run `shadcn add` to upgrade. **Edit only to improve the block upstream in `saastro-ui`** (it then flows back via the registry) — never to change one site's copy.
-2. **Adapter** — `src/components/blocks/<Name>.astro`, one per block in use. The only theme-specific glue: wraps the block in `<div data-saastro={`sec:${fieldPrefix}`}>`, maps the i18n object → the block's typed props, and picks hydration (static block = SSR / 0 JS; interactive — accordion / carousel / mobile-nav — = `client:visible`). **"Structure" lives here**: swap blocks or change layout in the adapter, never in the block.
-3. **Content** — `src/i18n/translations/{en,es}.json`. Namespace name = section key = `fieldPrefix`. Editing in the Studio moves these values only.
+⚠️ No migres una sección «copiando el bloque encima». Los bloques del registry
+no llevan i18n ni marcador **a propósito**: eso lo pone el adaptador. A lo bruto,
+el site pierde las claves i18n y el marcador que enumera el overlay del Hub.
 
-**Invariant:** content-only edit ⇒ only the translation JSON changes (block + adapter untouched; all locales for free). Structural edit (new field, different block, layout) ⇒ the adapter (+ maybe the i18n shape in `saastrocms.config.ts`). The block file never changes from inside this repo.
-
-This is the same `data-saastro` + i18n contract as above — the adapter is just the seam that keeps the registry block pristine while still emitting the section marker the Hub overlay enumerates and binds to the `<fieldPrefix>.<field>` i18n keys. The current sections (`Hero`, `Products`, `AboutContent`, `Header`, `Footer`) all follow the prop-driven + i18n + marker shape; aligning one to a registry block = extract its presentational markup into `blocks/<name>.tsx` and leave a thin adapter behind. (`Products` was the last hardcoded holdout — migrated to the `products` namespace on the home page, in both locales.)
-
-Worked example (faq-01):
-
-```astro
----
-// src/components/blocks/Faq.astro — the adapter (the only file we author)
-import { Faq01 } from '@/components/ui/blocks/faq-01'   // pristine, from `shadcn add @saastro/faq-01`
-const { fieldPrefix = 'faq', title, description, items } = Astro.props
----
-<div data-saastro={`sec:${fieldPrefix}`}>
-  <Faq01 title={title} description={description} items={items} client:visible />
-</div>
-```
-```astro
----
-// src/pages/index.astro — the page only wires i18n → props
-const faq = t?.faq ?? { title: 'FAQ', items: [] }
----
-<Faq fieldPrefix="faq" title={faq.title} description={faq.description} items={faq.items} />
-```
-
-`en.json` → `"faq": { "title": "…", "items": [{ "question": "…", "answer": "…" }] }`. Editing the FAQ in the Studio moves only that JSON; `faq-01.tsx` and `Faq.astro` stay put. Adding a column or switching to `faq-02` = touch the adapter. That is the whole rule.
 
 ## i18n routing
 
 Default locale (`en`) renders at the root; non-default (`es`) is prefixed via `src/pages/[locale]/*`. `src/middleware.ts` only resolves the locale into `Astro.locals` (no auth, no stega). The native `i18n` block in `astro.config.mjs` uses `routing: 'manual'` — purely a detection signal; Astro does not own routing here.
 
-## Landings (`/lp/<slug>`) — collection-backed campaign pages
+## Landings (`/lp/<slug>`) — páginas de campaña por colección
 
-Paid-campaign landing pages, modelled on esosique's `ofertas` and generalized
-for the bilingual theme. One markdown entry in the **`lp` collection** (named `lp` so collection key, content dir and URL prefix all match) =
-one landing at `/lp/<slug>` (locale-prefixed like every route): the entry picks
-its `layout` from a closed enum (`hero-form` | `largo` — dispatch map in
-`src/pages/[...locale]/lp/[slug].astro`) and its `form` (a Hub form slug
-rendered by `<HubForm>`). A new landing is a `.md` the client writes in
-Hub → Collections — no code, no deploy per landing. Pieces: schema in
-`src/content.config.ts`, explicit types in `src/lib/lp.ts` (deliberately
-not `CollectionEntry` codegen), layouts in `src/components/lp/`, chrome copy
-(FAQ heading + form-not-configured placeholder) in i18n under the top-level
-`lp` key.
+Una entrada markdown en la colección **`lp`** = una landing en `/lp/<slug>`. La
+entrada elige `layout` de un enum cerrado (`hero-form` | `largo`) y su `form`
+(un slug de formulario del Hub que pinta `<HubForm>`). Una landing nueva es un
+`.md` que escribe el cliente en Hub → Colecciones: sin código y sin deploy.
 
-- **SSR, never prerendered** (`export const prerender = false`): prerendered
-  collection routes redden CI every time the client publishes an entry (the
-  contract sees a route it has no record of). SSR keeps client-published
-  landings OUT of `studio-contract.json`, so publishing a landing never touches
-  the contract. Free — the whole site is `output: 'server'`.
-- **Absent from the sitemap — deliberate.** SSR pages aren't enumerated by
-  `@astrojs/sitemap`; paid landings are reached from the ad that carries their
-  URL, not organically. There is also deliberately **no `/lp/` index route** —
-  campaigns must not be enumerable on the site.
-- **Draft or unknown slug → redirect home** (never a blank 404 — the common
-  path is a valid slug reached from an ad). `draft: true` until a human
-  publishes. `src/content/lp/demo-landing.md` is the schema example +
-  smoke fixture, permanently draft.
-- **NOT Studio-editable**: components under `src/components/lp/` carry NO
-  `fieldPrefix` / NO `data-saastro` (collection-backed sections rule below).
-  Entry content is edited in Hub → Collections; only `lp.*` chrome copy is
-  i18n.
-- **Downstream merge note**: descendants that already added their own
-  collections (e.g. esosique's `ofertas`) resolve ONE line on
-  `git merge upstream/main` — merge both lists in the `export const
-  collections = { … }` line of `src/content.config.ts` — and append blocks in
-  `saastrocms.config.ts`'s `collections` map. The scaffold (`@saastro/scaffold`
-  in the Hub repo) textually anchors this file's `lp` literals — keep
-  scaffold + theme in lockstep when touching them.
+Las cuatro reglas duras:
 
-## Commands / deploy
+- **SSR, nunca prerenderizadas** (`export const prerender = false`). Si se
+  prerenderizan, el contract-check se pone rojo cada vez que el cliente publica.
+- **Fuera del sitemap y sin índice `/lp/`**, a propósito: a una landing de pago
+  se llega por el anuncio, no orgánicamente. No deben ser enumerables.
+- **Borrador o slug desconocido → redirect a home**, nunca un 404 en blanco.
+- **No son editables con Studio**: los componentes de `src/components/lp/` no
+  llevan `fieldPrefix` ni `data-saastro`. El contenido se edita en Colecciones;
+  solo el chrome (`lp.*`) es i18n.
 
-- Package manager: **pnpm**. `pnpm dev` (port 4930) · `pnpm build` · `pnpm preview`.
-- SSR on Cloudflare **Workers** (`@astrojs/cloudflare` v13 — `output: 'server'`). `pnpm build`
-  emits `dist/server/wrangler.json` (the adapter derives it from the root `wrangler.jsonc`,
-  inheriting `name`); deploy is `wrangler deploy --config dist/server/wrangler.json`.
-- **Deploy is wired by the Hub, not by a workflow in this repo.** On *New site from
-  template*, the Hub rewrites `wrangler.jsonc` `name` → the site slug and connects the repo
-  to **Cloudflare Workers Builds** (git-integration) using the Hub's own credentials — so CF
-  builds + deploys on every push with **no token in this repo**. The `deploy` block in
-  `saastro.template.json` declares the `buildCommand`/`deployCommand`/`wranglerConfig` that
-  drives it. (There is intentionally no `.github/workflows/deploy.yml` — it was removed in
-  the token-free pivot; a workflow here would need a CF secret in every client repo.)
-- CI (`.github/workflows/ci.yml`) still runs `pnpm studio:check` — no secrets needed.
+El porqué de cada una, y la nota de merge para descendientes que ya tengan sus
+propias colecciones, en `knowledge/src.md`.
 
-## SEO + Studio gotchas (learned from yogui-bebes — don't repeat)
+## Comandos y deploy
 
-These are template-level traps that every descendant site inherits unless fixed here.
+- pnpm. `pnpm dev` (4930) · `pnpm build` · `pnpm preview` · `pnpm studio:check`.
+- SSR en Cloudflare **Workers** (`output: 'server'`). El build emite
+  `dist/server/wrangler.json` y el deploy es
+  `wrangler deploy --config dist/server/wrangler.json`.
+- **El deploy lo cablea el Hub, no un workflow de este repo.** Al crear el site,
+  el Hub renombra `wrangler.jsonc` y conecta el repo a Workers Builds con sus
+  propias credenciales: CF construye y despliega en cada push **sin un solo
+  token aquí**. Por eso no hay `deploy.yml` — lo tendría que llevar cada repo
+  cliente. CI solo corre `pnpm studio:check`, que no necesita secretos.
 
-- **`site` / canonical (CRITICAL).** `astro.config.mjs` reads the canonical domain from
-  the **`SITE_URL`** build env var, falling back to the template domain. Every project MUST
-  set `SITE_URL` (Cloudflare Workers Builds env var) to its real domain — otherwise
-  `<link rel="canonical">`, OG/Twitter URLs, the sitemap and hreflang all point at
-  `saastro-theme.pages.dev` and Google indexes the wrong host. The build prints a warning
-  when `SITE_URL` is unset. (TODO Hub: set `SITE_URL` automatically when a custom domain is
-  connected.)
-- **`LocalBusinessJsonLd.astro`** emits `Store`/`LocalBusiness` structured data from i18n
-  (`contact` + `visitanos` + `meta`). It renders **nothing** until the site adds a
-  `contact` namespace with at least `addressLine1`. For a local-business site, add:
-  `contact.{addressLine1, addressLine2 ("CP Localidad (Provincia)"), phoneHref, instagramUrl,
-  facebookUrl, directionsUrl}` + `visitanos.hours[]` ({days, time}) and the schema fills in
-  (address, hours, sameAs) automatically. Critical for local SEO rich results.
-- **Baseline site schema — `SiteJsonLd.astro` (wired in `BaseLayout`).** Emits a `WebSite`
-  entity always, plus a primary entity (`Person` | `Organization` | `ProfessionalService`)
-  when `seo.schemaType` is set in `src/data/settings.yaml`. **New site onboarding: fill the
-  `seo` block** (`schemaType`, `email`, `jobTitle` for Person, `sameAs[]` — profiles + owned
-  domains). Left empty, the site emits only `WebSite` (no rich-result identity). This is
-  separate from `LocalBusinessJsonLd` (NAP/hours) above — a site can use either, both, or
-  just the default WebSite.
-- **Counters / count-up stats must render the FINAL value in SSR, not `0`.** A common bespoke
-  pattern animates a number from 0 on scroll. If the served HTML hardcodes `>0<` and only JS
-  fills the real value, crawlers and no-JS users see `0` — a terrible signal on a "trajectory"
-  stat. Render `{value}{suffix}` as the node's text content and keep the target in a
-  `data-count` attribute for the animation to read; the count-up still works, the real number
-  is in the DOM. (Fixed in `enlolab-site` Services.astro.)
-- **`robots.txt` is a generated endpoint (`src/pages/robots.txt.ts`), NOT a static file.** It
-  derives the `Sitemap:` line from `Astro.site` (= `SITE_URL`) so it always matches the
-  deployed domain. **Do NOT add a `public/robots.txt`** — a static file hardcodes the host and
-  silently ships the wrong sitemap URL to descendant sites (the original template bug:
-  `saastro-theme.pages.dev` leaked into a live site).
-- **NEVER import `@saastro/studio` (package ROOT) in a runtime component.** Its main entry
-  bundles the Node Vite plugin (references `__filename`) and **500s under the workerd SSR
-  runtime**. Import only the SSR-safe subpaths: `@saastro/studio/Img.astro`, and — for the
-  editable-marker helpers in islands — **`@saastro/studio/markers`** (≥0.10.1:
-  `editableSection`/`editableField`/`editableSlot`/`editableImage`/`editableArrayItem`).
-  Don't inline copies of the helpers anymore — the subpath is workerd-safe and the doctor
-  recognizes the import.
-- **Collection-backed sections: load the collection INSIDE the component, never pass it as
-  an editable `items` prop.** If a section receives `items` as a prop, autoWrap exposes it as
-  a Studio field (often `kind: json` for unions → a broken raw-JSON editor + "NEEDS CONFIG"),
-  and any inline edit is a dead write (the data lives in the collection, not i18n). Do
-  `const items = await getCollection('x')` in the `.astro` frontmatter; keep only the section
-  header (`eyebrow`/`title`) as i18n props. Edit the entries in Hub → Collections.
-- **`output: 'server'` + locale routes** use the rest-spread `src/pages/[...locale]/` dir.
-  The Hub's Studio publish resolves both `[locale]/` and `[...locale]/` (fixed), but keep the
-  convention consistent so `section_props_update` page paths resolve.
-- **Favicons + PWA icons are generated from ONE source.** Drop a compact brand mark (a
-  square-ish SVG — an icon, not a wordmark) at `public/SVG/icon.svg` and run
-  `node scripts/gen-favicons.mjs`. It writes the whole set — `favicon.svg`/`.ico`,
-  `favicon-16/32/48`, `apple-touch-icon`, and PWA `icon-192/512` (+ `-maskable`) — all already
-  wired in `src/head/Favicons.astro` + `public/manifest.json`. **New site onboarding: replace
-  `icon.svg` with the client's mark and re-run**, or the site ships the template's default icon
-  (same class of "born with the template's identity" trap as `SITE_URL`). sharp is resolved
-  from the pnpm store, so no extra dep.
 
-## History
+## SEO + Studio: las trampas que hereda cada site
 
-Migrated from `@saastro/cms` (deprecated embedded CMS) to `@saastro/studio` on branch `chore/migrate-cms-to-studio`. The old `/admin` panel + stega visual editor were removed.
-
+Ocho trampas de plantilla que **todo site derivado hereda si no se arreglan
+aquí** — `SITE_URL` y el canonical, los dos JSON-LD, los contadores que sirven
+`0`, el `robots.txt` generado, el import que revienta en workerd, las secciones
+de colección y los favicons. Están en `knowledge/src.md`, que es el contrato:
+son lo primero que hay que leer al montar un site nuevo.
 ## Dónde buscar
 
 | carpeta | sección | ficha |
