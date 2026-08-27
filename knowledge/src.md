@@ -174,3 +174,59 @@ ejecuta: no da la cara en el build.
 **No todo tiene que venir del registry.** La intro y la misión de `about` siguen
 siendo markup propio porque ningún bloque las cubre. El modelo no exige que todo
 sea del registry: exige que lo que venga del registry no se toque.
+
+## Qué vive del registry y qué es local — el mapa, con sus porqués
+
+Pasada de alineación del 27-ago-2026. **No todas las secciones deben acabar en
+el registry**, y las que no, no es por pereza: cada exclusión tiene una causa
+técnica comprobable.
+
+| Sección | Estado | Por qué |
+|---|---|---|
+| `AboutContent` | **del registry** (`features-01`) | Encajó sin remapear. Es el piloto del modelo |
+| `Hero` | **local, vinculante** | Sus imágenes son **editables desde Studio** (`@saastro/studio/Img` con `fieldPrefix`) |
+| `Products` | **local** | Sus items son `{name, tagline, description, href, icon, color, features[]}`; ningún bloque encaja y mapearlos rompería autoWrap |
+| `Header` · `Footer` | **local, vinculante** | Llevan comportamiento: selector de idioma, reapertura de cookies, menú móvil |
+| `LandingFaq` | **local** | Ya es cero-JS; adoptar `faq-02` no aporta y cambiaría el aspecto de landings vivas |
+
+### La regla general que sale de esto
+
+Un bloque del registry **no lleva instrumentación de Studio, por contrato**.
+De ahí se deducen las tres causas de exclusión, y conviene comprobarlas ANTES
+de empezar a migrar una sección:
+
+1. **¿Tiene imágenes editables?** Si la sección usa `@saastro/studio/Img` con
+   `fieldPrefix`, no puede ser un bloque pristine: el bloque renderiza un `<img>`
+   plano y perderías la imagen editable. El contract-check lo caza con el
+   invariante `img-raw`, pero mejor no llegar ahí. Ésta es la razón de `Hero`.
+2. **¿Lleva comportamiento?** Nav y footer **no se regeneran** — es regla del
+   repo. El aspecto se coge, el cableado se deja.
+3. **¿Encaja la forma del i18n con los props del bloque, sin remapear?** Si hay
+   que hacer `items.map(...)`, autoWrap pierde el rastro y la sección deja de
+   ser editable. La salida no es remapear: es ajustar el bloque en el registry
+   —como se hizo con el `icon?` de `features-01`— o dejar la sección local si el
+   ajuste desnaturalizaría el bloque. Ésta es la razón de `Products`.
+
+### `Footer` y `Header`: excepción vinculante
+
+**No se migran.** Quien lea esto dentro de seis meses y vea un `footer-01` en el
+registry va a sentir la tentación: no lo hagas. El footer de este theme lleva el
+selector de idioma, la reapertura del banner de cookies y los enlaces legales;
+el header, el menú móvil. Un bloque pristine no puede llevar eso, y envolverlo
+para reañadirlo deja un adaptador más complejo que el componente que sustituye.
+
+### `LandingFaq` y `faq-02`
+
+`faq-02` se publicó en el registry (saastro-ui#25) precisamente porque
+`LandingFaq` no podía usar `faq-01`: era el registry el que tenía el hueco.
+Publicado ya, **la adopción no se hace**, y por dos razones:
+
+- **No hay ganancia técnica**: `LandingFaq` ya es `<details>` con cero JS. El
+  bloque no lo mejora, solo lo estandariza.
+- **Sí hay coste**: el aspecto difiere —el theme usa un cuadro `+`/`−` en color
+  primario, `faq-02` una flecha— y las landings de campaña están **vivas**.
+  Cambiarles el aspecto es una decisión de diseño, no de arquitectura.
+
+Queda disponible para cuando un rediseño lo quiera. La forma también difiere
+(`{q, a}` contra `{question, answer}`), pero eso es trivial: al no ser una
+sección de Studio, aquí sí se puede mapear sin romper nada.
