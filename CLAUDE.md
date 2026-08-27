@@ -11,8 +11,7 @@ El scaffold clona este repo con su historia y su remote `upstream`.
 
 La plantilla ya trae lo que buscan los detectores del Hub, así que **Setup
 valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` es un
-descendiente en producción: úsalo de referencia para dudas de cableado. Migrado
-de `@saastro/cms` a `@saastro/studio` en agosto de 2026 (detalle en la ficha).
+descendiente en producción: úsalo de referencia.
 
 ## Studio instrumentation (the contract)
 
@@ -69,13 +68,11 @@ lo conduce como un bucle. Regla de oro: **portar, nunca pegar**.
 - **Nav y Footer no se regeneran.** Llevan comportamiento —menú móvil, selector
   de idioma, reapertura de cookies, contact sheet—: coge el aspecto nuevo, deja
   el cableado.
-- **Nombres**: `key = fieldPrefix = namespace i18n` de primer nivel, y el
-  marcador es `data-saastro="sec:<key>"`. No hay lista canónica: las secciones
-  son por proyecto y `pnpm studio:check` valida la coherencia interna
-  (marcador ↔ i18n ↔ página), no la pertenencia a una lista.
-- **Tokens, fuente única**: `src/styles/global.css`, variables oklch con
-  `@theme inline`. La paleta base es neutra: una marca es dar croma a
-  `--primary`/`--accent`, jamás un hex suelto.
+- **Nombres**: `key = fieldPrefix = namespace i18n`, y el marcador es
+  `data-saastro="sec:<key>"`. No hay lista canónica: `studio:check` valida la
+  coherencia interna, no la pertenencia a una lista.
+- **Tokens, fuente única**: `src/styles/global.css`, oklch con `@theme inline`.
+  Una marca es dar croma a `--primary`/`--accent`, jamás un hex suelto.
 
 Sobre las fuentes hay una **decisión del owner tomada** (16-jul-2026) con
 consecuencias vinculantes para la política de privacidad: está en
@@ -96,9 +93,8 @@ pnpm ui:sync    # tráelas — escribe y NO commitea (--dry para ensayar)
 Un `--overwrite` a ciegas borra los ajustes locales en silencio.
 
 `command` es el único que vive solo aquí (`cmdk` arrastra cuatro paquetes de
-Radix). `ui:check` lo marca «solo local»: es inventario, no error.
-
-Por qué copy-in y nunca un paquete npm, en `knowledge/src.md`.
+Radix): `ui:check` lo marca «solo local», que es inventario, no error. Por qué
+copy-in y nunca un paquete npm, en `knowledge/src.md`.
 
 ### `form.tsx` NO se regenera con `shadcn add form`
 
@@ -121,9 +117,13 @@ patrón y las lecciones del piloto, en `knowledge/src.md`.
 **El bloque no se edita aquí.** Si le falta algo, se arregla en `saastro-ui` y
 vuelve por el registry — así nació el `icon?` opcional de `features-01`.
 
-**⚠️ No remapees el array de i18n antes de pasarlo al bloque**: un
-`const x = items.map(...)` rompe autoWrap y la sección deja de ser editable en
-Studio. Pásalo directo. Lo caza `studio:check`, no el build.
+**Qué NO se migra, y es vinculante**: `Header` y `Footer` (comportamiento —
+idioma, cookies, menú móvil), `Hero` (imágenes editables de Studio, que un
+bloque pristine no puede llevar) y `Products` (no encaja sin remapear). El mapa
+con los porqués está en `knowledge/src.md`: léelo antes de migrar nada.
+
+**⚠️ No remapees el array de i18n antes de pasarlo al bloque**: rompe autoWrap
+y la sección deja de ser editable en Studio. Lo caza `studio:check`, no el build.
 
 ⚠️ No migres una sección «copiando el bloque encima». Los bloques del registry
 no llevan i18n ni marcador **a propósito**: eso lo pone el adaptador. A lo bruto,
