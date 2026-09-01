@@ -59,6 +59,15 @@ export interface SiteSettings {
     readonly vertical?: string;
     readonly consent?: 'none' | 'required';
   };
+  /**
+   * Medición render-vs-JS (src/lib/render-ratio.ts). `renderRatio: false` =
+   * apagado, y entonces ni se emiten los pings ni existe la ruta /mx/*.gif.
+   */
+  readonly measure?: {
+    readonly renderRatio?: boolean;
+    readonly sink?: import('./render-ratio').MeasureSink;
+    readonly genEndpoint?: string;
+  };
 }
 
 let cached: SiteSettings | null = null;

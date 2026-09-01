@@ -1,5 +1,13 @@
+import { useEffect } from 'react';
 import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { LandingNotConfiguredCopy } from '@/lib/lp';
+
+declare global {
+  interface Window {
+    /** Ping de medición que instala RenderRatio.astro. Ausente = medición apagada. */
+    __mx?: (kind: string) => void;
+  }
+}
 
 // Same wiring as the ContactSheet: <HubForm> renders a form DESIGNED IN THE HUB
 // (fetched by slug at runtime) through the host's shadcn primitives, resolved by
@@ -38,6 +46,18 @@ interface LandingFormProps {
  * itself instead of pretending to work — no data is sent or stored.
  */
 export function LandingForm({ siteId, formSlug, locale, notConfigured, initialSchema }: LandingFormProps) {
+  // `h` — el tercer contador de la medición render-vs-JS. Este efecto solo
+  // corre si el bundle de React se descargó, se parseó y montó la isla, que es
+  // exactamente lo que distingue «el visitante tiene JS» de «al visitante le
+  // funciona el formulario». La diferencia entre los dos es la mayoría de los
+  // casos (en el estudio de GOV.UK, 8 de cada 9 no eran JS desactivado sino JS
+  // que falló) y es lo que decide cuánto vale el envío nativo.
+  // Ojo: mide que la ISLA montó, no que el formulario tenga campos pintados.
+  // No se puede llamar condicionalmente, así que el guard va dentro.
+  useEffect(() => {
+    if (siteId) window.__mx?.('h');
+  }, [siteId]);
+
   if (!siteId) {
     return (
       <div className="rounded-2xl border border-dashed border-foreground/40 bg-card p-5">

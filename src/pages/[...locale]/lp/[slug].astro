@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
 import LandingLong from '../../../components/lp/LandingLong.astro';
+import RenderRatio from '../../../components/RenderRatio.astro';
 import { getSettings } from '../../../lib/settings';
 import { fetchHubFormSchema } from '../../../lib/hub-form-schema';
 import type { LandingData } from '../../../lib/lp';
@@ -64,6 +65,11 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
 ---
 
 <SiteLayout title={seoTitle} description={seoDescription}>
+  {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
+      landings son `prerender = false`, y el contador del HTML depende de un
+      nonce por petición que una página estática no puede tener. Apagado salvo
+      que settings.measure.renderRatio sea true. */}
+  <RenderRatio />
   <Layout
     landing={landing}
     siteId={siteId}

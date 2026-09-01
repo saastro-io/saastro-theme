@@ -93,7 +93,8 @@ Las tres capas que hacen que esto sea repetible (y por qué existen):
 3. **El contrato ejecutable** (`pnpm studio:check` = doctor + build + contract-check
    sobre el DOM construido o servido): marcadores, texto verbatim, paridad i18n,
    tokens, política de cookies alcanzable, **beacon de Gen declarado en la política**
-   (`gen-legal`), arquitectura sin divergir. Viaja dentro del repo, así que **toda
+   (`gen-legal`), **medición render-vs-JS declarada** (`medicion-legal`), arquitectura
+   sin divergir. Viaja dentro del repo, así que **toda
    copia lo hereda**.
 
 ## Errores caros que ya nos costaron caro
@@ -111,5 +112,12 @@ Las tres capas que hacen que esto sea repetible (y por qué existen):
   que las fuentes: el fallo no está en el código, está en que el texto no lo sigue. El
   invariante `gen-legal` lo impide; el texto listo para copiar está en
   **`docs/legal-gen-tracking.md`**.
+- **Encender la medición render-vs-JS y no tocar el texto legal** → misma clase otra
+  vez: `settings.measure.renderRatio` empieza a registrar tres peticiones por visita
+  (`/mx/r.gif`, `/mx/j.gif`, `/mx/h.gif`) con ruta y campaña. Lo impide el invariante
+  `medicion-legal`, y el texto está en **`docs/legal-render-ratio.md`**. Ojo con un
+  matiz que no aplica a `gen-legal`: ese invariante mira **settings.yaml**, no el DOM,
+  porque las landings que llevan el pixel son SSR y no entran en el contrato. Qué mide
+  cada contador y por qué son tres: `src/lib/render-ratio.ts`.
 - **Editable fuera del allowlist del Hub** (i18n JSON · `.md` · `src/pages` ·
   `src/content` · `studio.config.json`) → se pierde en la siguiente publicación.
