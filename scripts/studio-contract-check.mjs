@@ -59,6 +59,8 @@
  *   8b. cookie-policy   — el href de la política del CookieBanner resuelve (dist o HTTP ok)
  *   8c. gen-legal       — si el DOM SERVIDO emite el beacon de Gen, la política de cookies
  *                         enlazada lo DECLARA (ancla <div data-legal="gen-tracking">)
+ *   8d. medicion-legal  — si la medición render-vs-JS está encendida, la política de cookies
+ *                         enlazada lo DECLARA (ancla <div data-legal="render-ratio">)
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -72,6 +74,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { extname, join, relative } from 'node:path'
 import { parse } from 'node-html-parser'
+import { parse as parseYaml } from 'yaml'
 import { resolveDefaultLocale } from './lib/default-locale.mjs'
 
 const ROOT = process.cwd()
@@ -143,6 +146,36 @@ const FORM_PRIMITIVE_FILES = ['src/components/ui/form.tsx', 'src/components/ui/f
 // (es/en/fr…) y de la redacción; el marcador es estable, greppable y neutro.
 const GEN_LEGAL_MARKER = 'gen-tracking'
 const GEN_LEGAL_SNIPPET = 'docs/legal-gen-tracking.md'
+
+// Invariante 8d (medicion-legal). Misma obligación que 8c para la medición
+// render-vs-JS (src/lib/render-ratio.ts): encender `settings.measure.renderRatio`
+// empieza a emitir tres peticiones por visita y la política se queda callada.
+//
+// PERO la pregunta se le hace a settings.yaml, no al DOM, y eso es una
+// diferencia real con 8c que conviene entender antes de copiarla a otro sitio:
+// el pixel solo vive en las landings de pago, que son `prerender = false` y por
+// eso NO entran en studio-contract.json (rutas dinámicas solo entran si se
+// prerenderizan — está escrito en la cabecera de lp/[slug].astro). Un
+// invariante que mirase el DOM servido no vería NUNCA el pixel: sería un
+// control que siempre pasa, o sea una decoración con forma de control.
+//
+// Se mira el flag Y el DOM, no solo el flag: el flag cubre el camino normal
+// (RenderRatio.astro está gateado por él) y el DOM cubre que un descendiente
+// meta <RenderRatio /> a mano en una página prerenderizada.
+const MEASURE_LEGAL_MARKER = 'render-ratio'
+const MEASURE_LEGAL_SNIPPET = 'docs/legal-render-ratio.md'
+const MEASURE_PIXEL_SELECTOR = 'img[src^="/mx/"]'
+
+/** `settings.measure.renderRatio` — true si la medición está encendida. */
+function measureFlagOn() {
+  const path = join(ROOT, 'src', 'data', 'settings.yaml')
+  if (!existsSync(path)) return false
+  try {
+    return parseYaml(readFileSync(path, 'utf8'))?.measure?.renderRatio === true
+  } catch {
+    return false // settings ilegible: 8d no opina (otros invariantes ya fallarán)
+  }
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const failures = []
@@ -609,6 +642,11 @@ function scanPage(html) {
   // da 1 elemento — otra razón para consultar el árbol y no el texto.
   const hasGenBeacon = root.querySelector('script[data-gen-workspace]') != null
 
+  // 8d — ¿esta página emite el pixel de medición? Cubre el caso de un
+  // descendiente que ponga <RenderRatio /> a mano en una página prerenderizada;
+  // en las landings (SSR, fuera del contrato) el que manda es el flag.
+  const hasRenderRatioPixel = root.querySelector(MEASURE_PIXEL_SELECTOR) != null
+
   // Declaraciones legales ancladas: <div data-legal="…"> en el markdown de la
   // política. El parser IGNORA los comentarios HTML, así que una declaración
   // comentada NO cuenta — que es exactamente lo correcto: un texto comentado no
@@ -630,7 +668,7 @@ function scanPage(html) {
     }
   }
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, legalMarkers }
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers }
 }
 
 function scanDistPages() {
@@ -1087,6 +1125,19 @@ async function main() {
         .sort()
       const genOn = genBeaconPages.length > 0
 
+      // 8d — ¿el site MIDE? El flag de settings es la fuente principal (las
+      // landings que llevan el pixel son SSR y no entran en el contrato), más
+      // el DOM por si alguien puso <RenderRatio /> en una página estática.
+      const measurePixelPages = Object.entries(pages)
+        .filter(([, p]) => p.hasRenderRatioPixel)
+        .map(([rel]) => rel)
+        .sort()
+      const measureFlag = measureFlagOn()
+      const measureOn = measureFlag || measurePixelPages.length > 0
+      const measureWhy = measureFlag
+        ? 'settings.measure.renderRatio: true'
+        : `el pixel /mx/ está en el DOM servido (${measurePixelPages.length} pág., p.ej. ${measurePixelPages[0]})`
+
       /** La política escaneada por el fetcher activo para un href interno. */
       function scannedPolicyForHref(href) {
         const clean = href.replace(/^\//, '').replace(/\/$/, '')
@@ -1154,6 +1205,21 @@ async function main() {
           warn('gen-legal', policyKey, `data-legal="${GEN_LEGAL_MARKER}"`,
             'la política DECLARA el tratamiento de Gen pero el site NO emite el beacon en ninguna página',
             `declarar un tratamiento que no ocurre también es información falsa, pero no oculta nada al visitante y puede ser un paso intermedio legítimo (texto primero, flag después). Enciende settings.gen.workspaceId o retira la sección de ${GEN_LEGAL_SNIPPET} de la política`)
+        }
+
+        // 8d — medicion-legal: mismo trato que 8c para la medición
+        // render-vs-JS. Tres peticiones por visita (/mx/r.gif, /mx/j.gif,
+        // /mx/h.gif) que la política declara ANTES de que se enciendan.
+        const declaresMeasure = legalMarkers.has(MEASURE_LEGAL_MARKER)
+        if (measureOn && !declaresMeasure) {
+          fail('medicion-legal', policyKey, `data-legal="${MEASURE_LEGAL_MARKER}"`,
+            `el site MIDE render-vs-JS (${measureWhy}) y esta política de cookies NO declara el tratamiento`,
+            `RGPD: cada visita a una landing medida hace hasta tres peticiones a /mx/*.gif y el servidor registra la ruta, la campaña y si el user-agent parece un bot. No hay cookies, ni almacenamiento en el dispositivo, ni identificador de visitante, ni se guarda la IP — pero sigue siendo un tratamiento y la política lo declara. Copia la sección canónica de ${MEASURE_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${MEASURE_LEGAL_MARKER}"></div>) al markdown de la política, en TODOS los locales. Si no querías medir, pon settings.measure.renderRatio en false`)
+        } else if (!measureOn && declaresMeasure) {
+          // Mismo criterio que el inverso de 8c: aviso, no fallo.
+          warn('medicion-legal', policyKey, `data-legal="${MEASURE_LEGAL_MARKER}"`,
+            'la política DECLARA la medición render-vs-JS pero el site NO la tiene encendida',
+            `declarar un tratamiento que no ocurre también es información falsa, pero no oculta nada al visitante y puede ser un paso intermedio legítimo (texto primero, flag después). Enciende settings.measure.renderRatio o retira la sección de ${MEASURE_LEGAL_SNIPPET} de la política`)
         }
       }
     }

@@ -63,3 +63,18 @@ gen:
   # "none" = cookieless, tracks immediately (no banner needed).
   # "required" = waits until localStorage['gen-consent'] === 'granted'.
   consent: "none"
+
+measure:
+  # Medición render-vs-JS: cuántas visitas se quedan SIN formulario utilizable.
+  # Tres contadores de primera parte (/mx/r.gif, /mx/j.gif, /mx/h.gif) — el
+  # porqué de que sean tres y no dos está en src/lib/render-ratio.ts.
+  # false = apagado del todo: ni pings en el HTML ni ruta /mx/*.gif (404).
+  # Encenderlo añade un tratamiento de datos: copia antes la sección de
+  # docs/legal-render-ratio.md a la política, o studio:check se pone rojo.
+  renderRatio: false
+  # "log" = una línea JSON por evento en los logs del Worker (no depende de
+  # nadie). "gen" = además lo reenvía a Gen DESDE EL SERVIDOR, nunca desde el
+  # navegador. Déjalo en "log" mientras el colector de Gen no acepte estos
+  # eventos, o los estarás tirando contra una puerta cerrada.
+  sink: "log"
+  genEndpoint: "https://gen.saastro.io"

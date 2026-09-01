@@ -135,6 +135,15 @@ Son de plantilla: **todo descendiente las hereda si no se arreglan aquí**.
   `export const collections` de `src/content.config.ts`— y añadir bloques al mapa
   de `saastrocms.config.ts`. El scaffold ancla textualmente esos literales:
   scaffold y theme se tocan a la vez.
+- **Medición render-vs-JS, apagada de serie** (`settings.measure.renderRatio`).
+  Tres contadores de primera parte por visita —`/mx/r.gif` (el navegador pintó),
+  `/mx/j.gif` (ejecutó JS), `/mx/h.gif` (montó la isla del formulario)— para
+  saber a cuánta gente NO le llega a funcionar el formulario: `r − h`. Son tres
+  y no dos a propósito, y comparar contra el beacon de Gen mediría otra cosa; el
+  porqué está en `src/lib/render-ratio.ts`. **Encenderla obliga a declararla en
+  la política** (invariante `medicion-legal`, texto en
+  `docs/legal-render-ratio.md`), y ese invariante mira `settings.yaml` en vez
+  del DOM porque estas landings, al ser SSR, no entran en el contrato.
 
 ## Fuentes: decisión del owner (16-jul-2026)
 

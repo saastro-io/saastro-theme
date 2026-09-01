@@ -1,0 +1,129 @@
+---
+/**
+ * RenderRatio — los dos pings que se emiten desde la página (el tercero, `h`,
+ * lo dispara la isla del formulario llamando a `window.__mx('h')`).
+ *
+ * Qué mide cada contador y por qué son tres: src/lib/render-ratio.ts.
+ *
+ * Va SOLO en las landings de pago (`src/pages/[...locale]/lp/[slug].astro`),
+ * que son `prerender = false`. No es un capricho: en una página
+ * prerenderizada el nonce se hornearía en el build y sería el mismo para todos
+ * los visitantes, así que cualquier caché intermedia colapsaría mil visitas en
+ * una sola petición y el contador `r` saldría por los suelos. Si algún día se
+ * mide una página estática, el nonce tiene que dejar de venir del servidor.
+ */
+import { getSettings } from '../lib/settings';
+
+const settings = getSettings();
+const enabled = settings.measure?.renderRatio === true;
+
+// Mismo bloqueo de hosts que GenTracking y el beacon de Cloudflare: la preview
+// de Studio sirve el site bajo un origen *.saastro.io y localhost es dev.
+// Aquí se comprueba EN EL SERVIDOR, no en el navegador, porque el `<img>` va en
+// el HTML y no hay JS que pueda frenarlo.
+const host = Astro.url.hostname;
+const blockedHost =
+  host === 'localhost' ||
+  host === '127.0.0.1' ||
+  host.endsWith('.saastro.io') ||
+  host.endsWith('.saastro.test') ||
+  host.endsWith('.local');
+
+const on = enabled && !blockedHost;
+
+// La ruta y la campaña viajan explícitas en la query, no por `Referer`: hay
+// políticas de referrer que lo recortan a solo el origen, y entonces todos los
+// eventos caerían en el mismo cubo y no habría cifra POR landing.
+const path = Astro.url.pathname;
+const campaign = (Astro.url.searchParams.get('utm_campaign') ?? '').slice(0, 120);
+
+// Nonce anticaché, no identificador: se descarta al recibirlo (ver el endpoint)
+// y no llega al sumidero. Sin él, dos visitas a la misma landing con la misma
+// campaña pedirían una URL idéntica y un proxy podría servir la segunda de su
+// caché — el contador del HTML es justo el que no puede permitirse eso.
+const nonce = crypto.randomUUID();
+const query = `?p=${encodeURIComponent(path)}&c=${encodeURIComponent(campaign)}`;
+---
+
+{on && (
+  <>
+    {/* `r` — lo pide todo navegador que pinte la página, ejecute JS o no.
+        Fuera de pantalla en vez de `display:none`: un img oculto se descarga
+        igual en los navegadores de hoy, pero este contador es el denominador de
+        todo el cálculo y no se apoya en esa garantía. */}
+    <img
+      src={`/mx/r.gif${query}&n=${nonce}`}
+      alt=""
+      width="1"
+      height="1"
+      aria-hidden="true"
+      loading="eager"
+      decoding="async"
+      style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px"
+    />
+
+    {/* `j` — solo llega si el navegador ejecuta scripting. `new Image()` en vez
+        de fetch: sin CORS, sin promesas, y funciona en cualquier motor que
+        ejecute JS (incluido uno tan viejo que el bundle de React no arranque —
+        que es justo el caso que queremos ver separado en `h`).
+
+        Se engancha a `astro:page-load` como GenTracking: con ClientRouter una
+        navegación SPA intercambia el body (y con él el `<img>` de arriba, que
+        vuelve a contar), así que el ping del JS tiene que volver a contar
+        también o las dos series dejarían de ser comparables. */}
+    <script is:inline>
+      (function () {
+        try {
+          // Registrarse dos veces contaría cada visita dos veces. Puede pasar:
+          // una navegación SPA trae otra copia de este bloque en el body nuevo.
+          if (window.__mx) return;
+
+          // La ruta y la campaña se leen de `location` EN CADA PING, no de lo
+          // que estampó el servidor al pintar esta página. Con ClientRouter una
+          // navegación SPA trae un `<img>` nuevo (que cuenta en la ruta nueva)
+          // pero NO vuelve a ejecutar este script: si el valor viniera de un
+          // closure, `j` y `h` seguirían informando de la landing ANTERIOR
+          // mientras `r` informa de la nueva, y el ratio por landing saldría
+          // mal en las dos. Comprobado en el navegador antes de escribirlo.
+          function ping(kind) {
+            try {
+              var campaign = '';
+              try {
+                campaign = new URLSearchParams(location.search).get('utm_campaign') || '';
+              } catch (e) {}
+              var n = Math.random().toString(36).slice(2) + Date.now().toString(36);
+              new Image().src =
+                '/mx/' + kind + '.gif' +
+                '?p=' + encodeURIComponent(location.pathname) +
+                '&c=' + encodeURIComponent(campaign.slice(0, 120)) +
+                '&n=' + n;
+            } catch (e) {}
+          }
+          // La isla del formulario llama aquí al montar: window.__mx('h').
+          window.__mx = ping;
+
+          var lastUrl = '';
+          var lastTs = 0;
+          function onLoad() {
+            // El doble disparo inicial (astro:page-load + DOMContentLoaded)
+            // contaría una visita como dos y hundiría el ratio sin avisar. Se
+            // deduplica por URL además de por tiempo: solo por tiempo se
+            // tragaría una navegación SPA legítima a otra landing.
+            var here = location.pathname + location.search;
+            var now = Date.now();
+            if (here === lastUrl && now - lastTs < 1000) return;
+            lastUrl = here;
+            lastTs = now;
+            ping('j');
+          }
+          document.addEventListener('astro:page-load', onLoad);
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', onLoad);
+          } else {
+            onLoad();
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </>
+)}
