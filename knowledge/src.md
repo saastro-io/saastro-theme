@@ -144,6 +144,11 @@ Son de plantilla: **todo descendiente las hereda si no se arreglan aquí**.
   la política** (invariante `medicion-legal`, texto en
   `docs/legal-render-ratio.md`), y ese invariante mira `settings.yaml` en vez
   del DOM porque estas landings, al ser SSR, no entran en el contrato.
+  La cifra se lee con **`pnpm ratio --worker=<nombre> --days=7`** (necesita
+  `CLOUDFLARE_API_TOKEN` con *Workers Observability · Read*), que agrega los
+  logs del Worker y avisa solo cuando el número no es de fiar: muestreo,
+  volumen bajo, o más `j` que `r` —que es imposible y significa que el pixel
+  está perdiendo peticiones—. `pnpm ratio --self-test` la comprueba sin red.
 
 ## Fuentes: decisión del owner (16-jul-2026)
 

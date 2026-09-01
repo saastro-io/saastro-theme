@@ -122,7 +122,25 @@ export interface SinkConfig {
  */
 export function record(event: MeasureEvent, config: SinkConfig): Promise<unknown> | null {
   // Siempre al log: es el registro que queda aunque el reenvío falle.
-  console.log(JSON.stringify({ m: 'render-ratio', ...event }));
+  //
+  // Los campos van ESCRITOS UNO A UNO y en orden fijo, no con un spread, y sin
+  // `ts`. No es estilo: `scripts/ratio.mjs` agrupa por el texto del mensaje en
+  // el servidor de Cloudflare, así que dos eventos iguales tienen que producir
+  // cadenas idénticas byte a byte. Un `ts` los haría todos distintos —habría
+  // que descargarse los eventos uno a uno y el lector toparía con el tope de
+  // 2.000— y un spread dejaría el orden a merced del próximo que edite
+  // `MeasureEvent`, rompiendo la agrupación en silencio y a la baja. La hora la
+  // pone Workers Logs por su cuenta; `ts` sigue viajando al sumidero de Gen,
+  // que sí lo necesita.
+  console.log(
+    JSON.stringify({
+      m: 'render-ratio',
+      kind: event.kind,
+      path: event.path,
+      campaign: event.campaign,
+      bot: event.bot,
+    }),
+  );
 
   if (config.sink !== 'gen' || !config.genWorkspaceId) return null;
 

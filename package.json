@@ -12,6 +12,7 @@
     "ui:sync": "node scripts/ui-sync.mjs",
     "studio:check": "node scripts/studio-check.mjs && astro build && node scripts/studio-contract-check.mjs",
     "studio:contract:update": "astro build && node scripts/studio-contract-check.mjs --update",
+    "ratio": "node scripts/ratio.mjs",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",
     "astro": "astro"
