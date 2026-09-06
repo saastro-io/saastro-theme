@@ -38,6 +38,14 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      # La tabla de verdad de `sync-secrets`: qué cuenta como «falta», qué como
+      # «sobra» y qué no cuenta, más el código de salida de `--check`. Doctrina
+      # (41-SECRETOS §Cómo se comprueba): «el código de salida es una función
+      # con nombre y tests; lo que se lee en pantalla no es lo que comprueba la
+      # máquina». No toca 1Password ni Cloudflare: son funciones puras.
+      - name: Test
+        run: pnpm run test
+
       # The Studio contract gate: runs the SAME validator as the Hub Setup doctor
       # (@saastro/studio/doctor) — missing markers, i18n EN/ES parity, hardcoded
       # hex vs tokens, raw <form> vs HubForm, allowlist — then `astro build`.
