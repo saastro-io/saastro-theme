@@ -47,6 +47,8 @@
  *   node scripts/studio-contract-check.mjs --server-timeout=120  # readiness del server en segundos (default 90)
  *
  * Invariantes (modo check):
+ *   0. pagina-servida   — el HTML servido no está vacío y lleva <title> con texto
+ *                         (un 200 con cero bytes cumplía «200 + text/html»)
  *   1. sec-markers      — secciones data-saastro="sec:<key>" por página = manifiesto; sin duplicados
  *   2. field-markers    — data-saastro-field por sección/página = manifiesto
  *   3. verbatim         — cada hoja i18n "visible" de cada sección presente aparece VERBATIM en el HTML
@@ -671,6 +673,46 @@ function scanPage(html) {
   return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers }
 }
 
+/**
+ * ¿Por qué esto NO es una página? Devuelve el motivo, o `null` si lo es.
+ *
+ * ─── El caso que lo trajo (9-sep-2026) ──────────────────────────────────
+ *
+ * El sitio de PinTeach se desplegó con la portada **VACÍA** y nada se quejó:
+ * `dist/client/index.html` de **0 bytes**, `pnpm build` diciendo «Complete!»,
+ * y en producción un **200 con `content-length: 0`** y todas las cabeceras de
+ * seguridad correctas. La causa era un componente que reventaba al
+ * prerenderizar; el efecto, un fichero a cero.
+ *
+ * Y este gate la dio por buena. El paso `crawl` comprobaba **200 + text/html**,
+ * que un cuerpo vacío cumple; y los invariantes de secciones no llegaban a
+ * hablar porque una página vacía no tiene marcadores que contradigan al
+ * manifiesto — el manifiesto se había regenerado sobre ella.
+ *
+ * Es el cuarto «un 200 no prueba entrega» del ecosistema, así que la
+ * comprobación va aquí, en el theme, donde la heredan todos los sites.
+ *
+ * ─── Las dos afirmaciones, y por qué solo dos ───────────────────────────
+ *
+ * 1. El cuerpo no está vacío. Es el caso real, y no admite discusión.
+ * 2. Hay un `<title>` con texto. Toda página del theme pasa por `BaseLayout`,
+ *    que lo emite (medido sobre el dist del propio theme: 11 de 11). Y una
+ *    página servida sin título es un fallo por sí misma, aunque tenga bytes.
+ *
+ * NO se inventa un umbral de «cuerpo trivial» en bytes: el que lo pusiera
+ * tendría que justificar el número, y una página legítimamente corta lo
+ * rompería. Estas dos son medibles y no dependen de un criterio.
+ */
+function porQueNoEsUnaPagina(page) {
+  const html = page?.html
+  if (typeof html !== 'string' || html.trim() === '') {
+    return `el cuerpo está VACÍO (${typeof html === 'string' ? html.length : 0} bytes)`
+  }
+  const titulo = page.root?.querySelector('title')?.text?.trim() ?? ''
+  if (titulo === '') return 'el HTML no lleva <title> con texto'
+  return null
+}
+
 function scanDistPages() {
   const out = {}
   for (const key of distKeys) out[key] = scanPage(readFileSync(join(htmlRoot, key), 'utf8'))
@@ -939,6 +981,15 @@ async function main() {
       }
     }
     for (const [rel, p] of Object.entries(pages)) {
+      // 0 — una página servida tiene que ser una página. Va PRIMERO y corta:
+      // sobre un HTML vacío, los invariantes de abajo dirían veinte cosas
+      // derivadas y ninguna útil.
+      const noEsPagina = porQueNoEsUnaPagina(p)
+      if (noEsPagina) {
+        fail('pagina-servida', rel, '—', noEsPagina,
+          'el 200 y las cabeceras no prueban que se sirva algo: mira el CUERPO. Suele ser un componente que revienta al prerenderizar (p. ej. una prop que se recorre y llega `undefined`) — el build no falla y el fichero queda a cero')
+        continue
+      }
       const entry = manifestPages[rel]
       if (!entry) {
         fail('sec-markers', rel, '—', `página nueva en ${mode === 'crawl' ? 'el server' : 'dist/'} que no está en el manifiesto`,
