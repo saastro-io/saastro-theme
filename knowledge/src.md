@@ -61,6 +61,45 @@ El marcador `data-saastro` **no lo escribe el adaptador**: lo inyecta en build e
 plugin de `@saastro/studio` a partir del `fieldPrefix`. El adaptador solo tiene
 que declarar ese prop.
 
+### La regla que decide qué pinta el adaptador y qué el bloque
+
+**El plugin instrumenta las expresiones del fichero que declara `fieldPrefix`,
+no las de dentro del bloque.** O sea: **el texto que pinta un bloque del
+registry NO es editable desde Studio.** Consecuencia práctica, medida sobre el
+HTML construido el 9-sep-2026:
+
+| sección | campos editables | quién pinta el texto |
+|---|---|---|
+| `hero` | 16 | componente local |
+| `products` | 35 | componente local |
+| `about` | **2** | su adaptador — el `features-01` de dentro no expone sus tarjetas |
+| `how` delegado ENTERO al bloque | **0** | el bloque |
+
+Así que el reparto de un adaptador nuevo es:
+
+- **la cabecera (antetítulo, título, descripción) la pinta el ADAPTADOR**, con
+  su propio markup, para que sea editable;
+- **la estructura repetida la pinta el bloque** (pasos, tarjetas, filas), y su
+  texto hoy NO se puede editar desde el Hub.
+
+No es una invención: es lo que ya hacía `AboutContent` desde el piloto —sus dos
+campos son los que pinta él— y lo que explica por qué `Products` se quedó local
+(«mapearlos rompería autoWrap»). `HowItWorks` es el primero que lo hace
+explícito. Si montas el séptimo adaptador como un pase de props al bloque, la
+sección saldrá con su marcador y **cero campos**, el gate se pondrá verde
+—porque el contrato se regenera sobre lo que haya— y el editor del Hub no podrá
+tocar una palabra.
+
+Dos consecuencias más, para que nadie las descubra a medias:
+
+- Un bloque cuyo `title` sea OBLIGATORIO fuerza al adaptador a mandar `""` y el
+  bloque emite un `<h2></h2>` vacío. Si te pasa, la cabecera del bloque tiene
+  que volverse opcional **en saastro-ui** (así nació `title?` de `steps-01`,
+  saastro-ui#30), nunca parcheando la copia local.
+- Que los arrays no se instrumenten está pendiente en `@saastro/studio` (P2 en
+  la office). El aviso de build sobre `valuesItems` de `AboutContent` es el
+  mismo problema pidiendo que lo miren.
+
 ## Las trampas que hereda cada site
 
 Son de plantilla: **todo descendiente las hereda si no se arreglan aquí**.
@@ -202,6 +241,7 @@ técnica comprobable.
 | Sección | Estado | Por qué |
 |---|---|---|
 | `AboutContent` | **del registry** (`features-01`) | Encajó sin remapear. Es el piloto del modelo |
+| `HowItWorks` | **del registry** (`steps-01`) | Cabecera en el adaptador (editable) + pasos en el bloque. El primero que hace explícita la regla de arriba |
 | `Hero` | **local, vinculante** | Sus imágenes son **editables desde Studio** (`@saastro/studio/Img` con `fieldPrefix`) |
 | `Products` | **local** | Sus items son `{name, tagline, description, href, icon, color, features[]}`; ningún bloque encaja y mapearlos rompería autoWrap |
 | `Header` · `Footer` | **local, vinculante** | Llevan comportamiento: selector de idioma, reapertura de cookies, menú móvil |

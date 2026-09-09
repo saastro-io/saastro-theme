@@ -1,0 +1,84 @@
+---
+/**
+ * HowItWorks — ADAPTADOR de la sección `how`.
+ *
+ * Segundo caso del modelo de tres capas (el piloto es `AboutContent`; ver
+ * `knowledge/src.md`). El reparto, igual que allí:
+ *
+ *   bloque    src/components/blocks/steps-01.astro — pristine del registry,
+ *             bajado con `npx shadcn add @saastro/steps-01`. NO se edita aquí:
+ *             si le falta algo, se arregla en saastro-ui y vuelve por el
+ *             registry.
+ *   adaptador este fichero — mapea el objeto i18n a los props tipados del
+ *             bloque y declara `fieldPrefix`, de donde el plugin de Studio saca
+ *             el marcador en build.
+ *   contenido src/i18n/translations/{en,es}.json, namespace `how`.
+ *
+ * Los pasos llegan del i18n como una LISTA, no como `step1`/`step2`/`step3`.
+ * Numerar por clave obliga a renombrar cadenas para insertar un paso en medio
+ * —y en este repo eso son dos idiomas por paso—; el bloque ya numera por
+ * posición.
+ *
+ * ─── Por qué la cabecera la pinta el ADAPTADOR y no el bloque ───────────
+ *
+ * `steps-01` sabe pintar antetítulo, título y descripción, y sería más bonito
+ * pasárselos. No se hace, y la razón está medida: **el plugin de Studio
+ * instrumenta las expresiones del fichero que declara `fieldPrefix`, no las de
+ * dentro del bloque**. Con la cabecera delegada, la sección salía con
+ * `data-saastro="sec:how"` y **CERO campos** editables — o sea, una sección que
+ * el editor del Hub ve y no puede tocar. Medido sobre el HTML construido:
+ * `hero` (local) 16 campos, `products` (local) 35, `about` (delegado a
+ * `features-01`) 2 —los dos que pinta su adaptador—, y `how` delegado entero: 0.
+ *
+ * Así que el reparto es: la cabecera aquí (editable), la estructura repetida en
+ * el bloque. Es lo mismo que ya hace `AboutContent`, cuyo `features-01` tampoco
+ * expone sus tarjetas.
+ *
+ * Lo que queda pendiente NO es de este fichero: que `@saastro/studio` sepa
+ * instrumentar props —y arrays— que cruzan hacia un bloque. Su aviso de build
+ * sobre `valuesItems` en `AboutContent` es el mismo problema desde el otro
+ * lado, y está anotado en la office.
+ *
+ * El `<div>` de la raíz tampoco es decorativo: el plugin necesita una raíz HTML
+ * en minúscula donde colgar el marcador de sección, y si la raíz del adaptador
+ * es el componente del bloque el BUILD FALLA diciendo exactamente eso. `<div>`
+ * y no `<section>` porque el bloque ya trae la suya: anidar dos `<section>`
+ * sería inventar una sección que no existe.
+ */
+import Steps01 from '@/components/blocks/steps-01.astro';
+
+interface Step {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  steps: Step[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, description, steps, fieldPrefix = 'how' } = Astro.props;
+---
+
+<div class="border-t bg-secondary/40 pt-24 md:pt-32">
+  <div class="mx-auto max-w-2xl px-6 text-center">
+    {eyebrow && (
+      <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+    )}
+    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+    {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+  </div>
+
+  {/* Sin cabecera: la de arriba es la editable. `steps-01` la hace opcional
+      justamente para esto (saastro-ui#30). */}
+  <Steps01 steps={steps} class="pt-12 md:pt-16" />
+
+  {/* El `pt-12` reduce el `py-24` que el bloque trae en su propia <section>, y
+      gana porque Tailwind ordena las utilidades de padding más específicas
+      DESPUÉS de las de eje: comprobado en el CSS generado (`.pt-12` en 40016,
+      `.py-24` en 39838; y `.md:pt-16` después de `.md:py-32`). No es suerte del
+      orden en el atributo, que no influye. */}
+</div>

@@ -295,6 +295,11 @@
           "title[0]",
           "title[1]"
         ],
+        "how": [
+          "description",
+          "eyebrow",
+          "title"
+        ],
         "nav": [
           "localeLinks[0]",
           "localeLinks[1]",
@@ -469,6 +474,11 @@
           "subtitle",
           "title[0]",
           "title[1]"
+        ],
+        "how": [
+          "description",
+          "eyebrow",
+          "title"
         ],
         "nav": [
           "localeLinks[0]",

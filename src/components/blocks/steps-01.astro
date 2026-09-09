@@ -1,0 +1,71 @@
+---
+/**
+ * steps-01 — «Cómo funciona» en pasos numerados.
+ * Bloque Astro puro: cero JS, cero dependencias.
+ *
+ * Los pasos se numeran SOLOS a partir del orden del array: el número es
+ * posición, no contenido. Meterlo en el texto («1. Regístrate») lo duplicaría
+ * en pantalla y obligaría a reescribir tres cadenas para insertar un paso en
+ * medio — y en un sitio del ecosistema esas cadenas son i18n, o sea dos
+ * idiomas por paso.
+ *
+ * `eyebrow`, `title` y `description` son opcionales: **la cabecera entera puede
+ * no venir**. Hace falta porque hay dos usos legítimos y el segundo apareció el
+ * primer día — un adaptador que pinta la cabecera ÉL para que sea editable
+ * desde Studio (el plugin solo instrumenta las expresiones del fichero que
+ * declara `fieldPrefix`, no las de dentro de un bloque) y le pasa al bloque
+ * solo los pasos. Con `title` obligatorio, ese adaptador tenía que mandar `""`
+ * y el bloque emitía un `<h2></h2>` vacío: un encabezado sin texto en el DOM.
+ *
+ * Lo que NO es opcional es `steps`: un bloque de pasos sin pasos no es una
+ * sección, es un hueco.
+ *
+ * La línea que une los pasos es un borde de la propia rejilla, no un elemento:
+ * así desaparece sola en móvil (una columna) sin una consulta de medios que
+ * mantener.
+ */
+interface Step {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  /** Antetítulo corto sobre el título. */
+  eyebrow?: string;
+  /** Sin título no se pinta la cabecera: la pone quien use el bloque. */
+  title?: string;
+  description?: string;
+  steps: Step[];
+  class?: string;
+}
+
+const { eyebrow, title, description, steps, class: className } = Astro.props;
+---
+
+<section class:list={['w-full px-6 py-24 md:py-32', className]}>
+  <div class="mx-auto max-w-6xl">
+    {(eyebrow || title || description) && (
+      <div class="mx-auto mb-16 max-w-2xl text-center">
+        {eyebrow && (
+          <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+        )}
+        {title && <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>}
+        {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+      </div>
+    )}
+
+    <ol class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+      {steps.map((step, i) => (
+        <li class="relative flex flex-col gap-4 lg:border-t lg:pt-8">
+          <span
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary lg:absolute lg:-top-5 lg:left-0 lg:bg-background lg:ring-8 lg:ring-background"
+            aria-hidden="true">{i + 1}</span>
+          <div class="flex flex-col gap-2">
+            <h3 class="text-xl font-semibold tracking-tight">{step.title}</h3>
+            <p class="text-muted-foreground leading-relaxed">{step.description}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
