@@ -266,6 +266,11 @@
       "route": "/es/",
       "crawleable": true,
       "sections": {
+        "compare": [
+          "description",
+          "eyebrow",
+          "title"
+        ],
         "cta": [
           "description",
           "eyebrow",
@@ -470,6 +475,11 @@
       "route": "/",
       "crawleable": true,
       "sections": {
+        "compare": [
+          "description",
+          "eyebrow",
+          "title"
+        ],
         "cta": [
           "description",
           "eyebrow",

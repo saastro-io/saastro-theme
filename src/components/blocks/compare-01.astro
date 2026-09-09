@@ -1,0 +1,117 @@
+---
+/**
+ * compare-01 — Tabla comparativa de dos columnas: la alternativa y la propuesta.
+ * Bloque Astro puro: cero JS, cero dependencias.
+ *
+ * Cada fila es un PAR de afirmaciones que se leen enfrentadas («cobran comisión
+ * por clase» / «cobras tú, íntegro»). Por eso las dos columnas se quedan
+ * SIEMPRE lado a lado, también en móvil: apilarlas rompe la comparación, que es
+ * lo único que esta sección hace. Lo que se encoge en pantalla pequeña es el
+ * espaciado y el cuerpo del texto, no la rejilla.
+ *
+ * La columna DERECHA es la destacada por convenio —la que se propone— y lleva
+ * el ✓; la izquierda va apagada con ✗. Es un convenio del bloque, no una prop:
+ * un interruptor para invertirlo sería una opción que nadie ha pedido, y el
+ * orden de lectura ya lo dice.
+ *
+ * La distinción entre las dos columnas es ESTRUCTURAL antes que de color:
+ * izquierda hundida (fondo apagado, sin borde, texto secundario), derecha
+ * levantada (fondo de tarjeta, borde y sombra, texto a plena intensidad). Se
+ * hizo así al mirar la captura: con `--primary` monocromo —como en el propio
+ * catálogo— un destacado que dependiera solo del color deja las dos columnas
+ * casi idénticas, y entonces la sección no compara nada. Con relieve funciona
+ * en un theme sin color de marca, y con marca además tiñe el icono.
+ *
+ * Las etiquetas de columna (`labels`) son obligatorias: una comparación sin
+ * decir contra QUÉ compara es media frase. La CABECERA, en cambio, es
+ * opcional entera — mismo motivo que en `steps-01`: un adaptador que quiera su
+ * cabecera editable desde Studio la pinta él y le pasa al bloque solo las
+ * filas. Con `title` obligatorio ese adaptador tenía que mandar `""` y el
+ * bloque emitía un `<h2></h2>` vacío en el HTML servido.
+ */
+interface Row {
+  /** La alternativa (columna izquierda, apagada, con ✗). */
+  left: string;
+  /** La propuesta (columna derecha, destacada, con ✓). */
+  right: string;
+}
+
+interface Props {
+  /** Antetítulo corto sobre el título. */
+  eyebrow?: string;
+  /** Sin título no se pinta la cabecera: la pone quien use el bloque. */
+  title?: string;
+  description?: string;
+  labels: { left: string; right: string };
+  rows: Row[];
+  class?: string;
+}
+
+const { eyebrow, title, description, labels, rows, class: className } = Astro.props;
+---
+
+<section class:list={['w-full px-6 py-24 md:py-32', className]}>
+  <div class="mx-auto max-w-4xl">
+    {(eyebrow || title || description) && (
+      <div class="mx-auto mb-12 max-w-2xl text-center">
+        {eyebrow && (
+          <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+        )}
+        {title && <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>}
+        {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+      </div>
+    )}
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-6">
+      <p class="text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        {labels.left}
+      </p>
+      <p class="text-center text-xs font-semibold tracking-wider text-primary uppercase">
+        {labels.right}
+      </p>
+
+      {rows.map((row) => (
+        <>
+          <div class="flex items-start gap-3 rounded-xl bg-muted/50 p-4 sm:p-5">
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+              aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round">
+                <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+              </svg>
+            </span>
+            <span class="text-sm leading-relaxed text-muted-foreground">{row.left}</span>
+          </div>
+
+          <div class="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm sm:p-5">
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+              aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </span>
+            <span class="text-sm leading-relaxed font-medium text-card-foreground">{row.right}</span>
+          </div>
+        </>
+      ))}
+    </div>
+  </div>
+</section>
