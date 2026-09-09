@@ -1,0 +1,49 @@
+---
+/**
+ * ValuesGrid — ADAPTADOR de una sección de «manifiesto + tarjetas de valor».
+ *
+ *   bloque    src/components/blocks/features-01.astro — pristine del registry.
+ *   adaptador este fichero.
+ *   contenido i18n, namespace = `fieldPrefix`.
+ *
+ * Mismo reparto que el resto (ver `knowledge/src.md`): la cabecera y el párrafo
+ * de manifiesto los pinta este fichero —y por eso son editables—, las tarjetas
+ * las pinta el bloque y hoy no lo son.
+ *
+ * Es el MISMO bloque que usa `AboutContent`. Se escribe un adaptador aparte en
+ * vez de reutilizar aquél porque `AboutContent` es la página About entera
+ * (portada + misión + valores); esto es una sección suelta de la home. Compartir
+ * el bloque es el modelo; compartir el adaptador sería atar dos páginas.
+ */
+import Features01 from '@/components/blocks/features-01.astro';
+
+interface Item {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  /** Párrafo largo opcional bajo el subtítulo: el «manifiesto». */
+  manifesto?: string;
+  items: Item[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, description, manifesto, items, fieldPrefix = 'manifesto' } = Astro.props;
+---
+
+<div class="border-t py-24 md:py-32">
+  <div class="mx-auto max-w-3xl px-6 text-center">
+    {eyebrow && (
+      <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+    )}
+    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+    {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+    {manifesto && <p class="mt-6 text-lg leading-relaxed">{manifesto}</p>}
+  </div>
+
+  <Features01 features={items} class="py-0 pt-12 md:pt-16" />
+</div>

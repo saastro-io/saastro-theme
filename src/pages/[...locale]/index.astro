@@ -5,6 +5,10 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import Hero from '../../components/Hero.astro';
 import Products from '../../components/Products.astro';
 import HowItWorks from '../../components/HowItWorks.astro';
+import TrustBar from '../../components/TrustBar.astro';
+import StatementSection from '../../components/StatementSection.astro';
+import ValuesGrid from '../../components/ValuesGrid.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
 
 export const prerender = true;
 
@@ -55,6 +59,31 @@ const how = (t as any)?.how ?? {
   ],
 };
 
+/**
+ * ⚠️ Los fondos ALTERNAN, y eso es una propiedad de esta página, no de cada
+ * adaptador: `trust` y `cta` van teñidos (`bg-secondary/40`), `statement`,
+ * `how` y `manifesto` van planos. Se descubrió midiendo la portada entera —
+ * `trust`, `how` y `manifesto` salían los tres teñidos y seguidos, así que
+ * tres secciones se leían como una sola banda y sus límites desaparecían.
+ * Si añades una sección, mira el fondo de la de arriba antes de elegir el suyo.
+ *
+ * Las cinco secciones restantes. Mismo criterio que `how`: el contenido de
+ * plantilla vive en los dos JSON y un descendiente reescribe el namespace sin
+ * tocar adaptador ni bloque.
+ *
+ * Los `??` son el mínimo para que la página siga construyendo si alguien poda
+ * un namespace del JSON — no son contenido de verdad, y por eso son cortos.
+ */
+const trust = (t as any)?.trust ?? { left: 'Replace five tools', right: 'One place for everything' };
+const statement = (t as any)?.statement ?? {
+  headline: ['Your site is a project.', 'It should be a page you edit.'],
+};
+const manifesto = (t as any)?.manifesto ?? { title: 'Built for teams that ship', items: [] };
+const cta = (t as any)?.cta ?? {
+  title: 'Put the first page up this afternoon',
+  primaryCta: 'Read the docs',
+};
+
 const meta = resolveMeta(t, 'home');
 const announcement = t?.announcement ?? { text: 'Saastro Theme is now available', badge: 'NEW' };
 ---
@@ -83,11 +112,42 @@ const announcement = t?.announcement ?? { text: 'Saastro Theme is now available'
     fieldPrefix="products"
   />
 
+  <TrustBar left={trust.left} middle={trust.middle} right={trust.right} fieldPrefix="trust" />
+
+  <StatementSection
+    eyebrow={statement.eyebrow}
+    headlineTop={statement.headline[0]}
+    headlineBottom={statement.headline[1]}
+    description={statement.description}
+    points={statement.points}
+    fieldPrefix="statement"
+  />
+
   <HowItWorks
     eyebrow={how.eyebrow}
     title={how.title}
     description={how.description}
     steps={how.steps}
     fieldPrefix="how"
+  />
+
+  <ValuesGrid
+    eyebrow={manifesto.eyebrow}
+    title={manifesto.title}
+    description={manifesto.description}
+    manifesto={manifesto.manifesto}
+    items={manifesto.items}
+    fieldPrefix="manifesto"
+  />
+
+
+  <CtaBanner
+    eyebrow={cta.eyebrow}
+    title={cta.title}
+    description={cta.description}
+    primaryCta={{ label: cta.primaryCta, href: lp('/about') }}
+    secondaryCta={cta.secondaryCta ? { label: cta.secondaryCta, href: 'https://ui.saastro.io' } : undefined}
+    note={cta.note}
+    fieldPrefix="cta"
   />
 </SiteLayout>

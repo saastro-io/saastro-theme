@@ -1,0 +1,71 @@
+---
+/**
+ * CtaBanner — el cierre de la página: titular, apoyo y dos botones.
+ *
+ * ─── Por qué NO usa `cta-01` del registry, teniéndolo ───────────────────
+ *
+ * Porque su texto es el que más se cambia y **delegarlo al bloque lo dejaría
+ * fuera del alcance de Studio**: el plugin instrumenta las expresiones del
+ * adaptador, no las de dentro del bloque (ver `knowledge/src.md`). En `how` o
+ * en la comparativa eso se resuelve pintando la cabecera aquí y dejando al
+ * bloque la estructura repetida; aquí no hay estructura repetida — la sección
+ * ES el texto. Un banner de cierre con el titular no editable es justo el que
+ * nadie quiere.
+ *
+ * La alternativa buena sería que `cta-01` aceptara SLOTS para su texto, y
+ * entonces el adaptador podría pintarlo dentro del bloque y seguiría siendo
+ * editable. Eso es un cambio de API en saastro-ui y está anotado; hasta
+ * entonces, esta sección es local, como `Products` o `LandingFaq`.
+ */
+interface Cta {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  primaryCta: Cta;
+  secondaryCta?: Cta;
+  /** Nota corta bajo los botones («sin tarjeta», «plan gratuito»…). */
+  note?: string;
+  fieldPrefix?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  description,
+  primaryCta,
+  secondaryCta,
+  note,
+  fieldPrefix = 'cta',
+} = Astro.props;
+
+const btn =
+  'inline-flex h-11 items-center justify-center rounded-lg px-6 text-base font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px';
+---
+
+<div class="border-t bg-secondary/40 py-24 md:py-32">
+  <div class="mx-auto max-w-3xl px-6 text-center">
+    {eyebrow && (
+      <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+    )}
+    <h2 class="text-3xl font-bold tracking-tight text-balance sm:text-4xl">{title}</h2>
+    {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+
+    <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a href={primaryCta.href} class:list={[btn, 'bg-primary text-primary-foreground hover:bg-primary/90']}>
+        {primaryCta.label}
+      </a>
+      {secondaryCta && (
+        <a href={secondaryCta.href} class:list={[btn, 'border bg-background hover:bg-secondary']}>
+          {secondaryCta.label}
+        </a>
+      )}
+    </div>
+
+    {note && <p class="mt-6 text-sm text-muted-foreground">{note}</p>}
+  </div>
+</div>

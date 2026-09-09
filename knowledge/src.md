@@ -96,9 +96,19 @@ Dos consecuencias más, para que nadie las descubra a medias:
   bloque emite un `<h2></h2>` vacío. Si te pasa, la cabecera del bloque tiene
   que volverse opcional **en saastro-ui** (así nació `title?` de `steps-01`,
   saastro-ui#30), nunca parcheando la copia local.
-- Que los arrays no se instrumenten está pendiente en `@saastro/studio` (P2 en
-  la office). El aviso de build sobre `valuesItems` de `AboutContent` es el
-  mismo problema pidiendo que lo miren.
+- **Un array SÍ se instrumenta si lo recorre el adaptador.** Lo que no se
+  instrumenta es lo que CRUZA hacia un bloque. Medido en la portada: los
+  `points[0]`/`points[1]` de `StatementSection` (que hace `points.map(...)`)
+  salen editables, igual que `hero.stats[...]` y `products.items[...]`, que son
+  componentes locales; y `about.valuesItems`, que se le pasa a `features-01`, no
+  — el build lo dice con todas las letras: «no `valuesItems.map(...)` found».
+  Lo pendiente en `@saastro/studio` (P2 en la office) es exactamente eso: lo que
+  cruza al bloque.
+- **Un titular partido en dos líneas va en DOS props, no en un array de dos.**
+  Con `headline[0]`/`headline[1]` el plugin no los instrumenta —el acceso por
+  índice cae en el mismo hueco— y el texto más importante de la sección sale no
+  editable. Con `headlineTop`/`headlineBottom` sí. Está medido en
+  `StatementSection`.
 
 ## Las trampas que hereda cada site
 
