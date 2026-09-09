@@ -24,8 +24,17 @@ interface Props {
   /** Segunda línea, en tono apagado. Opcional: un titular de una línea vale. */
   headlineBottom?: string;
   description?: string;
-  /** Dos apoyos cortos bajo el titular. */
-  points?: string[];
+  /**
+   * Apoyos bajo el titular, con título OPCIONAL. Lo pidió el primer consumidor
+   * real: la sección «el problema» de PinTeach tiene cinco dolores con
+   * encabezado.
+   *
+   * Una sola forma —siempre objeto— y no `string | {…}`: con el ternario de
+   * tipos el plugin de Studio perdía los campos `points[0]`/`points[1]`, y el
+   * contrato lo cazó al regenerarlo. Un condicional DENTRO del map sí lo
+   * aguanta (`{point.title && …}`); lo que no aguanta es que la forma cambie.
+   */
+  points?: Array<{ title?: string; description: string }>;
   fieldPrefix?: string;
 }
 
@@ -52,7 +61,10 @@ const {
     {points.length > 0 && (
       <div class="mt-10 grid gap-4 sm:grid-cols-2">
         {points.map((point) => (
-          <p class="rounded-xl border bg-card p-5 text-left text-base leading-relaxed">{point}</p>
+          <div class="rounded-xl border bg-card p-5 text-left">
+            {point.title && <p class="font-semibold">{point.title}</p>}
+            <p class="leading-relaxed text-muted-foreground">{point.description}</p>
+          </div>
         ))}
       </div>
     )}

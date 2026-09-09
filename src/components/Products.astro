@@ -20,13 +20,19 @@ interface ProductItem {
 }
 
 interface Props {
+  /**
+   * Antetítulo corto sobre el título. Lo pidió el primer sitio descendiente:
+   * su sección de funcionalidades trae un `badge` y sin esto se quedaba sin
+   * pintar.
+   */
+  eyebrow?: string;
   title?: string;
   subtitle?: string;
   items?: ProductItem[];
   fieldPrefix?: string;
 }
 
-const { title, subtitle, items = [], fieldPrefix = 'products' } = Astro.props;
+const { eyebrow, title, subtitle, items = [], fieldPrefix = 'products' } = Astro.props;
 ---
 
 <section
@@ -35,8 +41,11 @@ const { title, subtitle, items = [], fieldPrefix = 'products' } = Astro.props;
 >
   <div class="container mx-auto px-4">
     <!-- Section header -->
-    {(title || subtitle) && (
+    {(eyebrow || title || subtitle) && (
       <div class="mx-auto max-w-2xl text-center">
+        {eyebrow && (
+          <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+        )}
         {title && (
           <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
         )}

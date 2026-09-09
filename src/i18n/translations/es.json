@@ -112,8 +112,12 @@
     "headline": ["Tu web es un proyecto.", "Debería ser una página que editas."],
     "description": "Cada cambio de texto se convierte en un ticket, una rama y un despliegue. Por eso no se cambia nada.",
     "points": [
-      "Quien escribe el texto no es quien puede publicarlo.",
-      "As\u00ed que la web se queda como el d\u00eda del lanzamiento, y el lanzamiento fue hace un a\u00f1o."
+      {
+        "description": "Quien escribe el texto no es quien puede publicarlo."
+      },
+       {
+        "description": "Así que la web se queda como el día del lanzamiento, y el lanzamiento fue hace un año."
+      }
     ]
   },
   "manifesto": {
@@ -145,7 +149,7 @@
     "description": "Clona desde este theme, conecta el repositorio y publica.",
     "primaryCta": "Leer la documentaci\u00f3n",
     "secondaryCta": "Ver los bloques",
-    "note": "Licencia MIT. No hace falta cuenta para probarlo."
+    "notes": ["Licencia MIT. No hace falta cuenta para probarlo."]
   },
   "about": {
     "title": "Acerca de",

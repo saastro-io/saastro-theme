@@ -112,8 +112,12 @@
     "headline": ["Your site is a project.", "It should be a page you edit."],
     "description": "Every copy change becomes a ticket, a branch and a deploy. That is why nothing gets changed.",
     "points": [
-      "The person who writes the copy is not the person who can publish it.",
-      "So the site stays as it was launched, and the launch was a year ago."
+      {
+        "description": "The person who writes the copy is not the person who can publish it."
+      },
+       {
+        "description": "So the site stays as it was launched, and the launch was a year ago."
+      }
     ]
   },
   "manifesto": {
@@ -145,7 +149,7 @@
     "description": "Scaffold from this theme, connect the repo, and publish.",
     "primaryCta": "Read the docs",
     "secondaryCta": "See the blocks",
-    "note": "MIT licensed. No account required to try it."
+    "notes": ["MIT licensed. No account required to try it."]
   },
   "about": {
     "title": "About",

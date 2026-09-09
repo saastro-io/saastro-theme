@@ -274,7 +274,7 @@
         "cta": [
           "description",
           "eyebrow",
-          "note",
+          "notes[0]",
           "title"
         ],
         "footer": [
@@ -370,7 +370,9 @@
           "headlineBottom",
           "headlineTop",
           "points[0]",
-          "points[1]"
+          "points[0].description",
+          "points[1]",
+          "points[1].description"
         ],
         "toggle_theme": [],
         "trust": [
@@ -483,7 +485,7 @@
         "cta": [
           "description",
           "eyebrow",
-          "note",
+          "notes[0]",
           "title"
         ],
         "footer": [
@@ -579,7 +581,9 @@
           "headlineBottom",
           "headlineTop",
           "points[0]",
-          "points[1]"
+          "points[0].description",
+          "points[1]",
+          "points[1].description"
         ],
         "toggle_theme": [],
         "trust": [
