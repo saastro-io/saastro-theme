@@ -266,6 +266,12 @@
       "route": "/es/",
       "crawleable": true,
       "sections": {
+        "cta": [
+          "description",
+          "eyebrow",
+          "note",
+          "title"
+        ],
         "footer": [
           "links[0]",
           "links[0].links[0]",
@@ -298,6 +304,12 @@
         "how": [
           "description",
           "eyebrow",
+          "title"
+        ],
+        "manifesto": [
+          "description",
+          "eyebrow",
+          "manifesto",
           "title"
         ],
         "nav": [
@@ -347,7 +359,19 @@
           "subtitle",
           "title"
         ],
+        "statement": [
+          "description",
+          "eyebrow",
+          "headlineBottom",
+          "headlineTop",
+          "points[0]",
+          "points[1]"
+        ],
         "toggle_theme": [],
+        "trust": [
+          "left",
+          "right"
+        ],
         "whatsapp": []
       }
     },
@@ -446,6 +470,12 @@
       "route": "/",
       "crawleable": true,
       "sections": {
+        "cta": [
+          "description",
+          "eyebrow",
+          "note",
+          "title"
+        ],
         "footer": [
           "links[0]",
           "links[0].links[0]",
@@ -478,6 +508,12 @@
         "how": [
           "description",
           "eyebrow",
+          "title"
+        ],
+        "manifesto": [
+          "description",
+          "eyebrow",
+          "manifesto",
           "title"
         ],
         "nav": [
@@ -527,7 +563,19 @@
           "subtitle",
           "title"
         ],
+        "statement": [
+          "description",
+          "eyebrow",
+          "headlineBottom",
+          "headlineTop",
+          "points[0]",
+          "points[1]"
+        ],
         "toggle_theme": [],
+        "trust": [
+          "left",
+          "right"
+        ],
         "whatsapp": []
       }
     },

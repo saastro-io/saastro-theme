@@ -1,0 +1,32 @@
+---
+/**
+ * TrustBar — barra de dos afirmaciones cortas, separadas por el nombre de la
+ * marca o por un separador.
+ *
+ * **Local, sin bloque del registry.** `logos-01` es para logotipos y `stats-01`
+ * para cifras; esto son dos frases. Forzar cualquiera de los dos daría una
+ * sección que dice algo distinto de lo que se quiere decir.
+ *
+ * Al ser local, todo su texto es editable desde Studio.
+ */
+interface Props {
+  left: string;
+  right: string;
+  /** Lo que va en medio. Sin él, un punto separador. */
+  middle?: string;
+  fieldPrefix?: string;
+}
+
+const { left, right, middle, fieldPrefix = 'trust' } = Astro.props;
+---
+
+<div class="border-t bg-secondary/40 py-10">
+  <div
+    class="mx-auto flex max-w-4xl flex-col items-center gap-3 px-6 text-center sm:flex-row sm:justify-center sm:gap-6">
+    <p class="text-base text-muted-foreground sm:text-lg">{left}</p>
+    <span class="text-sm font-semibold tracking-wider text-primary uppercase" aria-hidden="true">
+      {middle ?? '·'}
+    </span>
+    <p class="text-base font-medium sm:text-lg">{right}</p>
+  </div>
+</div>

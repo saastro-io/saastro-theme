@@ -102,6 +102,51 @@
       }
     ]
   },
+  "trust": {
+    "left": "Sustituye cinco herramientas",
+    "middle": "Saastro",
+    "right": "Un solo sitio para contenido, formularios y despliegues"
+  },
+  "statement": {
+    "eyebrow": "El problema",
+    "headline": ["Tu web es un proyecto.", "Debería ser una página que editas."],
+    "description": "Cada cambio de texto se convierte en un ticket, una rama y un despliegue. Por eso no se cambia nada.",
+    "points": [
+      "Quien escribe el texto no es quien puede publicarlo.",
+      "As\u00ed que la web se queda como el d\u00eda del lanzamiento, y el lanzamiento fue hace un a\u00f1o."
+    ]
+  },
+  "manifesto": {
+    "eyebrow": "Hecho para",
+    "title": "Equipos que publican sus propias palabras",
+    "description": "No es una iguala de agencia. No es un maquetador que se queda con tu HTML.",
+    "manifesto": "El repositorio sigue siendo tuyo, el contenido vive en tus idiomas y el editor es una capa por encima, no un sitio donde tu web se queda atrapada.",
+    "items": [
+      { "title": "Es tuyo", "description": "Tu repo, tu historia, tus despliegues. Irse es un git clone, no un proyecto de migraci\u00f3n." },
+      { "title": "Hecho para durar", "description": "Bloques sin JavaScript, props tipados y un contrato en build que se pone rojo cuando una secci\u00f3n deja de ser editable." }
+    ]
+  },
+  "compare": {
+    "eyebrow": "Por qu\u00e9 no un maquetador",
+    "title": "Las mismas cinco decisiones, tomadas al rev\u00e9s",
+    "description": "Lo que se cede con un maquetador alojado y lo que aqu\u00ed se conserva.",
+    "labels": { "left": "Maquetador alojado", "right": "Saastro" },
+    "rows": [
+      { "left": "Tu HTML vive en su base de datos.", "right": "Tu HTML vive en tu repositorio." },
+      { "left": "El editor decide qu\u00e9 se puede hacer.", "right": "Los bloques son c\u00f3digo que puedes leer." },
+      { "left": "Irse es rehacerlo.", "right": "Irse es clonarlo." },
+      { "left": "Un idioma, o un plugin.", "right": "Los idiomas son de primera clase." },
+      { "left": "Su disponibilidad es la tuya.", "right": "Se despliega en tu propia cuenta." }
+    ]
+  },
+  "cta": {
+    "eyebrow": "Empezar",
+    "title": "Pon la primera p\u00e1gina esta tarde",
+    "description": "Clona desde este theme, conecta el repositorio y publica.",
+    "primaryCta": "Leer la documentaci\u00f3n",
+    "secondaryCta": "Ver los bloques",
+    "note": "Licencia MIT. No hace falta cuenta para probarlo."
+  },
   "about": {
     "title": "Acerca de",
     "subtitle": "Estamos construyendo las herramientas que hacen la web mejor para todos.",

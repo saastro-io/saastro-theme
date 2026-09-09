@@ -1,0 +1,60 @@
+---
+/**
+ * StatementSection — sección de DECLARACIÓN: un titular a dos líneas y dos
+ * párrafos que lo sostienen.
+ *
+ * **Local, sin bloque del registry, y a conciencia.** No hay ninguno que cubra
+ * «dos frases grandes y dos párrafos», y forzar uno sería peor — es el mismo
+ * criterio con el que `AboutContent` escribe a mano su intro y su misión, y con
+ * el que `Products` y `LandingFaq` se quedaron locales.
+ *
+ * Al ser local, **todo su texto es editable desde Studio**: aquí no hay bloque
+ * de por medio que se lleve las expresiones fuera del alcance del plugin.
+ */
+interface Props {
+  eyebrow?: string;
+  /**
+   * Las dos líneas del titular, en DOS props y no en un array de dos.
+   * Medido: con `headline[0]` / `headline[1]` el plugin de Studio no las
+   * instrumenta —los accesos por índice caen en el mismo hueco que los
+   * arrays— y el titular, que es el texto más importante de la sección, salía
+   * no editable. Con dos escalares sí.
+   */
+  headlineTop: string;
+  /** Segunda línea, en tono apagado. Opcional: un titular de una línea vale. */
+  headlineBottom?: string;
+  description?: string;
+  /** Dos apoyos cortos bajo el titular. */
+  points?: string[];
+  fieldPrefix?: string;
+}
+
+const {
+  eyebrow,
+  headlineTop,
+  headlineBottom,
+  description,
+  points = [],
+  fieldPrefix = 'statement',
+} = Astro.props;
+---
+
+<div class="border-t py-24 md:py-32">
+  <div class="mx-auto max-w-3xl px-6 text-center">
+    {eyebrow && (
+      <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+    )}
+    <h2 class="text-3xl font-bold tracking-tight text-balance sm:text-4xl md:text-5xl">
+      {headlineTop}
+      {headlineBottom && <span class="block text-muted-foreground">{headlineBottom}</span>}
+    </h2>
+    {description && <p class="mt-6 text-lg text-muted-foreground">{description}</p>}
+    {points.length > 0 && (
+      <div class="mt-10 grid gap-4 sm:grid-cols-2">
+        {points.map((point) => (
+          <p class="rounded-xl border bg-card p-5 text-left text-base leading-relaxed">{point}</p>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
