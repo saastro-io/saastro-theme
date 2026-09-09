@@ -83,6 +83,25 @@
       }
     ]
   },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "Three steps and you are live",
+    "description": "No setup call, no migration project. Connect, configure, publish.",
+    "steps": [
+      {
+        "title": "Connect your repo",
+        "description": "Point Saastro at a GitHub repository. It reads what is there \u2014 no rewrite, no lock-in."
+      },
+      {
+        "title": "Configure the content",
+        "description": "Collections, locales and forms are declared once. The editor picks them up on the next load."
+      },
+      {
+        "title": "Publish",
+        "description": "Every push builds and deploys. Rolling back is a redeploy of the previous version."
+      }
+    ]
+  },
   "about": {
     "title": "About",
     "subtitle": "We're building the tools that make the web better for everyone.",

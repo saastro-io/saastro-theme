@@ -83,6 +83,25 @@
       }
     ]
   },
+  "how": {
+    "eyebrow": "C\u00f3mo funciona",
+    "title": "Tres pasos y est\u00e1 publicado",
+    "description": "Sin llamada de alta y sin proyecto de migraci\u00f3n. Conectar, configurar, publicar.",
+    "steps": [
+      {
+        "title": "Conecta tu repositorio",
+        "description": "Apunta Saastro a un repositorio de GitHub. Lee lo que hay: sin reescribirlo y sin ataduras."
+      },
+      {
+        "title": "Configura el contenido",
+        "description": "Colecciones, idiomas y formularios se declaran una vez. El editor los recoge en la siguiente carga."
+      },
+      {
+        "title": "Publica",
+        "description": "Cada push construye y despliega. Volver atr\u00e1s es desplegar la versi\u00f3n anterior."
+      }
+    ]
+  },
   "about": {
     "title": "Acerca de",
     "subtitle": "Estamos construyendo las herramientas que hacen la web mejor para todos.",

@@ -4,6 +4,7 @@ import { resolveMeta } from '../../i18n/meta';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import Hero from '../../components/Hero.astro';
 import Products from '../../components/Products.astro';
+import HowItWorks from '../../components/HowItWorks.astro';
 
 export const prerender = true;
 
@@ -38,6 +39,22 @@ const products = (t as any)?.products ?? {
   items: [],
 };
 
+/**
+ * `how` — el bloque `steps-01` por su adaptador. Con contenido de plantilla,
+ * como el resto de esta página: un descendiente reescribe el namespace `how`
+ * de sus dos JSON y no toca ni el adaptador ni el bloque.
+ */
+const how = (t as any)?.how ?? {
+  eyebrow: 'How it works',
+  title: 'Three steps and you are live',
+  description: 'No setup call, no migration project. Connect, configure, publish.',
+  steps: [
+    { title: 'Connect your repo', description: 'Point Saastro at a GitHub repository.' },
+    { title: 'Configure the content', description: 'Collections, locales and forms are declared once.' },
+    { title: 'Publish', description: 'Every push builds and deploys.' },
+  ],
+};
+
 const meta = resolveMeta(t, 'home');
 const announcement = t?.announcement ?? { text: 'Saastro Theme is now available', badge: 'NEW' };
 ---
@@ -64,5 +81,13 @@ const announcement = t?.announcement ?? { text: 'Saastro Theme is now available'
     subtitle={products.subtitle}
     items={products.items}
     fieldPrefix="products"
+  />
+
+  <HowItWorks
+    eyebrow={how.eyebrow}
+    title={how.title}
+    description={how.description}
+    steps={how.steps}
+    fieldPrefix="how"
   />
 </SiteLayout>
