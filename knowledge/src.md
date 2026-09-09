@@ -252,6 +252,10 @@ técnica comprobable.
 |---|---|---|
 | `AboutContent` | **del registry** (`features-01`) | Encajó sin remapear. Es el piloto del modelo |
 | `HowItWorks` | **del registry** (`steps-01`) | Cabecera en el adaptador (editable) + pasos en el bloque. El primero que hace explícita la regla de arriba |
+| `ValuesGrid` | **del registry** (`features-01`) | Mismo bloque que `AboutContent`, adaptador propio: aquél es la página About entera, esto una sección de la home |
+| `CompareTable` | **del registry** (`compare-01`) | Cabecera en el adaptador; las filas y las etiquetas de columna, en el bloque (van alineadas con la rejilla) |
+| `StatementSection` · `TrustBar` | **locales** | No hay bloque que cubra «dos frases grandes con dos apoyos» ni «dos afirmaciones enfrentadas». Al ser locales, TODO su texto es editable |
+| `CtaBanner` | **local, teniendo `cta-01`** | Segundo caso de «local a propósito» junto a `Products`. Esa sección ES texto: no hay estructura repetida que delegar, así que con el bloque el titular de cierre —el que más se cambia— quedaría fuera de Studio. **La salida buena es que `cta-01` acepte SLOTS para su texto**; con slots, el adaptador podría pintarlo DENTRO del bloque y seguiría siendo editable. Está apuntado; hasta entonces, local |
 | `Hero` | **local, vinculante** | Sus imágenes son **editables desde Studio** (`@saastro/studio/Img` con `fieldPrefix`) |
 | `Products` | **local** | Sus items son `{name, tagline, description, href, icon, color, features[]}`; ningún bloque encaja y mapearlos rompería autoWrap |
 | `Header` · `Footer` | **local, vinculante** | Llevan comportamiento: selector de idioma, reapertura de cookies, menú móvil |

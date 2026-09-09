@@ -1,0 +1,51 @@
+---
+/**
+ * CompareTable — ADAPTADOR de una sección comparativa («ellos» vs «nosotros»).
+ *
+ *   bloque    src/components/blocks/compare-01.astro — pristine del registry
+ *             (`npx shadcn add @saastro/compare-01`). No se edita aquí.
+ *   adaptador este fichero.
+ *   contenido i18n, namespace = `fieldPrefix`.
+ *
+ * La CABECERA la pinta este fichero, por la regla de `knowledge/src.md`: el
+ * plugin de Studio solo instrumenta las expresiones del adaptador, así que
+ * delegarla dejaría la sección con cero campos editables. Las filas y las
+ * etiquetas de columna las pinta el bloque y hoy NO son editables desde el Hub
+ * (P2 del paquete, anotado en la office).
+ *
+ * `labels` va al bloque a propósito aunque eso lo deje fuera de Studio: son las
+ * dos cabeceras de la tabla y pertenecen a su maquetación —van alineadas con
+ * las columnas— así que sacarlas aquí obligaría a duplicar la rejilla.
+ */
+import Compare01 from '@/components/blocks/compare-01.astro';
+
+interface Row {
+  left: string;
+  right: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  labels: { left: string; right: string };
+  rows: Row[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, description, labels, rows, fieldPrefix = 'compare' } = Astro.props;
+---
+
+<div class="border-t bg-secondary/40 pt-24 md:pt-32">
+  <div class="mx-auto max-w-2xl px-6 text-center">
+    {eyebrow && (
+      <p class="mb-4 text-sm font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>
+    )}
+    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+    {description && <p class="mt-4 text-lg text-muted-foreground">{description}</p>}
+  </div>
+
+  {/* Sin cabecera: la de arriba es la editable. `compare-01` la hace opcional
+      justamente para esto (saastro-ui#31). */}
+  <Compare01 labels={labels} rows={rows} class="pt-12 md:pt-16" />
+</div>
