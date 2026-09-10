@@ -1,0 +1,106 @@
+# Dependabot para `saastro-theme`.
+#
+# ══════════════════════════════════════════════════════════════════════════
+# POR QUÉ ESTE FICHERO NACE HOY, Y QUÉ SE MIDIÓ ANTES DE ESCRIBIRLO
+#
+# El 10-sep-2026 este repo tenía **cero alertas de seguridad abiertas** — y
+# **cero en cualquier estado, en toda su historia**, con las alertas de
+# vulnerabilidad ENCENDIDAS en la configuración del repo.
+#
+# Un cero así no significa «no hay nada»: significa que nadie está mirando.
+# Se comprobó cruzando su `pnpm-lock.yaml` contra los 90 advisories distintos
+# que sí tienen abiertos `saastro-forms`, `saastro-hub` y `saastro-platform`:
+# **65 casaban con paquetes instalados aquí en versiones vulnerables, dos de
+# ellos CRÍTICOS** — `astro 7.0.3` (< 7.2.8) y `tar 7.5.13` (<= 7.5.18).
+#
+# O sea que el repo llevaba meses sin que nadie le dijera nada, mientras sus
+# vecinos recibían alertas por los mismos paquetes.
+#
+# Este fichero NO arregla eso por sí solo: `dependabot.yml` configura las
+# actualizaciones de VERSIÓN, y las alertas dependen del grafo de
+# dependencias del repo. Si tras este PR siguen sin llegar alertas, lo que
+# falta es el grafo, y eso se enciende en los ajustes del repo — no aquí.
+# ══════════════════════════════════════════════════════════════════════════
+#
+# Molde: `saastro-forms/.github/dependabot.yml`. Mismas dos decisiones:
+#   · los MAJORS de versión se ignoran (se suben a conciencia, con pruebas),
+#     acotando el `ignore` con `update-types` para no tocar las de seguridad;
+#   · las de SEGURIDAD llegan agrupadas, con `applies-to: security-updates`.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+      time: "09:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 3
+    # `open-pull-requests-limit` NO limita las de seguridad («Security update
+    # pull requests are not subject to this limit»), así que este tope solo
+    # afecta a las de versión.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    groups:
+      # Las de SEGURIDAD, en un PR agrupado en vez de uno por advisory.
+      #
+      # `applies-to` solo existe en `groups`, no en `ignore`; sin él un grupo
+      # se aplica solo a las de versión.
+      #
+      # Lo que la documentación dice y lo que no, medido el 10-sep-2026:
+      # la frase «`update-types` only affects *version* updates, not
+      # *security updates*» está en la sección **`allow`**, NO en `ignore`;
+      # en `ignore` solo está la nota de comportamiento por defecto. Lo que
+      # sí se observa: en `saastro-forms`, con este mismo `ignore` acotado,
+      # Dependabot tiene abiertos dos PRs de salto MAYOR a la versión
+      # parcheada de sendos advisories críticos.
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      astro:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+        update-types: [minor, patch]
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+        update-types: [minor, patch]
+      build-tooling:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "esbuild"
+          - "vitest"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types: [minor, patch]
+      typescript-tooling:
+        patterns:
+          - "typescript"
+          - "@types/*"
+          - "tsx"
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore(ci)"
