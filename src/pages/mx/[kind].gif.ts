@@ -1,4 +1,8 @@
 import type { APIRoute } from 'astro';
+// El secreto del Worker, por la puerta que el adaptador deja abierta
+// (`envGetSecret: 'stable'`). Declarado OPCIONAL en `astro.config.mjs`: casi
+// ningún site descendiente lo tendrá, y ahí el reenvío simplemente no sale.
+import { RENDER_RATIO_SECRET } from 'astro:env/server';
 import { getSettings } from '../../lib/settings';
 import { buildEvent, isKind, pixelResponse, record } from '../../lib/render-ratio';
 
@@ -44,12 +48,20 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
     sink: measure.sink ?? 'log',
     genEndpoint: measure.genEndpoint ?? 'https://gen.saastro.io',
     genWorkspaceId: settings.gen?.workspaceId ?? '',
+    // NO sale de `settings.yaml`, que se commitea en cada site: un secreto ahí
+    // nace publicado. Ver `astro.config.mjs`.
+    secret: RENDER_RATIO_SECRET,
   });
 
   // En Workers, una fetch que no se espera se cancela en cuanto sale la
   // respuesta: sin `waitUntil` el reenvío al sumidero se perdería en silencio
   // justo en el sumidero que sí cuenta. Si no hay runtime (dev con node), se
   // espera a secas — son milisegundos y no hay respuesta que bloquear.
+  //
+  // Desde que el reenvío va FIRMADO hay un `await` más antes de salir (el
+  // `crypto.subtle.sign`), y ése es el que se escaparía si `record` devolviera
+  // sólo la fetch. Devuelve la cadena entera a propósito, y hay un test que lo
+  // comprueba resolviendo el fetch DESPUÉS de que la promesa exista.
   if (pending) {
     const ctx = locals.cfContext;
     if (ctx) ctx.waitUntil(pending);

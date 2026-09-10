@@ -65,6 +65,20 @@ export function isLikelyBot(userAgent: string | null | undefined): boolean {
 /** Un evento ya normalizado, listo para el sumidero. Sin IP, sin UA, sin id. */
 export interface MeasureEvent {
   kind: Kind;
+  /**
+   * Host de la página medida, en minúsculas y sin puerto.
+   *
+   * Es parte de la CLAVE en el colector, no un adorno: sin él, dos landings
+   * del mismo workspace suman sus dos rutas `/` en la misma fila y la cifra
+   * sale mezclada sin que nadie lo vea. Un site con una sola landing no nota
+   * la diferencia; el día que tiene dos, el número que decide la inversión en
+   * el envío sin JS ya está mal y nada lo dice.
+   *
+   * Sale del host del PING, que es el mismo que el de la página: los tres
+   * contadores son de primera parte a propósito (ver la cabecera). `URL.host`
+   * llevaría el puerto en local, así que se usa `hostname`.
+   */
+  host: string;
   /** Ruta de la página medida (no la del pixel), recortada. */
   path: string;
   /** `utm_campaign` de la landing, si venía. Cadena vacía = sin campaña. */
@@ -87,6 +101,7 @@ function clean(value: string | null): string {
 export function buildEvent(kind: Kind, url: URL, userAgent: string | null): MeasureEvent {
   return {
     kind,
+    host: url.hostname.toLowerCase(),
     path: clean(url.searchParams.get('p')) || '/',
     campaign: clean(url.searchParams.get('c')),
     bot: isLikelyBot(userAgent),
@@ -113,6 +128,45 @@ export interface SinkConfig {
   sink: MeasureSink;
   genEndpoint: string;
   genWorkspaceId: string;
+  /**
+   * El HMAC de la costura `gen.render-ratio`. Vacío o ausente = no se reenvía,
+   * pase lo que pase en `sink`.
+   *
+   * Es PROPIO de esta costura, no el de ingest: aquél es el de productor de
+   * leads, compartido con forms-worker y los verticales, y usarlo aquí
+   * convertiría cada site descendiente en productor de leads. La costura del
+   * directorio ya se quemó así una vez.
+   */
+  secret?: string;
+}
+
+/** La ruta del colector. Interna a propósito: la llama el Worker del site,
+ *  nunca un navegador — si un día la llamara el cliente, un bloqueador mataría
+ *  unos pings y no otros y la medición dejaría de valer, que es exactamente el
+ *  sesgo que los tres pings de primera parte existen para evitar. */
+export const RUTA_DEL_COLECTOR = '/api/_internal/render-ratio';
+
+/** La cabecera donde viaja la firma. */
+export const CABECERA_DE_FIRMA = 'x-gen-signature';
+
+/**
+ * HMAC-SHA256 en hex minúsculas sobre EL CUERPO CRUDO.
+ *
+ * Sin el prefijo `sha256=` — gen acepta las dos formas y hay que elegir una.
+ * Se firma exactamente la cadena que viaja: serializar dos veces produciría
+ * dos JSON distintos (el orden de claves no está garantizado entre motores) y
+ * el 401 resultante parecería un bug del otro lado.
+ */
+async function firmar(secreto: string, cuerpo: string): Promise<string> {
+  const clave = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secreto),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const firma = await crypto.subtle.sign('HMAC', clave, new TextEncoder().encode(cuerpo));
+  return Array.from(new Uint8Array(firma), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -144,20 +198,59 @@ export function record(event: MeasureEvent, config: SinkConfig): Promise<unknown
 
   if (config.sink !== 'gen' || !config.genWorkspaceId) return null;
 
+  // ── Sin secreto NO se manda, aunque el sumidero diga `gen` ──────────────
+  //
+  // Mejor no mandar que mandar sin firmar: el colector contestaría 401 y el
+  // evento se perdería igual, pero además cada site descendiente estaría
+  // llamando a una puerta ajena con un cuerpo que nadie puede atribuir.
+  //
+  // Va COMO CÓDIGO y no como «acuérdate de dejar el sink en log»: el theme se
+  // clona en cada site cliente y `settings.yaml` lo edita quien monta el site.
+  // Una barrera que el llamante decide si le aplica es una etiqueta.
+  //
+  // Y se dice en el log, porque «no llega nada a gen» y «no se está mandando»
+  // se leen igual desde el otro lado.
+  if (!config.secret) {
+    console.warn(
+      JSON.stringify({
+        m: 'render-ratio',
+        aviso: 'sink=gen sin RENDER_RATIO_SECRET: no se reenvía',
+        kind: event.kind,
+      }),
+    );
+    return null;
+  }
+
   const endpoint = config.genEndpoint.replace(/\/+$/, '');
-  return fetch(`${endpoint}/collect`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      workspaceId: config.genWorkspaceId,
-      type: `render_ratio_${event.kind}`,
-      path: event.path,
-      utm: event.campaign ? { campaign: event.campaign } : undefined,
-      bot: event.bot,
-      ts: event.ts,
-    }),
-    signal: AbortSignal.timeout(2000),
-  }).catch(() => {
+  // El cuerpo se serializa UNA vez y esa misma cadena es la que se firma y la
+  // que viaja. Dos `JSON.stringify` del mismo objeto no están garantizados
+  // byte a byte entre motores, y la firma que no cuadra da un 401 que parece
+  // un bug del otro lado.
+  const cuerpo = JSON.stringify({
+    workspaceId: config.genWorkspaceId,
+    type: `render_ratio_${event.kind}`,
+    host: event.host,
+    path: event.path,
+    utm: event.campaign ? { campaign: event.campaign } : undefined,
+    bot: event.bot,
+    ts: event.ts,
+  });
+
+  // La promesa devuelta cubre la FIRMA y la fetch. Importa: firmar es
+  // asíncrono (`crypto.subtle`), así que si sólo se devolviera la fetch, el
+  // `waitUntil` del endpoint no cubriría el await de la firma y el reenvío se
+  // cancelaría al salir la respuesta — en silencio, y justo en el sumidero que
+  // cuenta. `record` sigue siendo síncrona hasta aquí: el `console.log` de
+  // arriba ya se ha ejecutado cuando esta promesa nace.
+  return (async () => {
+    const firma = await firmar(config.secret!, cuerpo);
+    return fetch(`${endpoint}${RUTA_DEL_COLECTOR}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', [CABECERA_DE_FIRMA]: firma },
+      body: cuerpo,
+      signal: AbortSignal.timeout(2000),
+    });
+  })().catch(() => {
     // Un contador que tira la landing abajo es peor que no tener contador.
   });
 }

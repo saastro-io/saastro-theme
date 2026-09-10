@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import cloudflare from '@astrojs/cloudflare';
 import icon from 'astro-icon';
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import saastroStudio from '@saastro/studio';
 import { fileURLToPath } from 'node:url';
 
@@ -55,6 +55,30 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
+
+  // El secreto de la costura `gen.render-ratio`, y el único secreto de Worker
+  // que este theme lee.
+  //
+  // Va por `astro:env` y NO por `settings.yaml`: ese fichero se commitea en
+  // cada site descendiente, así que un secreto ahí nace publicado. Y no va por
+  // `locals` porque el `Runtime` de @astrojs/cloudflare 14 solo expone
+  // `cfContext`, sin `env` — el adaptador declara `envGetSecret: 'stable'` y
+  // ésta es la puerta que deja abierta.
+  //
+  // `optional: true` es deliberado y es lo que hace que este cambio sea seguro
+  // para toda la flota: el theme es el ANTEPASADO de cada site cliente, y casi
+  // ninguno va a tener este secreto. Si fuera obligatorio, añadirlo aquí
+  // rompería el arranque de todos los descendientes a la vez. Sin él, el
+  // reenvío no sale (`src/lib/render-ratio.ts`) y la landing se sirve igual.
+  env: {
+    schema: {
+      RENDER_RATIO_SECRET: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+    },
+  },
 
   // Declarative i18n config. `routing: 'manual'` means Astro does NOT inject its
   // own locale routing — our middleware + the `[locale]/` routes own that (EN at
