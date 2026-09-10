@@ -1,7 +1,14 @@
 /**
- * Los secretos del Worker `saastro-theme`. Hoy el Worker no tiene NINGUNO, y
- * eso es el estado correcto: aquí solo queda declarado el token de despliegue,
- * que vive en 1Password y en los secrets de GitHub pero NO en el Worker.
+ * Los secretos del Worker `saastro-theme`. Desde el 10-sep-2026 hay UNO:
+ * `RENDER_RATIO_SECRET`, la firma de la costura `gen.render-ratio`. El otro
+ * declarado, `CF_API_TOKEN`, es el token de despliegue: vive en 1Password y en
+ * los secrets de GitHub, pero NO en el Worker.
+ *
+ * Y el matiz que hace que esto sea seguro para toda la flota: el theme es el
+ * ANTEPASADO git de cada site cliente, y **casi ninguno tendrá ese secreto**.
+ * Está declarado OPCIONAL en `astro.config.mjs`; sin él, el reenvío de los
+ * contadores no sale y la landing se sirve igual. Que falte no es una avería,
+ * es el estado por defecto.
  *
  * ESTA LISTA ES EL CONTRATO. `sync-secrets` no descubre nada: sube exactamente
  * lo que aquí se declara, leyéndolo de `op://Saastro/saastro-theme-prod/<CAMPO>`.
@@ -26,10 +33,11 @@
  * El porqué, el qué era cada uno y qué queda pendiente (revocar la OAuth App de
  * GitHub) están en `docs/ROTACION-SECRETOS.md`. No se reponen sin leer eso.
  *
- * PARA QUÉ SIGUE EXISTIENDO ESTO con cero secretos que subir: `--check` cruza
- * lo declarado con lo que el Worker tiene DE VERDAD, así que el día que alguien
- * haga un `wrangler secret put` a mano, sale como **sin declarar** y hay que
- * venir aquí a decir qué es. Un contrato vacío sigue siendo un contrato.
+ * PARA QUÉ EXISTE ESTO: `--check` cruza lo declarado con lo que el Worker
+ * tiene DE VERDAD, así que el día que alguien haga un `wrangler secret put` a
+ * mano, sale como **sin declarar** y hay que venir aquí a decir qué es. Cuando
+ * esta lista estuvo vacía seguía valiendo por eso mismo: un contrato vacío
+ * sigue siendo un contrato.
  * ══════════════════════════════════════════════════════════════════════════
  */
 
@@ -67,6 +75,14 @@ export interface Secreto {
 }
 
 export const SECRETOS: readonly Secreto[] = [
+  // ── Del Worker ────────────────────────────────────────────────────────────
+  {
+    nombre: 'RENDER_RATIO_SECRET',
+    clase: 'hmac-compartido',
+    que: 'El HMAC de la costura `gen.render-ratio`: firma el reenvío de los tres contadores a `POST {gen}/api/_internal/render-ratio` (SHA-256 hex minúsculas sobre el cuerpo crudo, cabecera `x-gen-signature`). Es PROPIO de esta costura y NO el de ingest —ése es el de productor de leads, compartido con forms-worker y los verticales, y usarlo aquí convertiría cada site descendiente en productor de leads—. Lo lee `src/lib/render-ratio.ts` vía `astro:env/server`, declarado OPCIONAL en `astro.config.mjs`: sin él el reenvío no sale y la landing se sirve igual, que es el estado de casi toda la flota. Su pareja está en gen, también declarado opcional mientras nadie firme; sin él allí, la ruta contesta 503 y no cuenta nada.',
+    compartidoCon: ['saastro-gen (RENDER_RATIO_SECRET)'],
+  },
+
   // ── Solo CI: vive en 1Password y en los secrets de GitHub, NO en el Worker ─
   {
     nombre: 'CF_API_TOKEN',

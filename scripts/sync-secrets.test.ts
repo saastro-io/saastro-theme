@@ -41,33 +41,68 @@ const EN_WORKER: string[] = []
 const escenario = (conValorEn1P: readonly string[], enWorker: readonly string[] = EN_WORKER) =>
   cruzar({ declarados: NOMBRES, conValorEn1P, enWorker, soloCi: SOLO_CI, transitorios: TRANSITORIOS })
 
-describe('el estado de hoy: el Worker no tiene secretos, y eso está bien', () => {
-  it('con el token en 1Password, todo está en su sitio y NO se pide acción', () => {
-    // El caso normal a partir de ahora. Si esto saliera 1, el CI viviría en
+/**
+ * ESTE BLOQUE CAMBIÓ DE SIGNIFICADO el 10-sep-2026, y no se borró.
+ *
+ * Decía «el Worker no tiene secretos, y eso está bien», que era verdad desde
+ * el 6-sep. Ahora hay UNO declarado, `RENDER_RATIO_SECRET`, y el estado
+ * correcto ya no es «cero»: es «uno declarado, y hasta que JC lo cree en
+ * 1Password y lo suba, `--check` lo dice». Reescribir esto en vez de borrarlo
+ * es lo que deja constancia de cuál era el estado anterior y por qué cambió.
+ *
+ * Ojo a lo que NO cambia: el CI no corre `--check` contra 1Password ni
+ * Cloudflare —necesita YubiKey—, sólo estos tests de funciones puras. Así que
+ * declarar un secreto que aún no existe no pone el CI en rojo; el rojo lo ve
+ * quien corre `--check`, que es justo quien puede arreglarlo.
+ */
+describe('el estado de hoy: un secreto declarado y todavía sin poner', () => {
+  it('con los dos en 1Password y el del Worker puesto, NO se pide acción', () => {
+    // El caso al que hay que llegar. Si esto saliera true, el CI viviría en
     // rojo por un Worker que está exactamente como debe estar.
-    const c = escenario(['CF_API_TOKEN'])
-    expect(c.listos).toEqual(['CF_API_TOKEN'])
+    const c = escenario(['CF_API_TOKEN', 'RENDER_RATIO_SECRET'], ['RENDER_RATIO_SECRET'])
+    expect(c.listos).toEqual(['RENDER_RATIO_SECRET', 'CF_API_TOKEN'])
     expect(c).toMatchObject({ faltanEn1P: [], faltanEnWorker: [], sinDeclarar: [], porRetirar: [] })
     expect(pideAccion(c)).toBe(false)
   })
 
-  it('no queda nada que subir al Worker: DEL_WORKER está vacío', () => {
-    // `CF_API_TOKEN` es de CI. Que no haya nada que subir es el estado
-    // correcto, no un fallo de configuración.
-    expect(DEL_WORKER).toEqual([])
-    // Y lo que de verdad decide el camino de subida: aunque el token esté en
-    // 1Password, no entra en el mapa que se le pasa a `wrangler secret bulk`.
-    const campos = [{ label: 'CF_API_TOKEN', value: 'x' }]
-    expect([...valoresDelItem(campos, DEL_WORKER).keys()]).toEqual([])
-    // `haySincronizables` mira el CRUCE, no lo subible, así que sigue siendo
-    // true por el token de CI: no sirve como «hay trabajo que hacer» aquí. Se
-    // fija para que quede claro que no es el guardián de ese camino.
+  it('HOY falta en 1Password, y eso SÍ pide acción — con su nombre', () => {
+    // El estado real mientras JC no lo cree. No se disimula: un secreto
+    // declarado que no existe es exactamente lo que este cruce viene a decir.
+    //
+    // Y sale por `faltanEn1P`, NO por `faltanEnWorker`: `cruzar` solo cuenta
+    // como «falta en el Worker» lo que SÍ tiene valor en 1Password, porque no
+    // se puede subir lo que no se tiene. La acción de hoy es crearlo, no
+    // subirlo, y el cruce lo dice en ese orden.
+    const c = escenario(['CF_API_TOKEN'])
+    expect(c.faltanEn1P).toEqual(['RENDER_RATIO_SECRET'])
+    expect(c.faltanEnWorker).toEqual([])
+    expect(pideAccion(c)).toBe(true)
+  })
+
+  it('y con el valor ya en 1Password, la acción pasa a ser SUBIRLO', () => {
+    // El segundo paso, para que se vea que el cruce distingue los dos y no
+    // dice «falta» de una manera sola.
+    const c = escenario(['CF_API_TOKEN', 'RENDER_RATIO_SECRET'])
+    expect(c.faltanEn1P).toEqual([])
+    expect(c.faltanEnWorker).toEqual(['RENDER_RATIO_SECRET'])
+    expect(pideAccion(c)).toBe(true)
+  })
+
+  it('ahora SÍ queda algo que subir al Worker, y el de CI sigue fuera', () => {
+    expect(DEL_WORKER).toEqual(['RENDER_RATIO_SECRET'])
+    // Lo que de verdad decide el camino de subida: el token de CI no entra en
+    // el mapa que se le pasa a `wrangler secret bulk`, aunque esté en 1Password.
+    const campos = [
+      { label: 'CF_API_TOKEN', value: 'x' },
+      { label: 'RENDER_RATIO_SECRET', value: 'y' },
+    ]
+    expect([...valoresDelItem(campos, DEL_WORKER).keys()]).toEqual(['RENDER_RATIO_SECRET'])
     expect(haySincronizables(escenario(['CF_API_TOKEN']))).toBe(true)
   })
 
-  it('y el token sin valor en 1Password sí pide acción', () => {
+  it('y el token de CI sin valor en 1Password también pide acción', () => {
     const c = escenario([])
-    expect(c.faltanEn1P).toEqual(['CF_API_TOKEN'])
+    expect(c.faltanEn1P).toEqual(['RENDER_RATIO_SECRET', 'CF_API_TOKEN'])
     expect(pideAccion(c)).toBe(true)
   })
 })
@@ -90,10 +125,20 @@ describe('lo que vigila ahora: que no reaparezca nada sin declarar', () => {
     expect(c.sinDeclarar).toEqual(['ENCRYPTION_KEY'])
   })
 
-  it('pero enseñarlo NO pone el check en rojo', () => {
+  it('pero enseñarlo NO pone el check en rojo POR SÍ SOLO', () => {
     // Si contara, cualquier experimento dejaría el CI en rojo hasta que alguien
     // aprendiera a ignorarlo — y un rojo que se ignora ya no es un control.
-    expect(pideAccion(escenario(['CF_API_TOKEN'], ['EXPERIMENTO']))).toBe(false)
+    //
+    // Se pasa el escenario COMPLETO (los dos declarados en su sitio) para que
+    // lo que se mide sea el efecto de lo sin declarar y nada más. Con el
+    // escenario a medias, este test pasaría por el motivo equivocado: rojo por
+    // el secreto que falta, no por el experimento.
+    const c = escenario(
+      ['CF_API_TOKEN', 'RENDER_RATIO_SECRET'],
+      ['RENDER_RATIO_SECRET', 'EXPERIMENTO'],
+    )
+    expect(c.sinDeclarar).toEqual(['EXPERIMENTO'])
+    expect(pideAccion(c)).toBe(false)
   })
 })
 
@@ -102,7 +147,7 @@ describe('el cruce sigue diciendo la verdad en los casos que importan', () => {
     // `etiquetasConValor` solo devuelve los campos CON valor: un campo creado y
     // sin rellenar es exactamente el caso que este script viene a cazar, y
     // contarlo como presente sería firmar la casilla.
-    expect(escenario([]).faltanEn1P).toEqual(['CF_API_TOKEN'])
+    expect(escenario([]).faltanEn1P).toEqual(['RENDER_RATIO_SECRET', 'CF_API_TOKEN'])
   })
 
   it('un declarado que NO es de CI y falta en el Worker sí sale como hueco', () => {
@@ -136,15 +181,17 @@ describe('el cruce sigue diciendo la verdad en los casos que importan', () => {
 })
 
 describe('el manifiesto es el contrato, así que se comprueba', () => {
-  it('no se declara NADA que deba estar en el Worker: el Worker está a cero', () => {
-    // Medido el 6-sep-2026: `wrangler secret list` → []. Si alguien vuelve a
-    // declarar un secreto de Worker sin ponerlo, esto se pone rojo y le obliga
-    // a mirar si de verdad hace falta.
-    expect(PERMANENTES.filter((n) => !SOLO_CI.includes(n))).toEqual(EN_WORKER)
+  it('lo declarado para el Worker y lo que el Worker TIENE no coinciden todavía', () => {
+    // Y se afirma la diferencia, no se disimula: `RENDER_RATIO_SECRET` está
+    // declarado desde el 10-sep y el Worker sigue a cero (medido el 6-sep).
+    // El día que JC lo suba, esta lista se actualiza y las dos vuelven a
+    // coincidir; mientras, el hueco está escrito con su nombre.
+    expect(PERMANENTES.filter((n) => !SOLO_CI.includes(n))).toEqual(['RENDER_RATIO_SECRET'])
+    expect(EN_WORKER).toEqual([])
   })
 
   it('CF_API_TOKEN está declarado pero NO se sube al Worker', () => {
-    expect(NOMBRES).toEqual(['CF_API_TOKEN'])
+    expect(NOMBRES).toEqual(['RENDER_RATIO_SECRET', 'CF_API_TOKEN'])
     expect(DEL_WORKER).not.toContain('CF_API_TOKEN')
   })
 
