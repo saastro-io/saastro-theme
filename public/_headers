@@ -1,5 +1,8 @@
 # ⚠️ ESTE FICHERO CUBRE LA MITAD DEL SITE, NO EL SITE ENTERO.
 #
+# La otra mitad es `src/lib/security-headers.ts`, aplicada desde el middleware.
+# Las dos listas se mantienen A LA PAR: cabecera que se toque aquí, se toca allí.
+#
 # Con Workers Static Assets, la petición que casa con un fichero del bundle la
 # sirve la capa de assets SIN INVOCAR AL WORKER — y ahí manda `_headers`. La que
 # NO casa la resuelve el Worker, y a esa `_headers` no la toca. Cloudflare lo
@@ -40,6 +43,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   X-XSS-Protection: 1; mode=block
+  Content-Security-Policy: frame-ancestors 'self'
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
