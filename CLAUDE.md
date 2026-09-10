@@ -168,11 +168,19 @@ propias colecciones, en `knowledge/src.md`.
 
 ## SEO + Studio: las trampas que hereda cada site
 
-Ocho trampas de plantilla que **todo site derivado hereda si no se arreglan
+Nueve trampas de plantilla que **todo site derivado hereda si no se arreglan
 aquí** — `SITE_URL` y el canonical, los dos JSON-LD, los contadores que sirven
 `0`, el `robots.txt` generado, el import que revienta en workerd, las secciones
-de colección y los favicons. Están en `knowledge/src.md`, que es el contrato:
-son lo primero que hay que leer al montar un site nuevo.
+de colección, los favicons y **lo que Static Assets NO manda al Worker**. Están
+en `knowledge/src.md`, que es el contrato: son lo primero que hay que leer al
+montar un site nuevo.
+
+De la última conviene saber el titular aquí, porque se descubre tarde: con
+Workers Static Assets, **una página prerenderizada no invoca al Worker**, así
+que ni le llegan las cabeceras que ponga el middleware ni corre en ella nada de
+lo que el middleware haga —una redirección apex → www incluida—. `public/_headers`
+viste solo lo que sirven los assets, y como esas cabeceras SÍ aparecen en la
+página, invita a concluir que el middleware corrió allí. No corrió.
 ## Dónde buscar
 
 | carpeta | sección | ficha |
