@@ -231,6 +231,11 @@ export function record(event: MeasureEvent, config: SinkConfig): Promise<unknown
     type: `render_ratio_${event.kind}`,
     host: event.host,
     path: event.path,
+    // AUSENTE cuando no hay campaña, no `{}`. Confirmado con gen el
+    // 10-sep-2026, antes de que nadie estrenara la costura: su esquema lo tiene
+    // opcional y el contador hace `utm?.campaign ?? ''`, así que «sin campaña»
+    // cae en la cadena vacía, que es su propia fila. `utm: {}` daría el mismo
+    // resultado y sería una clave de más en cada ping. No lo «arregles».
     utm: event.campaign ? { campaign: event.campaign } : undefined,
     bot: event.bot,
     ts: event.ts,
