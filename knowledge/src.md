@@ -192,6 +192,38 @@ Son de plantilla: **todo descendiente las hereda si no se arreglan aquí**.
   (same class of "born with the template's identity" trap as `SITE_URL`). sharp is resolved
   from the pnpm store, so no extra dep.
 
+## Cómo medir un site sin engañarse
+
+Casi todo lo de la sección de arriba se descubrió midiendo, y **las dos veces que
+estuvo a punto de salir mal fue por la medición, no por el site**. Van aquí porque
+se repiten y porque las dos producen el mismo efecto: una sonda que devuelve algo
+tranquilizador o alarmante, y que no dice lo que parece decir.
+
+- **Un cero sacado con el identificador equivocado NO mide una ausencia.** Caso real:
+  el `CLAUDE.md` de un descendiente afirmó durante dos semanas que su deploy era
+  manual, con dato al lado — «el Worker tiene 0 builds, Workers Builds nunca se
+  conectó». La consulta se había hecho por el **nombre** del Worker en vez de por su
+  **id/tag**; con el nombre, la API de Workers Builds devuelve `0 builds` **sin
+  error**. Había 61 builds y cada merge desplegaba solo. Antes de escribir «no hay
+  X» a partir de una lista vacía, comprueba que preguntaste por el identificador que
+  esa API espera — y si el error habría sido silencioso, comprueba la sonda con un
+  caso que SÍ debería devolver algo.
+
+- **Mide dos veces antes de cantar una regresión.** Dos sondas del mismo día
+  devolvieron lo contrario de la realidad: una cogió el contenedor del campo en vez
+  del `<div>` del propio contenido y dio «fondo transparente, el panel está roto»
+  (estaba intacto); otra buscó un enlace que carga un chunk perezoso y dio `null`
+  antes de que existiera. Las dos habrían salido como «regresión en producción».
+  Cuando el resultado sea alarmante o demasiado cómodo, apunta al elemento exacto,
+  espera a que el DOM se asiente y vuelve a mirar antes de escribirlo a nadie.
+
+- **Y el control que las caza a las dos**: junto a la medición que te interesa, mete
+  una que TENGA que salir distinta. Al probar si `_redirects` acepta un dominio en el
+  origen, la regla por host no disparaba — pero eso solo significó algo cuando una
+  regla por RUTA en el mismo fichero sí devolvió `301`: ahí quedó demostrado que el
+  fichero se leía y que la forma con host no está soportada. Sin el control, «no
+  funciona» y «no se lee» son indistinguibles.
+
 ## Detalle de las landings
 
 - **SSR y nunca prerenderizadas**: una ruta de colección prerenderizada pone el
