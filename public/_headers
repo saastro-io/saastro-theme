@@ -37,6 +37,13 @@
 # 301 y una por HOST devuelve 200. Una redirección de dominio se resuelve con una
 # Redirect Rule de zona, que corre antes que el Worker y antes que los assets.
 
+# Son CINCO y antes eran seis: falta `X-XSS-Protection` a propósito, no por
+# olvido. Está DEPRECADA —los navegadores actuales la ignoran— y su
+# `1; mode=block` llegó a abrir fugas en los que sí la implementaban. Estaba
+# solo en esta lista y no en `src/lib/security-headers.ts`, así que igualarlas
+# «hacia arriba» habría sido propagar algo muerto a las respuestas del Worker.
+# No la devuelvas: `scripts/cabeceras-check.mjs` se pondría rojo, y con razón.
+
 /*
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff

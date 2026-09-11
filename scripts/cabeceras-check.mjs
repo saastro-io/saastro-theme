@@ -61,9 +61,9 @@ const worker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))
 // Control positivo: si un lector devuelve vacío, el roto es el lector, no el
 // site — y un control que no puede fallar no es un control. Un cero sacado con
 // el patrón equivocado no mide una ausencia.
-for (const [nombre, set, ruta] of [['assets', assets, RUTA_HEADERS], ['worker', worker, RUTA_TS]]) {
+for (const [lado, set, ruta] of [['assets', assets, RUTA_HEADERS], ['Worker', worker, RUTA_TS]]) {
   if (set.size === 0) {
-    console.error(rojo(`✖ cabeceras-check — no he sabido leer ninguna cabecera de ${ruta}.`))
+    console.error(rojo(`✖ cabeceras-check — no he sabido leer ninguna cabecera de la lista de ${lado} (${ruta}).`))
     console.error('  El fallo es del lector de este script, no del site. Arréglalo antes de creerte el resultado.')
     process.exit(2)
   }
