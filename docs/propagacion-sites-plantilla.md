@@ -7,9 +7,11 @@ comando y su salida; lo que no se ejecutó está marcado **No comprobado**.
 ## El problema, en una orden
 
 De los once sites, solo tres (`esosique`, `hospitalitop`, `pinteach-web`)
-comparten la raíz git del theme. Los otros ocho nacieron de «New site from
-template» del Hub, que aplasta la historia. Para ellos la receta que promete
-la skill `site-saastro` es **inejecutable**:
+comparten la raíz git del theme. Los otros ocho tienen raíz propia. El
+mecanismo que la aplastó —«New site from template» del Hub, según midió
+`jefe-sites`— aquí no se ha comprobado; lo que sí se mide es la consecuencia,
+y basta: para esos ocho la receta que promete la skill `site-saastro` es
+**inejecutable**:
 
 ```console
 $ git merge FETCH_HEAD
@@ -37,8 +39,10 @@ salida vacía.
 ## Lo que sí funciona: `fetch` de la URL + propagación por ruta
 
 `git fetch` **no necesita historia común**, y ni `cherry-pick` ni
-`checkout <ref> -- <ruta>` necesitan merge-base: ambos son aplicación de
-parche a tres bandas, no un merge de ramas.
+`checkout <ref> -- <ruta>` necesitan merge-base. Pero no hacen lo mismo:
+`cherry-pick` aplica un parche a tres bandas, `checkout <ref> -- <ruta>`
+**copia el blob encima**. De ahí que la segunda no dé conflictos nunca — y de
+ahí también que pueda pisar en silencio lo que el site había adaptado.
 
 ```console
 $ git fetch git@github.com:saastro-io/saastro-theme.git main
@@ -49,10 +53,12 @@ $ git rev-parse FETCH_HEAD
 
 A partir de ahí hay dos formas, y **no son intercambiables**.
 
-### (b1) `git checkout FETCH_HEAD -- <ruta>` — para ficheros de INFRA
+### (b1) `git checkout FETCH_HEAD -- <ruta>` — solo para ficheros SIN adaptar
 
-Ficheros que deben ser idénticos en todos los sites: `scripts/*.mjs`,
-`src/lib/` genérico. Trae el estado de HEAD, no el de un commit suelto.
+Trae el estado de HEAD, no el de un commit suelto. Vale **únicamente** para
+rutas que el site no ha tocado y que no estén hasheadas en su manifiesto.
+Las dos condiciones se comprueban antes, y están más abajo; el caso feliz
+primero.
 
 ```console
 $ time git checkout FETCH_HEAD -- scripts/cabeceras-check.mjs
@@ -73,7 +79,45 @@ $ node scripts/cabeceras-check.mjs
 ```
 
 **Coste: 0.011 s, cero conflictos, cero resolución manual.** Es la vía por
-defecto.
+defecto **cuando se cumplen las dos condiciones de abajo**.
+
+#### El límite de (b1): probé el caso feliz, y no todos lo son
+
+`cabeceras-check.mjs` era fichero nuevo, sin adaptar y fuera del manifiesto.
+No todos los `scripts/*.mjs` lo son. El manifiesto del **site** (no el del
+theme: el que se pone rojo es el suyo) hashea catorce rutas de arquitectura:
+
+```console
+$ python3 -c "import json;print(list(json.load(open('studio-contract.json'))['architectureHashes']))"
+['astro.config.mjs', 'saastrocms.config.ts', 'scripts/studio-check.mjs',
+ 'scripts/studio-contract-check.mjs', 'src/content.config.ts', 'src/env.d.ts',
+ 'src/i18n/…', 'src/integrations/strip-studio-meta-middleware.ts',
+ 'src/lib/settings.ts', 'src/middleware.ts']
+```
+
+Y cuatro de ellas —`scripts/studio-check.mjs`,
+`scripts/studio-contract-check.mjs`, `src/lib/settings.ts`,
+`src/middleware.ts`— **difieren** entre theme y site. Aplicarles (b1) rompe
+el site sin avisar en el momento:
+
+```console
+$ git checkout FETCH_HEAD -- scripts/studio-check.mjs
+$ python3 -c "…sha256 del fichero vs el del manifiesto…"
+manifiesto: sha256:274fbd06aebed988632446aa1d02f7f529d249e41b8d217e94ee0b8986dac880
+tras b1   : sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38
+ROJO: el contract-check del site fallaría
+```
+
+(Revertido; el clon quedó limpio.) Antes de cada (b1), dos comprobaciones:
+
+```bash
+diff -q <ruta> <(git show FETCH_HEAD:<ruta>)    # si difiere, el site lo adaptó → (b2)
+python3 -c "import json,sys;print('<ruta>' in json.load(open('studio-contract.json'))['architectureHashes'])"
+```
+
+Si la ruta está hasheada y aun así hay que propagarla, el cambio lleva detrás
+`pnpm studio:contract:update` y el manifiesto commiteado en el mismo PR. Nunca
+un (b1) suelto.
 
 ### (b2) `git cherry-pick -x <sha>` — para ficheros que el site ADAPTÓ
 
@@ -132,8 +176,9 @@ ff3a5da Las dos listas de cabeceras …
 ```
 
 `888c21f` lo refinó después. Cherry-pick de un commit suelto propaga una
-versión **caducada**. O se propaga el rango entero, o —para infra— se usa
-(b1), que por construcción trae HEAD.
+versión **caducada**. O se propaga el rango entero (`git log --oneline --
+<ruta>` dice cuál es), o —si la ruta cumple las dos condiciones de (b1)— se
+usa (b1), que por construcción trae HEAD.
 
 ## (a) Empaquetar el theme en npm: medido y desaconsejado
 
@@ -180,11 +225,17 @@ git rev-list --max-parents=0 HEAD     # 6a69f05… ⇒ descendiente: usa git mer
 # 2. de plantilla: traer el theme sin historia común
 git fetch git@github.com:saastro-io/saastro-theme.git main
 
-# 3a. INFRA (scripts/, src/lib genérico): estado de HEAD, sin conflictos
+# 3. ¿el site adaptó esa ruta? ¿está hasheada en SU studio-contract.json?
+diff -q <ruta> <(git show FETCH_HEAD:<ruta>)
+python3 -c "import json;print('<ruta>' in json.load(open('studio-contract.json'))['architectureHashes'])"
+
+# 3a. NO adaptada y NO hasheada → copia del blob, sin conflictos
 git checkout FETCH_HEAD -- scripts/cabeceras-check.mjs
 
-# 3b. ADAPTADO (package.json, secciones): el commit, con trazabilidad
+# 3b. adaptada (package.json, secciones) → el commit, con trazabilidad
 git cherry-pick -x <sha>              # espera conflictos de contexto, no del cambio
+
+# 3c. hasheada → lo que toque + pnpm studio:contract:update, manifiesto en el mismo PR
 
 # 4. medir, siempre
 pnpm studio:check
@@ -207,7 +258,7 @@ La skill vive en `saastro-claude`, que no es de este dominio: aquí solo se
 propone el texto. Dos puntos mienten hoy, no uno.
 
 ```diff
-@@ -9,4 +9,10 @@
+@@ -9,5 +9,11 @@
 -Todo site cliente es un **descendiente git de `saastro-theme`** con historia
 -completa y consumidor de `@saastro/forms` desde npm. Su contenido se edita en
 -el **hub**; sus leads viven en **gen**; su código es de `jefe-sites`; su
@@ -224,7 +275,7 @@ propone el texto. Dos puntos mienten hoy, no uno.
 +al que sirve. Fuente: `ecosistema/72-CLIENTES.md`, `~/ENLOLAB/SITES/CLAUDE.md`,
 +el `CLAUDE.md` de cada site.
 
-@@ -31,11 +31,26 @@
+@@ -31,6 +31,31 @@
  ## Traer las mejoras del theme
 
 +**Primero: mira la raíz.** Es lo que decide la vía, y no se supone.

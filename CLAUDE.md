@@ -11,9 +11,10 @@ El scaffold clona este repo con su historia y su remote `upstream`.
 
 La plantilla ya trae lo que buscan los detectores del Hub, así que **Setup
 valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` vale de
-referencia de contenido, pero **no es un descendiente git**: nació de «New site
-from template» y su raíz es `5433acd`, no la del theme (`6a69f05`). Descendiente
-de verdad y medido: `enlolab/esosique` (merge-base `8a18c30`).
+referencia de contenido, pero **no es un descendiente git**: su raíz es
+`5433acd`, no la del theme (`6a69f05`), así que no comparte historia y
+`git merge upstream/main` no le vale. Descendiente de verdad y medido:
+`enlolab/esosique` (merge-base `8a18c30`).
 
 De los once sites solo tres descienden del theme. Para los otros ocho
 `git merge upstream/main` es inejecutable, y cómo se les propaga una mejora
