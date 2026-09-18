@@ -36,3 +36,5 @@ src/pages/**/CLAUDE.md
 # — gitignorearlas enteras dejaba el contrato viviendo en una sola máquina
 # (doctrina de la office, aprendido en el piloto de ui del 27-ago).
 knowledge/*.snap.md
+# worktrees de Claude Code (docs/AGENTES.md §8 de saastro-office)
+.claude/worktrees/
