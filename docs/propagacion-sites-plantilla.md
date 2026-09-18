@@ -183,30 +183,52 @@ usa (b1), que por construcción trae HEAD.
 ## (a) Empaquetar el theme en npm: medido y desaconsejado
 
 No se publicó nada (publicar es de JC). Lo que se midió es **cuánto
-compartirían de verdad** theme y site, que es lo que decide si hay paquete:
+compartirían de verdad** theme y site, que es lo que decide si hay paquete.
+
+**Sobre el método**, porque la primera cuenta de este doc estaba mal y el
+revisor la cazó: `diff -rq` **no desciende a un directorio que falta en un
+lado** — lo cuenta como una línea aunque lleve siete ficheros dentro. Sus
+cifras subestiman. El censo de abajo recorre los dos árboles con `os.walk`
+excluyendo `node_modules`, `.git`, `dist`, `.astro` y `.claude`, y compara
+byte a byte con `filecmp.cmp(shallow=False)`:
+
+El script va commiteado en `docs/census-theme-site.py`, para que el número sea
+reproducible y no haya que creerme:
 
 ```console
-$ diff -rq --exclude=node_modules --exclude=.git --exclude=dist --exclude=.astro <theme> <site>
-difieren:      73 ficheros
-solo en theme: 65
-solo en site:  60
+$ python3 docs/census-theme-site.py . /tmp/office-9w3rpy/dorjoiers
+ficheros theme : 195
+ficheros site  : 188
+en ambos       : 95
+  identicos    : 23
+  difieren     : 72
+solo en theme  : 100
+solo en site   : 93
 ```
 
-De los 177 ficheros del theme, **23 son byte a byte idénticos** al site
-(`cmp -s` uno a uno). Y de esos 23, cinco son marca (`logo-light.svg`,
-favicons) que *deberían* diferir y no difieren, y dos son `.envrc`/`.npmrc`.
-El núcleo genuinamente compartible son unos **quince ficheros**:
+**23 de 195.** Ese número no se movió al corregir el método, que es lo que
+decide el veredicto. Y de esos 23:
+
+- cinco son **marca** (`logo-light.svg`, `logo-dark.svg`, los tres favicons)
+  que *deberían* diferir: el site está en producción con los assets de la
+  plantilla. Eso es un hallazgo del site, no superficie compartible.
+- dos son `.envrc` y `.npmrc`, dos más son `.vscode/`.
+- uno, `scripts/cabeceras-check.mjs`, **sale idéntico porque lo propagué yo**
+  en la vía (b1) unas líneas más arriba. Antes del encargo no estaba.
+
+Queda un núcleo genuinamente compartible de **trece ficheros**:
 `src/lib/{utils,cookies,reading-time,debug-shim}.ts`,
-`src/widgets/ContactSheet/*`, cuatro `.astro` de terceros
-(`OgImage`, `AnalyticsNoscript`, `ToggleTheme`, `GenTracking`),
-`src/components/ui/{utils.ts,textarea.tsx}` y `scripts/cabeceras-check.mjs`.
+`src/widgets/ContactSheet/{ContactSheetButton.tsx,index.ts,store.ts}`,
+cuatro `.astro` de terceros (`OgImage`, `AnalyticsNoscript`, `ToggleTheme`,
+`GenTracking`) y `src/components/ui/{utils.ts,textarea.tsx}`.
 
 El theme es `"private": true` y `"name": "saastro-theme"`: es una aplicación
-Astro, no una librería. Un paquete npm exigiría extraer esos quince ficheros a
+Astro, no una librería. Un paquete npm exigiría extraer esos trece ficheros a
 un paquete nuevo, publicarlo con la YubiKey de JC, y pagar en cada uno de los
 once sites el peaje del 0.x (el caret no cruza el minor: bump explícito +
-redeploy). A cambio **no cubriría** dónde vive la divergencia real: las 23
-secciones de `src/components`, `src/pages`, `src/i18n` y `studio-contract.json`.
+redeploy). A cambio **no cubriría** donde vive la divergencia real: los 72
+ficheros que difieren, casi todos secciones de `src/components`, `src/pages`,
+`src/i18n` y el propio `studio-contract.json`.
 
 Las primitivas —el otro candidato obvio— **ya tienen su canal**: el registry de
 `saastro-ui` con `ui:check`/`ui:sync`. dorjoiers ni siquiera trae esos dos
@@ -214,7 +236,7 @@ scripts.
 
 **Veredicto: no compensa.** La comparación no está reñida: (b1) cuesta 0.011 s
 y cero peajes; (a) cuesta una publicación, un breaking change potencial y once
-bumps, para quince ficheros.
+bumps, para trece ficheros.
 
 ## Procedimiento recomendado para los ocho de plantilla
 
@@ -251,14 +273,37 @@ pnpm studio:check
 - Si el plugin `autoWrap` de `@saastro/studio` sabría inyectar marcadores sobre
   `.astro` servidos desde `node_modules`. Es la pregunta que decidiría una vía
   (a) ampliada a secciones, y no se ha medido.
+- El censo de arriba se tomó sobre el clon **después** de las pruebas, así que
+  lleva dentro el `scripts/cabeceras-check.mjs` que propagué yo. Está descontado
+  a mano en el recuento de los trece, no en las cifras brutas del censo.
+  El clon de `/tmp` no es un estado limpio de dorjoiers: es dorjoiers más este
+  encargo.
 
 ## Propuesta para `site-saastro/SKILL.md` (no aplicada)
 
 La skill vive en `saastro-claude`, que no es de este dominio: aquí solo se
-propone el texto. Dos puntos mienten hoy, no uno.
+propone el texto. **Este parche no está contado a mano**: se generó aplicando
+los cambios a una copia y sacando `diff -u`, y se verificó contra el fichero
+real (la primera versión de este doc llevaba las cabeceras `@@` mal, y por eso
+no habría aplicado):
+
+```console
+$ cd ~/SAASTRO/saastro-claude && git apply --check -p1 proposed.patch
+exit=0
+```
+
+Tres puntos, no uno: la cabecera afirma que todos los sites son descendientes;
+«Anatomía» enumeraba **ocho** sites cuando son once (faltaban `dorjoiers`,
+`hospitalitop` y `zamesegur`, precisamente los que el párrafo nuevo nombra); y
+la orden de la línea 34 no existe en 8 de 11.
 
 ```diff
-@@ -9,5 +9,11 @@
+--- a/plugins/saastro-ecosystem/skills/site-saastro/SKILL.md
++++ b/plugins/saastro-ecosystem/skills/site-saastro/SKILL.md
+@@ -6,11 +6,16 @@
+ 
+ # Un site SAASTRO
+ 
 -Todo site cliente es un **descendiente git de `saastro-theme`** con historia
 -completa y consumidor de `@saastro/forms` desde npm. Su contenido se edita en
 -el **hub**; sus leads viven en **gen**; su código es de `jefe-sites`; su
@@ -268,49 +313,66 @@ propone el texto. Dos puntos mienten hoy, no uno.
 +propagan igual**. Tres son descendientes git con historia completa
 +(`esosique`, `hospitalitop`, `pinteach-web`); los otros ocho
 +(`antenna-consulting`, `dorjoiers`, `enlolab-site`, `jcenlo-site`, `nopagues`,
-+`saastro-site`, `yogui-bebes`, `zamesegur`) nacieron de «New site from
-+template» del Hub, que aplasta la historia: no tienen raíz común. Todos
-+consumen `@saastro/forms` desde npm. Su contenido se edita en el **hub**; sus
-+leads viven en **gen**; su código es de `jefe-sites`; su negocio, del dominio
-+al que sirve. Fuente: `ecosistema/72-CLIENTES.md`, `~/ENLOLAB/SITES/CLAUDE.md`,
-+el `CLAUDE.md` de cada site.
-
-@@ -31,6 +31,31 @@
++`saastro-site`, `yogui-bebes`, `zamesegur`) tienen raíz git propia y ninguna
++historia en común con el theme. Todos consumen `@saastro/forms` desde npm. Su
++contenido se edita en el **hub**; sus leads viven en **gen**; su código es de
++`jefe-sites`; su negocio, del dominio al que sirve. Fuente:
++`ecosistema/72-CLIENTES.md`, `~/ENLOLAB/SITES/CLAUDE.md`, el `CLAUDE.md` de
++cada site.
+ 
+ ## Anatomía
+ 
+@@ -24,17 +29,46 @@
+ 
+ Los sites propios (enlolab-site, jcenlo-site, saastro-site) cuelgan de
+ `~/ENLOLAB/Jcenlo/`; los sueltos (antenna-consulting, esosique, nopagues,
+-yogui-bebes) de `~/ENLOLAB/`; `pinteach-web` de `~/SAASTRO/`. La cabina
++yogui-bebes) de `~/ENLOLAB/`; los de cliente con cabina propia (dorjoiers,
++hospitalitop, zamesegur) de `~/ENLOLAB/<Cliente>/`; `pinteach-web` de
++`~/SAASTRO/`. Son once. La cabina
+ `~/ENLOLAB/SITES/` los agrupa por symlink para VS Code: **no es un repo git**
+ y los encargados no arrancan ahí.
+ 
  ## Traer las mejoras del theme
-
-+**Primero: mira la raíz.** Es lo que decide la vía, y no se supone.
+ 
++**Primero, mira la raíz.** Es lo que decide la vía, y no se supone:
 +
-+```
+ ```
 +git rev-list --max-parents=0 HEAD
 +# 6a69f051d653f3bb18b31d49f5005abba9d21607 → descendiente
-+# cualquier otra                           → nació de plantilla
++# cualquier otra                           → raíz propia
 +```
 +
 +Descendiente (3 de 11):
 +
- ```
++```
  git fetch upstream && git merge upstream/main
  pnpm studio:check          # valida el contrato del Studio después de cada merge
  ```
-+
-+De plantilla (8 de 11) — ahí `git merge` da «refusing to merge unrelated
+ 
++Raíz propia (8 de 11). Ahí `git merge` responde «refusing to merge unrelated
 +histories» y la orden de arriba **no existe**:
 +
 +```
 +git fetch git@github.com:saastro-io/saastro-theme.git main
-+git checkout FETCH_HEAD -- scripts/<fichero>   # infra: trae HEAD, sin conflictos
-+git cherry-pick -x <sha>                       # adaptado: con trazabilidad y conflictos de contexto
++# la ruta NO adaptada por el site y NO hasheada en su studio-contract.json:
++git checkout FETCH_HEAD -- scripts/<fichero>
++# la ruta que el site adaptó: el commit, con trazabilidad y conflictos de contexto
++git cherry-pick -x <sha>
 +pnpm studio:check
 +```
 +
-+El procedimiento completo, con coste medido y por qué npm no compensa, en
-+`saastro-theme/docs/propagacion-sites-plantilla.md`.
-
++Comprobar esas dos condiciones **antes** de cada `checkout ... -- <ruta>`: copia
++el blob encima, no fusiona, y por eso no da conflictos nunca. El procedimiento
++completo, con el coste medido de cada vía y por qué empaquetar el theme en npm
++no compensa, en `saastro-theme/docs/propagacion-sites-plantilla.md`.
++
  El remoto `upstream` apunta a `saastro-io/saastro-theme`. Un fallo que
  tienen todos los sites se arregla en el theme (encargo a
+ `code:saastro-theme`, dominio saastro), nunca con siete parches. Un hallazgo
 ```
 
-El reparto 3/8 lo midió `jefe-sites`; aquí se verificaron dos casos
-(`dorjoiers` de plantilla, `esosique` descendiente). Antes de aplicar el
-diff conviene que quien lo aplique confirme los nueve restantes con el
-comando de la raíz, que cuesta un clon sin blobs por site.
+El reparto 3/8 —y con él la lista de ocho nombres del parche— lo midió
+`jefe-sites`; aquí se verificaron dos casos (`dorjoiers` raíz propia,
+`esosique` descendiente). Quien aplique el parche debería confirmar los nueve
+restantes con el comando de la raíz: cuesta un clon sin blobs por site.
