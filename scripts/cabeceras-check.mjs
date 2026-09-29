@@ -13,47 +13,15 @@
  * `X-XSS-Protection` y la lista del Worker no, así que el 404 servía 5 de 6.
  * Se detectó por casualidad, midiendo otra cosa.
  *
- * Este control existe para que la próxima divergencia no dependa de la
- * casualidad. Compara NOMBRES, no valores: que las dos listas cubran las
- * mismas cabeceras.
- *
- * `Strict-Transport-Security` se ignora a propósito en las dos: lo manda la
- * configuración de zona con `includeSubDomains` y declararlo aquí lo pisaría
- * a la baja (ver el comentario de cada fichero).
+ * Compara NOMBRES y VALORES, sobre el fuente. Que el middleware de verdad
+ * aplique la lista a las respuestas del Worker no se ve aquí: lo mide
+ * `cabeceras-worker-check.mjs` sobre el build, al final de `studio:check`.
  */
 import fs from 'node:fs'
-
-const RUTA_HEADERS = 'public/_headers'
-const RUTA_TS = 'src/lib/security-headers.ts'
-const IGNORADAS = new Set(['strict-transport-security'])
+import { RUTA_HEADERS, RUTA_TS, comparables, diferencias, leerHeaders, leerTs } from './lib/cabeceras.mjs'
 
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`
 const verde = (s) => `\x1b[32m${s}\x1b[0m`
-
-/** Nombres del bloque `/*` de `_headers` (el global; los de caché van aparte). */
-function leerHeaders(texto) {
-  const nombres = new Set()
-  let dentro = false
-  for (const linea of texto.split('\n')) {
-    if (/^\S/.test(linea)) {
-      dentro = linea.trim() === '/*'
-      continue
-    }
-    if (!dentro) continue
-    const m = linea.match(/^\s+([A-Za-z][A-Za-z0-9-]*):/)
-    if (m) nombres.add(m[1].toLowerCase())
-  }
-  return nombres
-}
-
-/** Claves de `SECURITY_HEADERS` en el módulo del middleware. */
-function leerTs(texto) {
-  const bloque = texto.match(/SECURITY_HEADERS[^=]*=\s*\{([\s\S]*?)\n\}/)
-  if (!bloque) return new Set()
-  const nombres = new Set()
-  for (const m of bloque[1].matchAll(/^\s*'([^']+)'\s*:/gm)) nombres.add(m[1].toLowerCase())
-  return nombres
-}
 
 const assets = leerHeaders(fs.readFileSync(RUTA_HEADERS, 'utf8'))
 const worker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))
@@ -61,20 +29,18 @@ const worker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))
 // Control positivo: si un lector devuelve vacío, el roto es el lector, no el
 // site — y un control que no puede fallar no es un control. Un cero sacado con
 // el patrón equivocado no mide una ausencia.
-for (const [lado, set, ruta] of [['assets', assets, RUTA_HEADERS], ['Worker', worker, RUTA_TS]]) {
-  if (set.size === 0) {
+for (const [lado, mapa, ruta] of [['assets', assets, RUTA_HEADERS], ['Worker', worker, RUTA_TS]]) {
+  if (mapa.size === 0) {
     console.error(rojo(`✖ cabeceras-check — no he sabido leer ninguna cabecera de la lista de ${lado} (${ruta}).`))
     console.error('  El fallo es del lector de este script, no del site. Arréglalo antes de creerte el resultado.')
     process.exit(2)
   }
 }
 
-const comparables = (s) => [...s].filter((n) => !IGNORADAS.has(n)).sort()
-const soloAssets = comparables(assets).filter((n) => !worker.has(n))
-const soloWorker = comparables(worker).filter((n) => !assets.has(n))
+const { soloAssets, soloWorker, valorDistinto } = diferencias(assets, worker)
 
-if (soloAssets.length === 0 && soloWorker.length === 0) {
-  console.log(verde(`✓ cabeceras-check — las dos listas cuadran (${comparables(assets).length} cabeceras).`))
+if (soloAssets.length === 0 && soloWorker.length === 0 && valorDistinto.length === 0) {
+  console.log(verde(`✓ cabeceras-check — las dos listas cuadran (${comparables(assets).length} cabeceras, nombre y valor).`))
   process.exit(0)
 }
 
@@ -87,6 +53,11 @@ if (soloWorker.length) {
   console.error(`  solo en ${RUTA_TS}: ${soloWorker.join(', ')}`)
   console.error('    → las respuestas del Worker las llevan y las páginas prerenderizadas no.')
 }
-console.error('  fix: añade la que falte a la otra lista, o quítala de las dos. Y compruébalo')
+for (const d of valorDistinto) {
+  console.error(`  ${d.nombre} con valor distinto:`)
+  console.error(`    ${RUTA_HEADERS}: ${d.assets}`)
+  console.error(`    ${RUTA_TS}: ${d.worker}`)
+}
+console.error('  fix: iguala las dos listas (o quita la cabecera de las dos). Y compruébalo')
 console.error('       ruta por ruta: `curl -sI` sobre `/`, una ruta SSR y un 404.')
 process.exit(1)
