@@ -10,15 +10,36 @@ Repo aparte, fuera del workspace de 3 repos de `~/SAASTRO`.
 El scaffold clona este repo con su historia y su remote `upstream`.
 
 La plantilla ya trae lo que buscan los detectores del Hub, así que **Setup
-valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` vale de
-referencia de contenido, pero **no es un descendiente git**: su raíz es
-`5433acd`, no la del theme (`6a69f05`), así que no comparte historia y
-`git merge upstream/main` no le vale. Descendiente de verdad y medido:
-`enlolab/esosique` (merge-base `8a18c30`).
+valida en verde sin trabajo de instrumentación**. `enlolab/dorjoiers` está en
+producción, pero **no es un descendiente git**: nació con «Use this template»,
+su raíz es `5433acd` y no la del theme (`6a69f05`), así que no comparte
+historia y `git merge upstream/main` no le vale; sirve, como mucho, de ejemplo
+de contenido. Descendientes de verdad, medidos el 30-sep con `git merge-base`:
+`enlolab/esosique` (`8a18c30`) y `enlolab/hospitalitop` (`e496660`).
 
 De los once sites solo tres descienden del theme. Para los otros ocho
 `git merge upstream/main` es inejecutable, y cómo se les propaga una mejora
 —medido, con coste— está en `docs/propagacion-sites-plantilla.md`.
+
+### Qué trae un descendiente: infra sí, contenido no
+
+`.gitattributes` marca `merge=ours` el **contenido de ejemplo** —
+`src/i18n/translations/*.json`, la portada (`[...locale]/index.astro` y sus
+secciones `Hero`, `AboutContent`, `Products`, `HowItWorks`, `TrustBar`,
+`StatementSection`, `ValuesGrid`, `CompareTable`, `CtaBanner`) y
+`studio-contract.json`—. Todo lo demás es **infra** y se mergea normal:
+layouts, `lp/`, `404`/`500`/blog, `ui/`, `lib/`, middleware, `public/_headers`,
+scripts, config y CI. Si las dos ramas tocaron un fichero de contenido, el site
+conserva el suyo; si solo lo tocó el theme, entra el del theme.
+
+**No actúa solo**: en el checkout del site, `git config merge.ours.driver true`
+y `git --attr-source=upstream/main merge upstream/main` (el primer merge aún no
+tiene el fichero). Medido con `merge-tree`: esosique 20 → 14 ficheros en
+conflicto, hospitalitop 6 → 3. Dos avisos: un modify/delete (un site solo-EN
+que borró `es.json`) sigue en conflicto; y **una mejora técnica metida en un
+fichero de contenido se pierde en el site**, incluida una clave i18n nueva que
+lea la infra (`lp.*`, `nav.*`): no la metas ahí sin avisarlo, y tras el merge
+compara `git diff upstream/main -- src/i18n` y corre `pnpm studio:check`.
 
 ## Studio instrumentation (the contract)
 
