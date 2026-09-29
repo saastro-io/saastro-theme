@@ -6,6 +6,7 @@ import { MobileMenu } from './MobileMenu';
 import { ContactSheetButton } from '../widgets/ContactSheet';
 import { LocaleSelector } from './LocaleSelector';
 import type { LocaleLink } from '../i18n/utils';
+import { brandLogo, resolveSiteName } from '../lib/brand';
 
 export interface MenuItem {
   title: string;
@@ -14,6 +15,10 @@ export interface MenuItem {
   items?: MenuItem[];
 }
 
+// La marca y el botón de contacto se resuelven AQUÍ, del site —
+// `meta.siteName`, `nav.contact` y `src/assets/brand/logo-{light,dark}.svg` —
+// en vez de esperar a que el layout los cablee prop a prop: así se quedaron
+// muertos (29-sep). Las props siguen existiendo como override.
 export interface Props {
   siteName?: string;
   logoLight?: string;
@@ -29,15 +34,15 @@ export interface Props {
 }
 
 const {
-  siteName = 'Saastro',
-  logoLight,
-  logoDark,
+  siteName = resolveSiteName(Astro.locals),
+  logoLight = brandLogo.light,
+  logoDark = brandLogo.dark,
   homeUrl = '/',
   menu = [],
   isSticky = true,
   showToggleTheme = true,
   showContactButton = true,
-  contactButtonLabel = 'Contact',
+  contactButtonLabel = Astro.locals.t?.nav?.contact ?? 'Contact',
   localeLinks = [],
   fieldPrefix = 'nav',
 } = Astro.props;
