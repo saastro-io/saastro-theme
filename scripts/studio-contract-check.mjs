@@ -67,6 +67,10 @@
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
  *  12. crawl            — toda ruta crawleable del manifiesto sigue sirviendo 200 + HTML (modo crawl)
+ *  13. i18n-consumo     — toda hoja del JSON de traducciones la LEE alguna página (registro de
+ *                         src/i18n/reads.ts, emitido con PUBLIC_SAASTRO_I18N_READS=1)
+ *  14. marca-header     — el <header> pinta la marca DEL SITE: meta.siteName y nav.contact del
+ *                         locale, y los logos de src/assets/brand/ que existan
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
  */
@@ -78,6 +82,7 @@ import { extname, join, relative } from 'node:path'
 import { parse } from 'node-html-parser'
 import { parse as parseYaml } from 'yaml'
 import { resolveDefaultLocale } from './lib/default-locale.mjs'
+import { hojasI18n, huerfanas } from './lib/i18n-consumo.mjs'
 
 const ROOT = process.cwd()
 const DIST_HTML_ROOTS = ['dist/client', 'dist'] // output:'server' prerenderiza en dist/client; static en dist
@@ -111,6 +116,20 @@ const STRUCTURAL_KEY_WORDS = new Set([
   'icon', 'image', 'img', 'logo', 'color', 'class', 'variant', 'ogimage',
 ])
 const SKIP_SUBTREES = new Set(['seo', 'meta', 'metadata', 'opengraph', 'og'])
+
+// Invariante 13 — claves i18n cuya lectura este check NO PUEDE VER, con el
+// porqué. No se dan por buenas ni por muertas: se enumeran como NO
+// VERIFICADAS en cada pasada. La lista vive aquí —fichero hasheado por el
+// invariante 10— para que no crezca sin que se note. Un prefijo cubre su
+// subárbol (`lp` → `lp.*`).
+const I18N_NO_VERIFICABLE = {
+  // En modo dist las rutas on-demand no se renderizan.
+  lp: 'sólo se leen en src/pages/[...locale]/lp/[slug].astro — landings SSR (prerender = false)',
+  // `resolveMeta` sólo baja al global cuando la página no trae `meta.pages.<page>.title`,
+  // y en el theme las tres que lo usan (home, about, blog) lo traen. Es el título
+  // por defecto de las páginas que un descendiente añada sin override.
+  'meta.title': 'fallback de resolveMeta (src/i18n/meta.ts): sólo se lee en una página sin meta.pages.<page>.title',
+}
 
 // Ficheros de ARQUITECTURA PURA (invariante 10). studio.config.json y
 // src/data/settings.yaml quedan FUERA a propósito: son estado mutable que
@@ -670,7 +689,54 @@ function scanPage(html) {
     }
   }
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers }
+  // 13 — registro de lecturas i18n (src/i18n/reads.ts). null = la página no
+  // lo lleva (build sin PUBLIC_SAASTRO_I18N_READS=1, o no pasa por el middleware).
+  let i18nReads = null
+  const readsScripts = root.querySelectorAll('script[type="application/saastro-i18n-reads"]')
+  if (readsScripts.length) {
+    i18nReads = []
+    for (const el of readsScripts) {
+      try {
+        const v = JSON.parse(el.text)
+        if (Array.isArray(v)) i18nReads.push(...v.filter((x) => typeof x === 'string'))
+      } catch {
+        /* registro ilegible: cuenta como leído nada, y el invariante lo dirá */
+      }
+    }
+  }
+
+  // 14 — lo que pinta el <header>: texto, srcs de <img> y la etiqueta del
+  // botón de contacto (viaja en las props de la isla, como el href de 8b).
+  let header = null
+  // El <header> del SITE, no el de un artículo (los posts llevan <header> dentro de <main>).
+  const dentroDeContenido = (el) => {
+    for (let cur = el.parentNode; cur; cur = cur.parentNode) {
+      const tag = cur.tagName?.toLowerCase()
+      if (tag === 'main' || tag === 'article') return true
+    }
+    return false
+  }
+  const headerEl = root.querySelectorAll('header').find((el) => !dentroDeContenido(el)) ?? null
+  if (headerEl) {
+    let contactLabel = null
+    const island = headerEl.querySelector('astro-island[component-export="ContactSheetButton"]')
+    if (island) {
+      try {
+        const v = JSON.parse(island.getAttribute('props') ?? '{}').content
+        if (Array.isArray(v) && typeof v[1] === 'string') contactLabel = v[1]
+      } catch {
+        /* props ilegibles: contactLabel queda null y 14 lo dice */
+      }
+    }
+    header = {
+      text: decodeEntities(headerEl.text).replace(/\s+/g, ' '),
+      imgSrcs: headerEl.querySelectorAll('img').map((el) => el.getAttribute('src') ?? ''),
+      hasContactIsland: island != null,
+      contactLabel,
+    }
+  }
+
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers, i18nReads, header }
 }
 
 /**
@@ -1307,6 +1373,75 @@ async function main() {
         if (!(file in (manifest.architectureHashes ?? {}))) {
           fail('architecture', file, '—', 'fichero de arquitectura sin hash registrado en el manifiesto',
             'corre `pnpm studio:contract:update` para registrarlo')
+        }
+      }
+    }
+
+    // 13 — i18n-consumo: una clave del JSON que ninguna página LEE es una
+    // clave muerta, aunque su texto coincida con un default y el verbatim pase.
+    // (29-sep: `nav.contact` y `meta.siteName` esperaban en el JSON mientras el
+    // Header pintaba 'Contact' y 'Saastro' de sus defaults.)
+    {
+      const conRegistro = Object.values(pages).filter((p) => Array.isArray(p?.i18nReads))
+      if (conRegistro.length === 0) {
+        fail('i18n-consumo', '(build)', '—',
+          'ninguna página lleva el registro de lecturas i18n: no se puede saber qué claves se consumen',
+          'el build tiene que ir con PUBLIC_SAASTRO_I18N_READS=1 (lo pone `pnpm studio:check`); si lo corriste a mano, usa el script')
+      } else {
+        const leidas = new Set(conRegistro.flatMap((p) => p.i18nReads))
+        const hojas = new Set()
+        for (const loc of locales) hojasI18n(translations[loc], '', hojas)
+        const r = huerfanas(hojas, leidas, Object.keys(I18N_NO_VERIFICABLE))
+        for (const h of r.huerfanas) {
+          fail('i18n-consumo', '(i18n)', h,
+            'clave i18n que NINGUNA página lee: su texto no llega al site (lo que se ve, si algo, es un default del código)',
+            'cablea la clave al componente que debería pintarla, o bórrala de TODOS los JSON de locale si sobra')
+        }
+        for (const [prefijo, porque] of Object.entries(I18N_NO_VERIFICABLE)) {
+          const n = r.noVerificadas.filter((h) => h === prefijo || h.startsWith(`${prefijo}.`) || h.startsWith(`${prefijo}[]`)).length
+          if (n) {
+            warn('i18n-consumo', '(i18n)', prefijo,
+              `${n} hoja(s) NO VERIFICADA(S) sin lectura en este build: ${porque}`,
+              'se comprueba a mano; si el motivo deja de ser cierto, sácala de I18N_NO_VERIFICABLE')
+          }
+        }
+      }
+    }
+
+    // 14 — marca-header: el Header resuelve la marca del site él solo
+    // (src/lib/brand.ts). Si alguien vuelve a cablearla prop a prop y se deja
+    // una, el Header cae a sus defaults ('Saastro', 'Contact', monograma) y
+    // nada más lo ve: 13 no, porque meta.siteName lo leen también el footer y
+    // og:site_name, y los logos no son i18n.
+    {
+      const logos = ['light', 'dark'].filter((v) => existsSync(join(ROOT, 'src', 'assets', 'brand', `logo-${v}.svg`)))
+      // Aplana rich spans como getTranslations (flattenSpansDeep): el header pinta el texto plano.
+      const plano = (v) => (isRichSpanArray(v) ? v.map((sp) => sp.text).join('') : v)
+      const deLocale = (loc, get) => plano(get(translations[loc]) ?? get(translations[defaultLocale]))
+      // Sin NINGÚN <header> este invariante no comprobaría nada y saldría verde:
+      // eso es justo lo que pasaría si el layout dejara de montar el Header.
+      if (!Object.values(pages).some((p) => p?.header)) {
+        fail('marca-header', '(build)', '<header>', 'ninguna página construida lleva <header>: no hay marca que comprobar',
+          'SiteLayout debe montar <Header>; si un site lo quita a propósito, ese cambio de arquitectura va con su propio check')
+      }
+      for (const [rel, p] of Object.entries(pages)) {
+        if (!p?.header) continue
+        const loc = pageLocale(rel).locale ?? defaultLocale
+        const siteName = deLocale(loc, (t) => t?.meta?.siteName)
+        if (typeof siteName === 'string' && !p.header.text.includes(siteName)) {
+          fail('marca-header', rel, '<header>', `no pinta meta.siteName del locale ${loc}: "${siteName}"`,
+            'el Header debe resolver la marca con resolveSiteName (src/lib/brand.ts), no con un default')
+        }
+        for (const v of logos) {
+          if (!p.header.imgSrcs.some((src) => new RegExp(`/logo-${v}\\.[^/]*svg$`).test(src))) {
+            fail('marca-header', rel, '<header>', `no pinta src/assets/brand/logo-${v}.svg (imgs: ${JSON.stringify(p.header.imgSrcs)})`,
+              'el Header debe tomar los logos de brandLogo (src/lib/brand.ts)')
+          }
+        }
+        const contact = deLocale(loc, (t) => t?.nav?.contact)
+        if (typeof contact === 'string' && p.header.hasContactIsland && p.header.contactLabel !== contact) {
+          fail('marca-header', rel, 'ContactSheetButton', `la etiqueta es ${JSON.stringify(p.header.contactLabel)}, no nav.contact del locale ${loc}: "${contact}"`,
+            'el Header debe tomarla con resolveContactLabel (src/lib/brand.ts)')
         }
       }
     }

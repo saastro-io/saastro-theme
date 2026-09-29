@@ -2,6 +2,7 @@ import { defineMiddleware, sequence } from 'astro:middleware';
 import { applySecurityHeaders } from './lib/security-headers';
 import { i18nConfig } from './i18n/config';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
+import { I18N_READS_ENABLED, injectReads, trackReads } from './i18n/reads';
 
 /**
  * Cabeceras de seguridad en TODA respuesta que genere el Worker — las landings
@@ -39,10 +40,28 @@ const site = defineMiddleware(async (context, next) => {
   const lang = getLocaleFromUrl(context.url.pathname);
 
   context.locals.lang = lang;
-  context.locals.t = getTranslations(lang);
   context.locals.localePath = (path: string) => localePath(lang, path);
 
-  return next();
+  // Build de `pnpm studio:check` (PUBLIC_SAASTRO_I18N_READS=1): apunta qué
+  // claves i18n lee la página y lo emite en el HTML para el invariante
+  // `i18n-consumo`. En el build de producción la rama no existe (Vite
+  // sustituye la constante y la elimina). Ver src/i18n/reads.ts.
+  if (!I18N_READS_ENABLED) {
+    context.locals.t = getTranslations(lang);
+    return next();
+  }
+  const reads = new Set<string>();
+  context.locals.t = trackReads(getTranslations(lang), reads);
+  const response = await next();
+  if (!response.headers.get('content-type')?.includes('text/html')) return response;
+  const html = await response.text(); // consumir el cuerpo = terminar de renderizar
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  return new Response(injectReads(html, reads), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 });
 
 export const onRequest = sequence(securityHeaders, site);

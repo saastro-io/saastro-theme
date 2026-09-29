@@ -52,7 +52,13 @@ contra los JSON de i18n y contra `studio-contract.json` (manifiesto commiteado
 en la raíz): marcadores por página, el texto i18n literal en el HTML —
 precondición del click-to-edit—, imágenes editables, schemas, paridad de
 locales, tokens CSS emitidos, el botón de cookies, el enlace a la política, la
-**declaración legal del beacon de Gen** y hashes de los ficheros de arquitectura.
+**declaración legal del beacon de Gen**, hashes de los ficheros de arquitectura
+y **que toda clave i18n la LEA alguna página** (`i18n-consumo`: el build de
+`studio:check` va con `PUBLIC_SAASTRO_I18N_READS=1` y `src/i18n/reads.ts`
+apunta cada lectura; una clave que nadie lee cae aunque su texto coincida con
+un default del código, que es como `nav.contact` estuvo muerta sin que el
+verbatim lo viera). Lo que no se puede ver en modo dist está en
+`I18N_NO_VERIFICABLE` y sale como aviso en cada pasada.
 
 The manifest is **never regenerated automatically**: after a deliberate
 structural/architecture change run `pnpm studio:contract:update` and commit the
