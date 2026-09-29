@@ -6,7 +6,7 @@ import { MobileMenu } from './MobileMenu';
 import { ContactSheetButton } from '../widgets/ContactSheet';
 import { LocaleSelector } from './LocaleSelector';
 import type { LocaleLink } from '../i18n/utils';
-import { brandLogo, resolveSiteName } from '../lib/brand';
+import { brandLogo, resolveContactLabel, resolveSiteName } from '../lib/brand';
 
 export interface MenuItem {
   title: string;
@@ -42,7 +42,7 @@ const {
   isSticky = true,
   showToggleTheme = true,
   showContactButton = true,
-  contactButtonLabel = Astro.locals.t?.nav?.contact ?? 'Contact',
+  contactButtonLabel = resolveContactLabel(Astro.locals),
   localeLinks = [],
   fieldPrefix = 'nav',
 } = Astro.props;

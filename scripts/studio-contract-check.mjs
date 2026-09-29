@@ -69,6 +69,8 @@
  *  12. crawl            — toda ruta crawleable del manifiesto sigue sirviendo 200 + HTML (modo crawl)
  *  13. i18n-consumo     — toda hoja del JSON de traducciones la LEE alguna página (registro de
  *                         src/i18n/reads.ts, emitido con PUBLIC_SAASTRO_I18N_READS=1)
+ *  14. marca-header     — el <header> pinta la marca DEL SITE: meta.siteName y nav.contact del
+ *                         locale, y los logos de src/assets/brand/ que existan
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
  */
@@ -703,7 +705,30 @@ function scanPage(html) {
     }
   }
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers, i18nReads }
+  // 14 — lo que pinta el <header>: texto, srcs de <img> y la etiqueta del
+  // botón de contacto (viaja en las props de la isla, como el href de 8b).
+  let header = null
+  const headerEl = root.querySelector('header')
+  if (headerEl) {
+    let contactLabel = null
+    const island = headerEl.querySelector('astro-island[component-export="ContactSheetButton"]')
+    if (island) {
+      try {
+        const v = JSON.parse(island.getAttribute('props') ?? '{}').content
+        if (Array.isArray(v) && typeof v[1] === 'string') contactLabel = v[1]
+      } catch {
+        /* props ilegibles: contactLabel queda null y 14 lo dice */
+      }
+    }
+    header = {
+      text: decodeEntities(headerEl.text).replace(/\s+/g, ' '),
+      imgSrcs: headerEl.querySelectorAll('img').map((el) => el.getAttribute('src') ?? ''),
+      hasContactIsland: island != null,
+      contactLabel,
+    }
+  }
+
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers, i18nReads, header }
 }
 
 /**
@@ -1371,6 +1396,36 @@ async function main() {
               `${n} hoja(s) NO VERIFICADA(S) sin lectura en este build: ${porque}`,
               'se comprueba a mano; si el motivo deja de ser cierto, sácala de I18N_NO_VERIFICABLE')
           }
+        }
+      }
+    }
+
+    // 14 — marca-header: el Header resuelve la marca del site él solo
+    // (src/lib/brand.ts). Si alguien vuelve a cablearla prop a prop y se deja
+    // una, el Header cae a sus defaults ('Saastro', 'Contact', monograma) y
+    // nada más lo ve: 13 no, porque meta.siteName lo leen también el footer y
+    // og:site_name, y los logos no son i18n.
+    {
+      const logos = ['light', 'dark'].filter((v) => existsSync(join(ROOT, 'src', 'assets', 'brand', `logo-${v}.svg`)))
+      const deLocale = (loc, get) => get(translations[loc]) ?? get(translations[defaultLocale])
+      for (const [rel, p] of Object.entries(pages)) {
+        if (!p?.header) continue
+        const loc = pageLocale(rel).locale ?? defaultLocale
+        const siteName = deLocale(loc, (t) => t?.meta?.siteName)
+        if (typeof siteName === 'string' && !p.header.text.includes(siteName)) {
+          fail('marca-header', rel, '<header>', `no pinta meta.siteName del locale ${loc}: "${siteName}"`,
+            'el Header debe resolver la marca con resolveSiteName (src/lib/brand.ts), no con un default')
+        }
+        for (const v of logos) {
+          if (!p.header.imgSrcs.some((src) => new RegExp(`/logo-${v}\\.[^/]*svg$`).test(src))) {
+            fail('marca-header', rel, '<header>', `no pinta src/assets/brand/logo-${v}.svg (imgs: ${JSON.stringify(p.header.imgSrcs)})`,
+              'el Header debe tomar los logos de brandLogo (src/lib/brand.ts)')
+          }
+        }
+        const contact = deLocale(loc, (t) => t?.nav?.contact)
+        if (typeof contact === 'string' && p.header.hasContactIsland && p.header.contactLabel !== contact) {
+          fail('marca-header', rel, 'ContactSheetButton', `la etiqueta es ${JSON.stringify(p.header.contactLabel)}, no nav.contact del locale ${loc}: "${contact}"`,
+            'el Header debe tomarla con resolveContactLabel (src/lib/brand.ts)')
         }
       }
     }

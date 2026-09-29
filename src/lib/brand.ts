@@ -20,6 +20,11 @@ export function resolveSiteName(locals: App.Locals): string {
   );
 }
 
+/** `nav.contact` del locale → 'Contact'. Mismo criterio que resolveSiteName. */
+export function resolveContactLabel(locals: App.Locals): string {
+  return (i18nConfig.enabled ? locals.t?.nav?.contact : undefined) ?? 'Contact';
+}
+
 // Glob y no import: un site que borre uno de los dos logos sigue construyendo
 // (el Logo cae al monograma si no hay ninguno, y al claro si falta el oscuro).
 const brandLogos = import.meta.glob<ImageMetadata>('../assets/brand/logo-{light,dark}.svg', {

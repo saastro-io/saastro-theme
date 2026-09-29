@@ -22,6 +22,10 @@
  * serializa, y serializar lee todas sus hojas. Cuenta como consumo aunque la
  * isla ignore alguna. El check caza lo que NINGÚN código lee; no lo que se
  * lee y se tira.
+ *
+ * Y en este modo `structuredClone` de un trozo de `t` lanza DataCloneError
+ * (un Proxy no se clona). Hoy nadie lo hace; si un descendiente lo necesita,
+ * que clone con JSON.parse(JSON.stringify(x)), que además cuenta como lectura.
  */
 
 export const I18N_READS_ENABLED = import.meta.env.PUBLIC_SAASTRO_I18N_READS === '1';
