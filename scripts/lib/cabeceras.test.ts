@@ -1,12 +1,14 @@
 import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { RUTA_HEADERS, RUTA_TS, comparables, diferencias, leerHeaders, leerTs } from './cabeceras.mjs'
+import { CABECERAS_MINIMAS, RUTA_HEADERS, RUTA_TS, comparables, diferencias, faltanMinimas, leerHeaders, leerTs } from './cabeceras.mjs'
 
 describe('lectores de las listas de cabeceras', () => {
   it('leen las del repo, y las dos cuadran en nombre y valor', () => {
     const assets = leerHeaders(fs.readFileSync(RUTA_HEADERS, 'utf8'))
     const worker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))
-    expect(comparables(assets).length).toBeGreaterThan(0)
+    expect(CABECERAS_MINIMAS).toHaveLength(5)
+    expect(faltanMinimas(assets)).toEqual([])
+    expect(faltanMinimas(worker)).toEqual([])
     expect(comparables(assets)).toEqual(comparables(worker))
     expect(diferencias(assets, worker)).toEqual({ soloAssets: [], soloWorker: [], valorDistinto: [] })
     // Con comillas dobles en el .ts y simples dentro del valor.

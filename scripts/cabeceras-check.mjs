@@ -18,7 +18,7 @@
  * `cabeceras-worker-check.mjs` sobre el build, al final de `studio:check`.
  */
 import fs from 'node:fs'
-import { RUTA_HEADERS, RUTA_TS, comparables, diferencias, leerHeaders, leerTs } from './lib/cabeceras.mjs'
+import { RUTA_HEADERS, RUTA_TS, comparables, diferencias, faltanMinimas, leerHeaders, leerTs } from './lib/cabeceras.mjs'
 
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`
 const verde = (s) => `\x1b[32m${s}\x1b[0m`
@@ -35,6 +35,21 @@ for (const [lado, mapa, ruta] of [['assets', assets, RUTA_HEADERS], ['Worker', w
     console.error('  El fallo es del lector de este script, no del site. Arréglalo antes de creerte el resultado.')
     process.exit(2)
   }
+}
+
+// El suelo: quitar una cabecera de las DOS listas las deja cuadrando y el
+// site pierde una protección sin que nada salte.
+let bajoSuelo = false
+for (const [ruta, mapa] of [[RUTA_HEADERS, assets], [RUTA_TS, worker]]) {
+  const faltan = faltanMinimas(mapa)
+  if (faltan.length) {
+    console.error(rojo(`✖ cabeceras-check — ${ruta} no declara: ${faltan.join(', ')}.`))
+    bajoSuelo = true
+  }
+}
+if (bajoSuelo) {
+  console.error('  El suelo está en scripts/lib/cabeceras.mjs (CABECERAS_MINIMAS). Bajarlo es una decisión, no una edición.')
+  process.exit(1)
 }
 
 const { soloAssets, soloWorker, valorDistinto } = diferencias(assets, worker)

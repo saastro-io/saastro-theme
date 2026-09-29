@@ -16,9 +16,14 @@
  *   - una landing `/lp/<inexistente>` (SSR, redirige a home)
  *
  * y exige en cada una TODAS las cabeceras del bloque `/*` de `public/_headers`,
- * con el mismo valor. O sea: la lista de `_headers` es la que se espera del
- * Worker, y así este mismo check comprueba a la vez que el middleware las pone
- * y que su lista coincide con la de `_headers`.
+ * con el mismo valor. Antes de arrancar comprueba que `_headers` y
+ * `src/lib/security-headers.ts` declaran el suelo de cinco y dicen lo mismo
+ * (nombre y valor): el mismo check cubre la paridad y que el middleware las
+ * aplica.
+ *
+ * Límite conocido: la plantilla no tiene una ruta SSR que responda 200 (la
+ * landing demo es borrador y el contador `/mx/*` va apagado), así que un
+ * middleware que solo vistiera los 404 y las redirecciones no se cazaría aquí.
  *
  * NO se mide `/` a propósito: es prerenderizada, la sirve la capa de assets sin
  * invocar al Worker y lleva las cabeceras de `_headers` aunque el middleware no
@@ -26,7 +31,7 @@
  * que documenta `public/_headers`.
  */
 import fs from 'node:fs'
-import { RUTA_HEADERS, comparables, leerHeaders } from './lib/cabeceras.mjs'
+import { RUTA_HEADERS, RUTA_TS, comparables, diferencias, faltanMinimas, leerHeaders, leerTs } from './lib/cabeceras.mjs'
 
 const CONFIG = 'dist/server/wrangler.json'
 
@@ -52,6 +57,32 @@ if (nombres.length === 0) {
   console.error('  El fallo es del lector, no del site. Arréglalo antes de creerte el resultado.')
   process.exit(2)
 }
+
+// Antes de arrancar nada, las dos listas: el suelo de cinco en cada una, y que
+// digan lo mismo (nombre y valor). Así este check comprueba él solo que la
+// lista del middleware coincide con la de `_headers`, además de que se aplica.
+const delWorker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))
+const previos = []
+for (const [ruta, mapa] of [[RUTA_HEADERS, esperadas], [RUTA_TS, delWorker]]) {
+  const faltan = faltanMinimas(mapa)
+  if (faltan.length) previos.push(`${ruta} no declara: ${faltan.join(', ')} (suelo en scripts/lib/cabeceras.mjs)`)
+}
+const d = diferencias(esperadas, delWorker)
+if (d.soloAssets.length) previos.push(`solo en ${RUTA_HEADERS}: ${d.soloAssets.join(', ')}`)
+if (d.soloWorker.length) previos.push(`solo en ${RUTA_TS}: ${d.soloWorker.join(', ')}`)
+for (const v of d.valorDistinto) previos.push(`${v.nombre}: «${v.assets}» en ${RUTA_HEADERS}, «${v.worker}» en ${RUTA_TS}`)
+if (previos.length) {
+  console.error(rojo('✖ cabeceras-worker-check — las listas no están bien antes de medir el Worker.'))
+  for (const p of previos) console.error(`  ${p}`)
+  process.exit(1)
+}
+
+// Si workerd no arranca o no responde, rojo en 90 s y no el job colgado hasta
+// el límite de Actions.
+setTimeout(() => {
+  console.error(rojo('✖ cabeceras-worker-check — el Worker no arrancó o no respondió en 90 s.'))
+  process.exit(1)
+}, 90_000).unref()
 
 process.env.WRANGLER_SEND_METRICS ??= 'false'
 const { unstable_startWorker } = await import('wrangler')
