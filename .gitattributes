@@ -1,0 +1,39 @@
+# Frontera infra / contenido del theme (decisión «selectivo», 15-sep-2026:
+# infraestructura sí, contenido no). Qué es cada cosa y por qué, en CLAUDE.md
+# («Qué trae un descendiente del theme»).
+#
+# Las rutas marcadas `merge=ours` son CONTENIDO DE EJEMPLO: copy, i18n, las
+# secciones de la portada y el contrato de Studio que se deriva de ellas. Un
+# site que ya las reescribió se queda con su versión cuando las dos ramas las
+# han tocado; si solo las tocó el theme, entra la del theme como siempre.
+#
+# ⚠️ El atributo NO hace nada solo. Git no trae un driver «ours»: hay que
+# definirlo en el checkout del SITE y leer los atributos del theme, porque en
+# el primer merge el site todavía no tiene este fichero:
+#
+#   git config merge.ours.driver true
+#   git --attr-source=upstream/main merge upstream/main
+#
+# Lo que NO arregla: un borrado en el site contra un cambio en el theme
+# (modify/delete, p. ej. un site solo-EN que borró es.json) sigue siendo un
+# conflicto de ruta, y ahí no entra ningún driver.
+
+# Contenido: copy e i18n
+src/i18n/translations/*.json merge=ours
+
+# Contenido: la portada y sus secciones de ejemplo
+src/pages/*locale*/index.astro merge=ours
+src/components/Hero.astro merge=ours
+src/components/AboutContent.astro merge=ours
+src/components/Products.astro merge=ours
+src/components/HowItWorks.astro merge=ours
+src/components/TrustBar.astro merge=ours
+src/components/StatementSection.astro merge=ours
+src/components/ValuesGrid.astro merge=ours
+src/components/CompareTable.astro merge=ours
+src/components/CtaBanner.astro merge=ours
+
+# Contenido: el contrato de Studio es el DOM construido de ESTE contenido. Pero
+# guarda también los hashes de arquitectura de ficheros de infra: tras el
+# merge, el site lo regenera con `pnpm studio:contract:update` y revisa el diff.
+studio-contract.json merge=ours
