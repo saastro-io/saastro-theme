@@ -17,7 +17,10 @@ interface Props {
   fieldPrefix?: string;
 }
 
-const { left, right, middle, fieldPrefix = 'trust' } = Astro.props;
+// El default va en el destructuring y no en la plantilla: `@saastro/studio`
+// sólo marca como campo editable un `{prop}` pelado, y `{middle ?? '·'}` no
+// lo es — así `trust.middle` se pintaba pero no se podía editar en Studio.
+const { left, right, middle = '·', fieldPrefix = 'trust' } = Astro.props;
 ---
 
 <div class="border-t bg-secondary/40 py-10">
@@ -25,7 +28,7 @@ const { left, right, middle, fieldPrefix = 'trust' } = Astro.props;
     class="mx-auto flex max-w-4xl flex-col items-center gap-3 px-6 text-center sm:flex-row sm:justify-center sm:gap-6">
     <p class="text-base text-muted-foreground sm:text-lg">{left}</p>
     <span class="text-sm font-semibold tracking-wider text-primary uppercase" aria-hidden="true">
-      {middle ?? '·'}
+      {middle}
     </span>
     <p class="text-base font-medium sm:text-lg">{right}</p>
   </div>

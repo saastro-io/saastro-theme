@@ -125,10 +125,11 @@ const SKIP_SUBTREES = new Set(['seo', 'meta', 'metadata', 'opengraph', 'og'])
 const I18N_NO_VERIFICABLE = {
   // En modo dist las rutas on-demand no se renderizan.
   lp: 'sólo se leen en src/pages/[...locale]/lp/[slug].astro — landings SSR (prerender = false)',
-  // `resolveMeta` sólo baja al global cuando la página no trae `meta.pages.<page>.title`,
-  // y en el theme las tres que lo usan (home, about, blog) lo traen. Es el título
-  // por defecto de las páginas que un descendiente añada sin override.
-  'meta.title': 'fallback de resolveMeta (src/i18n/meta.ts): sólo se lee en una página sin meta.pages.<page>.title',
+  // `meta.title` estuvo aquí hasta el 30-sep: ninguna página lo leía porque las
+  // tres que usan resolveMeta traían override. Ahora home no trae
+  // `meta.pages.home.title` y hereda el global, que es lo que el panel SEO del
+  // Hub promete («Hereda: …»). Si un descendiente vuelve a darle override a
+  // todas sus páginas, `i18n-consumo` se lo dirá: es verdad que nadie lo lee.
 }
 
 // Ficheros de ARQUITECTURA PURA (invariante 10). studio.config.json y
