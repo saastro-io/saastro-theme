@@ -1,12 +1,11 @@
 {
   "meta": {
-    "title": "Saastro Theme",
+    "title": "Saastro Theme — Astro + React + shadcn/ui",
     "description": "A modern Astro theme with shadcn/ui",
     "siteName": "Saastro",
     "ogImage": "/og-image.png",
     "pages": {
       "home": {
-        "title": "Saastro Theme — Astro + React + shadcn/ui",
         "description": "A fast, modern Astro starter with React islands, shadcn/ui and i18n — fully editable in the Saastro Studio."
       },
       "about": {
