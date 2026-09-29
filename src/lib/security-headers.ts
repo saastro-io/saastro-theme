@@ -21,6 +21,11 @@
  * **Las dos listas se mantienen A LA PAR.** Si aquí se añade una cabecera, va
  * también a `public/_headers`, y al revés. Se comprueba RUTA POR RUTA con
  * `curl -sI`: `/`, una landing `/lp/*` y un 404.
+ *
+ * En CI lo vigilan dos checks de `studio:check`: `cabeceras-check` (las dos
+ * listas, nombre y valor, sobre el fuente) y `cabeceras-worker-check` (que el
+ * Worker construido las SIRVE en un 404 y en `/lp/*`; se pone rojo si el
+ * middleware deja de aplicarlas).
  */
 
 export const SECURITY_HEADERS: Record<string, string> = {
