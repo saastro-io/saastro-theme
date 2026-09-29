@@ -708,7 +708,15 @@ function scanPage(html) {
   // 14 — lo que pinta el <header>: texto, srcs de <img> y la etiqueta del
   // botón de contacto (viaja en las props de la isla, como el href de 8b).
   let header = null
-  const headerEl = root.querySelector('header')
+  // El <header> del SITE, no el de un artículo (los posts llevan <header> dentro de <main>).
+  const dentroDeContenido = (el) => {
+    for (let cur = el.parentNode; cur; cur = cur.parentNode) {
+      const tag = cur.tagName?.toLowerCase()
+      if (tag === 'main' || tag === 'article') return true
+    }
+    return false
+  }
+  const headerEl = root.querySelectorAll('header').find((el) => !dentroDeContenido(el)) ?? null
   if (headerEl) {
     let contactLabel = null
     const island = headerEl.querySelector('astro-island[component-export="ContactSheetButton"]')
@@ -1407,7 +1415,15 @@ async function main() {
     // og:site_name, y los logos no son i18n.
     {
       const logos = ['light', 'dark'].filter((v) => existsSync(join(ROOT, 'src', 'assets', 'brand', `logo-${v}.svg`)))
-      const deLocale = (loc, get) => get(translations[loc]) ?? get(translations[defaultLocale])
+      // Aplana rich spans como getTranslations (flattenSpansDeep): el header pinta el texto plano.
+      const plano = (v) => (isRichSpanArray(v) ? v.map((sp) => sp.text).join('') : v)
+      const deLocale = (loc, get) => plano(get(translations[loc]) ?? get(translations[defaultLocale]))
+      // Sin NINGÚN <header> este invariante no comprobaría nada y saldría verde:
+      // eso es justo lo que pasaría si el layout dejara de montar el Header.
+      if (!Object.values(pages).some((p) => p?.header)) {
+        fail('marca-header', '(build)', '<header>', 'ninguna página construida lleva <header>: no hay marca que comprobar',
+          'SiteLayout debe montar <Header>; si un site lo quita a propósito, ese cambio de arquitectura va con su propio check')
+      }
       for (const [rel, p] of Object.entries(pages)) {
         if (!p?.header) continue
         const loc = pageLocale(rel).locale ?? defaultLocale

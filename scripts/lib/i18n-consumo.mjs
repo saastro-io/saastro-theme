@@ -10,11 +10,19 @@
  * lo aplana a string y el código lo lee como tal.
  */
 
+// Misma definición que isRichSpanArray de studio-contract-check.mjs.
 function isRichSpanArray(v) {
   return (
     Array.isArray(v) &&
     v.length > 0 &&
-    v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && typeof s.text === 'string')
+    v.every(
+      (s) =>
+        s != null &&
+        typeof s === 'object' &&
+        !Array.isArray(s) &&
+        typeof s.text === 'string' &&
+        Object.keys(s).every((k) => k === 'text' || k === 'marks'),
+    )
   )
 }
 
