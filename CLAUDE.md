@@ -39,7 +39,12 @@ conflicto, hospitalitop 6 → 3. Dos avisos: un modify/delete (un site solo-EN
 que borró `es.json`) sigue en conflicto; y **una mejora técnica metida en un
 fichero de contenido se pierde en el site**, incluida una clave i18n nueva que
 lea la infra (`lp.*`, `nav.*`): no la metas ahí sin avisarlo, y tras el merge
-compara `git diff upstream/main -- src/i18n` y corre `pnpm studio:check`.
+compara `git diff upstream/main -- src/i18n`. Y `studio-contract.json` es
+mixto: guarda los hashes de arquitectura de ficheros de INFRA (middleware,
+`src/i18n/*.ts`, scripts), así que si el merge trae infra nueva y el site
+conserva su contrato, `studio:check` sale rojo por hash. Tras el merge:
+`pnpm studio:contract:update`, revisar el diff del contrato (solo hashes y lo
+que el merge trajo) y `pnpm studio:check`.
 
 ## Studio instrumentation (the contract)
 

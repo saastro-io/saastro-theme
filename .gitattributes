@@ -33,6 +33,7 @@ src/components/ValuesGrid.astro merge=ours
 src/components/CompareTable.astro merge=ours
 src/components/CtaBanner.astro merge=ours
 
-# Contenido: el contrato de Studio es el DOM construido de ESTE contenido; un
-# site regenera el suyo con `pnpm studio:contract:update`
+# Contenido: el contrato de Studio es el DOM construido de ESTE contenido. Pero
+# guarda también los hashes de arquitectura de ficheros de infra: tras el
+# merge, el site lo regenera con `pnpm studio:contract:update` y revisa el diff.
 studio-contract.json merge=ours
