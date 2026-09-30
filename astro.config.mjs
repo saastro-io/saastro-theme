@@ -146,9 +146,23 @@ export default defineConfig({
       // pre-bundlearla, Vite re-optimiza en caliente y el SSR acaba con dos
       // copias de React: "Invalid hook call" + `useState` de null en TODOS los
       // widgets. Comprobado el 17-ago-2026 quitándola: el dev server da 500.
+      //
+      // Las cuatro siguientes, por la misma causa (30-sep-2026): con
+      // node_modules/.vite apartado, Vite las descubría DURANTE el primer
+      // arranque o la primera petición y recargaba a mitad. `noop` tumbaba el
+      // primer `astro dev` («file does not exist … deps_ssr/…js»); las otras
+      // tres daban 500 en la primera GET / con 10 «Invalid hook call» (React
+      // nulo en Announcement, CookieBanner, WhatsAppWidget, ContactSheetButton,
+      // NavigationMenu). Con ellas aquí: arranque a la primera, 0 recargas y 0
+      // «Invalid hook call» en /, /es/, /about y un 404. Si el log de dev vuelve
+      // a decir «dependency optimized: X» tras arrancar, X va a esta lista.
       include: [
         'use-sync-external-store/shim/index.js',
         'use-sync-external-store/shim/with-selector.js',
+        'astro/assets/services/noop',
+        'astro/logger/console',
+        'astro-icon/components',
+        '@saastro/studio/middleware',
       ],
     },
     resolve: {

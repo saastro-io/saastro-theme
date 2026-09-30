@@ -43,7 +43,7 @@ export function Announcement({
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (!visible) return <></>;
 
   return (
     <div

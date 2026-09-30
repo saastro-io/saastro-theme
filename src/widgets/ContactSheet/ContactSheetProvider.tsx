@@ -25,7 +25,7 @@ export function ContactSheetProvider({ locale, t, privacyHref }: ContactSheetPro
     setMounted(true);
   }, []);
 
-  if (!mounted || !shouldLoad) return null;
+  if (!mounted || !shouldLoad) return <></>;
 
   return (
     <Suspense fallback={null}>
