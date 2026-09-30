@@ -41,6 +41,13 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      # Chrome para tests/override-oscuro.test.tsx, que mide el
+      # color computado de checkbox/radio-group con el CSS real del theme.
+      # `allowBuilds` deja el postinstall de puppeteer apagado a propósito
+      # (no bajar Chrome en cada install de cada site): se instala aquí.
+      - name: Install Chrome (override-oscuro test)
+        run: pnpm exec puppeteer browsers install chrome-headless-shell
+
       # La tabla de verdad de `sync-secrets`: qué cuenta como «falta», qué como
       # «sobra» y qué no cuenta, más el código de salida de `--check`. Doctrina
       # (41-SECRETOS §Cómo se comprueba): «el código de salida es una función
