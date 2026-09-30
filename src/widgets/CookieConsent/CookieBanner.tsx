@@ -99,7 +99,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
     [],
   )
 
-  if (!visible) return null
+  if (!visible) return <></>
 
   return (
     <div

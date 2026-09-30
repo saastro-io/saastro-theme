@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function LocaleSelector({ localeLinks }: Props) {
-  if (localeLinks.length <= 1) return null;
+  if (localeLinks.length <= 1) return <></>;
 
   return (
     <div className="flex items-center gap-0.5" role="navigation" aria-label="Language">
