@@ -71,6 +71,9 @@
  *                         src/i18n/reads.ts, emitido con PUBLIC_SAASTRO_I18N_READS=1)
  *  14. marca-header     — el <header> pinta la marca DEL SITE: meta.siteName y nav.contact del
  *                         locale, y los logos de src/assets/brand/ que existan
+ *  15. cobertura        — se midió al menos UNA página de contenido (las de error no cuentan);
+ *                         si no, exit 1: sin páginas los invariantes por página no son aplicables
+ *                         y no se dan por buenos. Ídem 7 con 0 bytes de CSS («no se midió»)
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
  */
@@ -1031,6 +1034,31 @@ async function main() {
     const unverifiedSet = new Set(unverifiedKeys)
     const pageExists = (key) => key in pages || unverifiedSet.has(key)
 
+    // 15 — cobertura: el check tiene que haber MEDIDO alguna página de
+    // contenido. Va antes que el resto porque todos los invariantes por página
+    // (1-3, 6, 8, 14) recorren `pages`: con cero páginas de contenido no
+    // encuentran nada que contradecir y salen verdes sin haber comprobado nada.
+    //
+    // El caso (30-sep, hallazgo 01M3RK0NJD): un site solo SSR (output:'server'
+    // + inlineStylesheets:'always', dorjoiers a5368a6) deja en dist/ un único
+    // 500.html. Su manifiesto solo registraba esa página, así que el modo auto
+    // elegía dist («dist cubre el manifiesto») y el check decía «contrato
+    // intacto» tras mirar la página de error. Las páginas de error no cuentan:
+    // son single-locale, sin secciones editables, y no son lo que ve el Studio.
+    //
+    // Consecuencia deliberada: un manifiesto v2 con TODAS sus rutas
+    // `crawleable: false` también cae aquí. No es una regresión: nunca midió nada.
+    const contentKeys = Object.keys(pages).filter((k) => !LOCALE_PARITY_EXEMPT.has(pageLocale(k).logicalPath))
+    const errorKeys = Object.keys(pages).filter((k) => LOCALE_PARITY_EXEMPT.has(pageLocale(k).logicalPath))
+    if (contentKeys.length === 0) {
+      fail('cobertura', '(build)', '—',
+        `NO SE MIDIÓ ninguna página de contenido (modo ${mode}: ${errorKeys.length ? errorKeys.join(', ') : 'ninguna página'}). ` +
+          'Los invariantes sec-markers, field-markers, verbatim, locale-parity, manage-cookies y marca-header NO son aplicables sin páginas: no se dan por buenos',
+        manifestV1
+          ? 'el manifiesto es v1 y solo registra lo que dist/ prerenderiza. En un site SSR regenera con `pnpm studio:contract:update` (graba rutas v2 y el check pasa a crawl sobre el server local) y commitea el diff'
+          : 'si el site es SSR, las rutas se miden en crawl: `pnpm studio:contract:update` las descubre de src/pages × locales, o fuerza `--mode=crawl`. Si el manifiesto las marca crawleable:false, el server local no las sirvió al generarlo: arréglalo antes de regenerar')
+    }
+
     // 1 + 2 — marcadores de sección y de campo vs manifiesto
     for (const [rel, entry] of Object.entries(manifestPages)) {
       if (rel in pages || unverifiedSet.has(rel)) continue
@@ -1203,7 +1231,16 @@ async function main() {
         externalCss = cssFiles.map((f) => readFileSync(f, 'utf8')).join('\n')
       }
       const allCss = externalCss + '\n' + inlineCss
-      for (const req of manifest.css?.requires ?? CSS_REQUIRES) {
+      // Cero bytes de CSS no es «falta el token»: es que no se midió nada. En
+      // un site SSR con inlineStylesheets:'always' el CSS va dentro de
+      // dist/_worker.js y dist/ no emite ni un .css; decirlo como tres tokens
+      // ausentes manda a buscar una purga de Tailwind que no ha ocurrido.
+      if (allCss.trim() === '') {
+        fail('css-tokens', '(css)', '—',
+          `NO SE MIDIÓ ningún CSS: 0 bytes entre ${mode === 'crawl' ? 'los .css servidos' : 'los .css de dist/'} y los <style> de ${Object.keys(pages).length} página(s)`,
+          'en un site SSR el CSS sale del Worker, no de dist/: mídelo en crawl (`pnpm studio:contract:update` graba las rutas, o `--mode=crawl`)')
+      }
+      for (const req of allCss.trim() === '' ? [] : (manifest.css?.requires ?? CSS_REQUIRES)) {
         const ok = req.startsWith('.')
           ? new RegExp(req.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^\\w-]').test(allCss)
           : allCss.includes(req)
@@ -1454,7 +1491,7 @@ async function main() {
         ? `crawl ${server?.origin ?? ''} · ${server?.lineage.label ?? ''}`
         : htmlRoot.replace(ROOT + '/', '')
     console.log(
-      `studio-contract-check — modo ${mode} — ${nPages} páginas (${sourceLabel}), ` +
+      `studio-contract-check — modo ${mode} — ${nPages} páginas, ${contentKeys.length} de contenido (${sourceLabel}), ` +
         `${locales.length} locales, manifiesto v${manifest.version}`,
     )
     if (unverifiedKeys.length) {
