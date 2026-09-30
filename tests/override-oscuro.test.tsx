@@ -26,6 +26,10 @@ import { Switch } from '../src/components/ui/switch';
 // ContactSheet hacen `import.meta.glob('../ui/*.tsx', { eager: true })`, y un
 // .test.tsx en src/components/ui entra en el bundle del Worker con puppeteer
 // y lightningcss (la landing SSR da 500).
+//
+// Chrome: `allowBuilds` apaga el postinstall de puppeteer, así que en local
+// hace falta una vez `pnpm exec puppeteer browsers install chrome-headless-shell`
+// (CI lo hace en su propio paso). Sin él, este fichero sale rojo al lanzar.
 
 const GLOBAL_CSS = resolve(dirname(fileURLToPath(import.meta.url)), '../src/styles/global.css');
 
@@ -130,6 +134,8 @@ describe.each(casos)('%s', (nombre, Control) => {
     it('sin override desmarcado en dark: sigue en input/30', async () => {
       const m = await medir(renderToStaticMarkup(<Control checked={false} />), 'dark');
       expect(m.input30).not.toBe(m.primary);
+      // Dos transparentes serían iguales sin medir nada.
+      expect(m.input30).not.toBe('rgba(0, 0, 0, 0)');
       expect(m.control).toBe(m.input30);
     }, 30_000);
   }
