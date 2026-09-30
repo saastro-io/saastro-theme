@@ -5,6 +5,10 @@
 allowBuilds:
   esbuild: true
   msw: true
+  # puppeteer: su postinstall baja Chrome en cada install (y en cada site que
+  # herede la plantilla). Solo lo usa un test; CI instala chrome-headless-shell
+  # en su propio paso, justo antes de `pnpm run test`.
+  puppeteer: false
   sharp: true
   workerd: true
 minimumReleaseAgeExclude:
