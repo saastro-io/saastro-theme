@@ -243,5 +243,5 @@ jefe (`office_brief`).
 ## saastro-office
 - `office_init` con project `saastro-theme` al empezar la sesión.
 - `office_state` con done/next/needs antes de parar. El hook de Stop la exige.
-- Lo que no puedas decidir: `office_decide` (`guarded` si es dinero, legal, destructivo o producción).
-- Encargos a otro proyecto: `SendMessage` a su sesión, no por la office.
+- Merge y deploy los cubre la firma del trabajo o la orden de la casa (`office merge` dice cuál); `office_decide` `guarded`, solo lo que `saastro-office/mandato.json` reserva a JC.
+- Encargos a otro dominio: `office_send` tipo `encargo` a `jefe:<dominio>`; `SendMessage`, solo a una sesión bloqueada.
