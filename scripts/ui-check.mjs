@@ -63,17 +63,46 @@ async function fromRegistry(name) {
   return file?.content ?? null
 }
 
-/** Diff unificado mínimo, por líneas. Sin dependencias. */
-function unified(a, b, name) {
+/**
+ * Diff por líneas con LCS. Sin dependencias.
+ *
+ * Antes comparaba línea i con línea i: una sola línea insertada desplazaba el
+ * resto y el «diff» de button (5 líneas de cambio real) salía como el fichero
+ * entero borrado y vuelto a escribir. Ahora solo salen las líneas que cambian,
+ * con el número de línea local delante.
+ */
+function diffLines(a, b) {
   const A = a.split('\n')
   const B = b.split('\n')
-  const out = []
-  const max = Math.max(A.length, B.length)
-  for (let i = 0; i < max; i++) {
-    if (A[i] === B[i]) continue
-    if (A[i] !== undefined) out.push(C.red(`  - ${A[i]}`))
-    if (B[i] !== undefined) out.push(C.green(`  + ${B[i]}`))
+  const n = A.length
+  const m = B.length
+  // L[i][j] = longitud de la LCS de A[i..] y B[j..]
+  const L = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1))
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1])
+    }
   }
+  const ops = []
+  let i = 0
+  let j = 0
+  while (i < n || j < m) {
+    if (i < n && j < m && A[i] === B[j]) {
+      i++
+      j++
+    } else if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])) {
+      ops.push({ op: '+', line: i + 1, text: B[j++] })
+    } else {
+      ops.push({ op: '-', line: i + 1, text: A[i++] })
+    }
+  }
+  return ops
+}
+
+function unified(a, b, name) {
+  const out = diffLines(a, b).map(({ op, line, text }) =>
+    op === '-' ? C.red(`  ${String(line).padStart(4)} - ${text}`) : C.green(`  ${String(line).padStart(4)} + ${text}`),
+  )
   return out.length ? [C.dim(`  ── ${name}: local(-) vs registry(+)`), ...out].join('\n') : ''
 }
 

@@ -95,6 +95,11 @@ function SelectContent({
   )
 }
 
+/**
+ * **Exige un `<SelectGroup>` alrededor.** Es `Select.GroupLabel` de Base UI y
+ * sin grupo lanza «SelectGroupContext is missing» al desplegar. En Radix el
+ * Label era libre.
+ */
 function SelectLabel({
   className,
   ...props
