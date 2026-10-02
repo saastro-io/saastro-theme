@@ -62,3 +62,19 @@ jobs:
       # Green here ⇒ green "Connect existing" in the Hub.
       - name: Studio check
         run: pnpm studio:check
+
+  # Drift de las primitivas copy-in contra el registry de saastro-ui
+  # (https://ui.saastro.io/r). Job aparte A PROPÓSITO: un cambio en el registry
+  # pone esto en rojo sin que el PR haya tocado nada, y no debe tapar el
+  # veredicto de studio-check. Rojo aquí = `pnpm ui:check --diff` y decidir
+  # cuál versión es la buena (CLAUDE.md, «Las primitivas se BAJAN»).
+  ui-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      # Solo node: el script no importa nada de node_modules.
+      - name: ui:check
+        run: node scripts/ui-check.mjs --diff

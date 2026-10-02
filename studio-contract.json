@@ -695,6 +695,7 @@
   },
   "formPrimitiveExports": {
     "src/components/ui/form.tsx": [
+      "Form",
       "FormControl",
       "FormDescription",
       "FormField",

@@ -131,9 +131,10 @@ pnpm ui:sync    # tráelas — escribe y NO commitea (--dry para ensayar)
 **`ui:sync` no commitea a propósito**: en copy-in el `git diff` ES la revisión.
 Un `--overwrite` a ciegas borra los ajustes locales en silencio.
 
-`command` es el único que vive solo aquí (`cmdk` arrastra cuatro paquetes de
-Radix): `ui:check` lo marca «solo local», que es inventario, no error. Por qué
-copy-in y nunca un paquete npm, en `knowledge/src.md`.
+`command` ya viene del registry (sobre Base UI Autocomplete, sin `cmdk` ni
+Radix), así que no queda ninguna primitiva solo local. CI corre `ui:check` en su
+propio job (`ui-check`): un rojo ahí es drift con el registry, no un fallo del
+site. Por qué copy-in y nunca un paquete npm, en `knowledge/src.md`.
 
 ### `form.tsx` NO se regenera con `shadcn add form`
 
