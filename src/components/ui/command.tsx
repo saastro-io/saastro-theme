@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete"
-import { SearchIcon } from "lucide-react"
+import * as React from "react";
+import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete";
+import { SearchIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 // Command sobre Base UI Autocomplete, con la API del command.tsx de shadcn
 // (cmdk) en lo que usa @saastro/forms: `shouldFilter`, `CommandInput` con
@@ -23,44 +23,48 @@ import {
 // eso el Root va en `mode="none"` (Base UI no filtra) e `inline open` (la
 // lista vive en el sitio, sin popup propio).
 
-type CommandFilter = (value: string, search: string, keywords?: string[]) => number
+type CommandFilter = (
+  value: string,
+  search: string,
+  keywords?: string[],
+) => number;
 
 const defaultFilter: CommandFilter = (value, search, keywords) => {
-  const needle = search.trim().toLowerCase()
-  if (!needle) return 1
-  const haystack = [value, ...(keywords ?? [])].join(" ").toLowerCase()
-  return haystack.includes(needle) ? 1 : 0
-}
+  const needle = search.trim().toLowerCase();
+  if (!needle) return 1;
+  const haystack = [value, ...(keywords ?? [])].join(" ").toLowerCase();
+  return haystack.includes(needle) ? 1 : 0;
+};
 
-type RegisteredItem = { value: string; keywords?: string[] }
+type RegisteredItem = { value: string; keywords?: string[] };
 
 type CommandContextValue = {
-  search: string
-  isVisible: (item: RegisteredItem) => boolean
-  register: (id: string, item: RegisteredItem) => () => void
-  visibleCount: number
-  setInputHandler: (handler: ((search: string) => void) | undefined) => void
-  setControlledSearch: (search: string | undefined) => void
-}
+  search: string;
+  isVisible: (item: RegisteredItem) => boolean;
+  register: (id: string, item: RegisteredItem) => () => void;
+  visibleCount: number;
+  setInputHandler: (handler: ((search: string) => void) | undefined) => void;
+  setControlledSearch: (search: string | undefined) => void;
+};
 
-const CommandContext = React.createContext<CommandContextValue | null>(null)
+const CommandContext = React.createContext<CommandContextValue | null>(null);
 
 function useCommand(part: string) {
-  const ctx = React.useContext(CommandContext)
+  const ctx = React.useContext(CommandContext);
   // Sin `<…>` en el texto: Semgrep (html-in-template-string) lo marca en cada
   // consumidor, y un `// nosemgrep` allí lo borra el siguiente `shadcn add --overwrite`.
-  if (!ctx) throw new Error(`${part} tiene que ir dentro de Command`)
-  return ctx
+  if (!ctx) throw new Error(`${part} tiene que ir dentro de Command`);
+  return ctx;
 }
 
 type CommandProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
   /** Si es false, Command no filtra: se pintan todos los items (búsqueda en servidor). */
-  shouldFilter?: boolean
+  shouldFilter?: boolean;
   /** Devuelve > 0 si el item casa con la búsqueda. Por defecto, subcadena sin mayúsculas. */
-  filter?: CommandFilter
+  filter?: CommandFilter;
   /** Etiqueta accesible de la lista. */
-  label?: string
-}
+  label?: string;
+};
 
 function Command({
   className,
@@ -70,37 +74,41 @@ function Command({
   children,
   ...props
 }: CommandProps) {
-  const [search, setSearch] = React.useState("")
-  const [controlledSearch, setControlledSearch] = React.useState<string | undefined>()
+  const [search, setSearch] = React.useState("");
+  const [controlledSearch, setControlledSearch] = React.useState<
+    string | undefined
+  >();
   const [items, setItems] = React.useState<ReadonlyMap<string, RegisteredItem>>(
-    () => new Map()
-  )
-  const inputHandler = React.useRef<((search: string) => void) | undefined>(undefined)
+    () => new Map(),
+  );
+  const inputHandler = React.useRef<((search: string) => void) | undefined>(
+    undefined,
+  );
 
-  const effectiveSearch = controlledSearch ?? search
+  const effectiveSearch = controlledSearch ?? search;
 
   const register = React.useCallback((id: string, item: RegisteredItem) => {
     setItems((prev) => {
-      const next = new Map(prev)
-      next.set(id, item)
-      return next
-    })
+      const next = new Map(prev);
+      next.set(id, item);
+      return next;
+    });
     return () =>
       setItems((prev) => {
-        const next = new Map(prev)
-        next.delete(id)
-        return next
-      })
-  }, [])
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+  }, []);
 
   const isVisible = React.useCallback(
     (item: RegisteredItem) =>
       !shouldFilter || filter(item.value, effectiveSearch, item.keywords) > 0,
-    [shouldFilter, filter, effectiveSearch]
-  )
+    [shouldFilter, filter, effectiveSearch],
+  );
 
-  let visibleCount = 0
-  for (const item of items.values()) if (isVisible(item)) visibleCount++
+  let visibleCount = 0;
+  for (const item of items.values()) if (isVisible(item)) visibleCount++;
 
   const ctx = React.useMemo<CommandContextValue>(
     () => ({
@@ -109,12 +117,12 @@ function Command({
       register,
       visibleCount,
       setInputHandler: (handler) => {
-        inputHandler.current = handler
+        inputHandler.current = handler;
       },
       setControlledSearch,
     }),
-    [effectiveSearch, isVisible, register, visibleCount]
-  )
+    [effectiveSearch, isVisible, register, visibleCount],
+  );
 
   return (
     <CommandContext.Provider value={ctx}>
@@ -128,9 +136,9 @@ function Command({
           // En cmdk la búsqueda solo la cambia quien teclea. Base UI 1.8, en
           // inline, no escribe el item elegido en el input (medido: solo
           // llega `input-change`); el guard es por si una versión lo hace.
-          if (details.reason === "item-press") return
-          setSearch(value)
-          inputHandler.current?.(value)
+          if (details.reason === "item-press") return;
+          setSearch(value);
+          inputHandler.current?.(value);
         }}
       >
         <div
@@ -138,7 +146,7 @@ function Command({
           aria-label={label}
           className={cn(
             "flex size-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-            className
+            className,
           )}
           {...props}
         >
@@ -146,7 +154,7 @@ function Command({
         </div>
       </AutocompletePrimitive.Root>
     </CommandContext.Provider>
-  )
+  );
 }
 
 function CommandDialog({
@@ -157,11 +165,11 @@ function CommandDialog({
   showCloseButton = true,
   ...props
 }: Omit<React.ComponentProps<typeof Dialog>, "children"> & {
-  children?: React.ReactNode
-  title?: string
-  description?: string
-  className?: string
-  showCloseButton?: boolean
+  children?: React.ReactNode;
+  title?: string;
+  description?: string;
+  className?: string;
+  showCloseButton?: boolean;
 }) {
   return (
     <Dialog {...props}>
@@ -178,7 +186,7 @@ function CommandDialog({
         </Command>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 type CommandInputProps = Omit<
@@ -186,22 +194,27 @@ type CommandInputProps = Omit<
   "value" | "defaultValue" | "onValueChange"
 > & {
   /** Búsqueda controlada, como en cmdk. */
-  value?: string
+  value?: string;
   /** Se llama con el texto que teclea el usuario (no al elegir un item). */
-  onValueChange?: (search: string) => void
-}
+  onValueChange?: (search: string) => void;
+};
 
-function CommandInput({ className, value, onValueChange, ...props }: CommandInputProps) {
-  const { setInputHandler, setControlledSearch } = useCommand("CommandInput")
+function CommandInput({
+  className,
+  value,
+  onValueChange,
+  ...props
+}: CommandInputProps) {
+  const { setInputHandler, setControlledSearch } = useCommand("CommandInput");
 
   React.useEffect(() => {
-    setInputHandler(onValueChange)
-    return () => setInputHandler(undefined)
-  }, [onValueChange, setInputHandler])
+    setInputHandler(onValueChange);
+    return () => setInputHandler(undefined);
+  }, [onValueChange, setInputHandler]);
 
   React.useEffect(() => {
-    setControlledSearch(value)
-  }, [value, setControlledSearch])
+    setControlledSearch(value);
+  }, [value, setControlledSearch]);
 
   return (
     <div
@@ -213,30 +226,33 @@ function CommandInput({ className, value, onValueChange, ...props }: CommandInpu
         data-slot="command-input"
         className={cn(
           "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          className,
         )}
         {...props}
       />
     </div>
-  )
+  );
 }
 
-function CommandList({ className, ...props }: AutocompletePrimitive.List.Props) {
+function CommandList({
+  className,
+  ...props
+}: AutocompletePrimitive.List.Props) {
   return (
     <AutocompletePrimitive.List
       data-slot="command-list"
       className={cn(
         "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function CommandEmpty({ className, ...props }: React.ComponentProps<"div">) {
-  const { visibleCount } = useCommand("CommandEmpty")
-  if (visibleCount > 0) return null
+  const { visibleCount } = useCommand("CommandEmpty");
+  if (visibleCount > 0) return null;
   return (
     <div
       data-slot="command-empty"
@@ -244,7 +260,7 @@ function CommandEmpty({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("py-6 text-center text-sm", className)}
       {...props}
     />
-  )
+  );
 }
 
 function CommandGroup({
@@ -259,7 +275,7 @@ function CommandGroup({
       className={cn(
         // Como en cmdk: un grupo sin items visibles no se pinta.
         "overflow-hidden p-1 text-foreground not-has-data-[slot=command-item]:hidden",
-        className
+        className,
       )}
       {...props}
     >
@@ -273,7 +289,7 @@ function CommandGroup({
       )}
       {children}
     </AutocompletePrimitive.Group>
-  )
+  );
 }
 
 function CommandSeparator({
@@ -281,15 +297,15 @@ function CommandSeparator({
   alwaysRender = false,
   ...props
 }: AutocompletePrimitive.Separator.Props & { alwaysRender?: boolean }) {
-  const { search } = useCommand("CommandSeparator")
-  if (search && !alwaysRender) return null
+  const { search } = useCommand("CommandSeparator");
+  if (search && !alwaysRender) return null;
   return (
     <AutocompletePrimitive.Separator
       data-slot="command-separator"
       className={cn("-mx-1 h-px bg-border", className)}
       {...props}
     />
-  )
+  );
 }
 
 type CommandItemProps = Omit<
@@ -297,10 +313,10 @@ type CommandItemProps = Omit<
   "value" | "onSelect"
 > & {
   /** Lo que se filtra y lo que recibe `onSelect`, tal cual (sin pasar a minúsculas). */
-  value: string
-  keywords?: string[]
-  onSelect?: (value: string) => void
-}
+  value: string;
+  keywords?: string[];
+  onSelect?: (value: string) => void;
+};
 
 function CommandItem({
   className,
@@ -310,43 +326,49 @@ function CommandItem({
   onClick,
   ...props
 }: CommandItemProps) {
-  const { register, isVisible } = useCommand("CommandItem")
-  const id = React.useId()
-  const keywordsKey = keywords?.join("\u0000")
+  const { register, isVisible } = useCommand("CommandItem");
+  const id = React.useId();
+  const keywordsKey = keywords?.join("\u0000");
 
   React.useLayoutEffect(
     () => register(id, { value, keywords }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [id, value, keywordsKey, register]
-  )
+    [id, value, keywordsKey, register],
+  );
 
-  if (!isVisible({ value, keywords })) return null
+  if (!isVisible({ value, keywords })) return null;
 
   return (
     <AutocompletePrimitive.Item
       data-slot="command-item"
       value={value}
       onClick={(event) => {
-        onClick?.(event)
-        if (!props.disabled) onSelect?.(value)
+        onClick?.(event);
+        if (!props.disabled) onSelect?.(value);
       }}
       className={cn(
         "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
-function CommandShortcut({ className, ...props }: React.ComponentProps<"span">) {
+function CommandShortcut({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="command-shortcut"
-      className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)}
+      className={cn(
+        "ml-auto text-xs tracking-widest text-muted-foreground",
+        className,
+      )}
       {...props}
     />
-  )
+  );
 }
 
 export {
@@ -359,4 +381,4 @@ export {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-}
+};

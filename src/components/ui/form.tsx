@@ -24,15 +24,15 @@
  * FieldLabel, FieldDescription, FieldError) come from the standard
  * shadcn `field.tsx`.
  */
-import * as React from 'react';
+import * as React from "react";
 import {
   Controller,
   FormProvider,
   type ControllerProps,
   type FieldPath,
   type FieldValues,
-} from 'react-hook-form';
-import { useRender } from '@base-ui/react/use-render';
+} from "react-hook-form";
+import { useRender } from "@base-ui/react/use-render";
 
 /**
  * EL ESTADO DEL CAMPO, PARA QUE FormControl PUEDA PONER `aria-invalid`.
@@ -77,7 +77,7 @@ export function FormField<
   );
 }
 
-export interface FormControlProps extends React.ComponentProps<'div'> {
+export interface FormControlProps extends React.ComponentProps<"div"> {
   children?: React.ReactElement;
 }
 
@@ -88,33 +88,39 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>(
       render: children as React.ReactElement,
       // Primero el de FormField; un aria-invalid en FormControl lo pisa, y uno
       // puesto en el propio hijo gana a los dos (useRender fusiona el hijo último).
-      props: { ...(campo?.invalid ? { 'aria-invalid': true } : null), ...props },
+      props: {
+        ...(campo?.invalid ? { "aria-invalid": true } : null),
+        ...props,
+      },
       ref: ref as React.Ref<HTMLElement>,
     });
   },
 );
 
-export const FormItem = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'>>(
-  function FormItem({ className, ...props }, ref) {
-    return <div ref={ref} className={className} {...props} />;
-  },
-);
+export const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function FormItem({ className, ...props }, ref) {
+  return <div ref={ref} className={className} {...props} />;
+});
 
-export const FormLabel = React.forwardRef<HTMLLabelElement, React.ComponentProps<'label'>>(
-  function FormLabel({ className, ...props }, ref) {
-    return <label ref={ref} className={className} {...props} />;
-  },
-);
+export const FormLabel = React.forwardRef<
+  HTMLLabelElement,
+  React.ComponentProps<"label">
+>(function FormLabel({ className, ...props }, ref) {
+  return <label ref={ref} className={className} {...props} />;
+});
 
-export const FormMessage = React.forwardRef<HTMLParagraphElement, React.ComponentProps<'p'>>(
-  function FormMessage({ className, children, ...props }, ref) {
-    if (!children) return null;
-    return (
-      <p ref={ref} className={className} {...props}>
-        {children}
-      </p>
-    );
-  },
-);
+export const FormMessage = React.forwardRef<
+  HTMLParagraphElement,
+  React.ComponentProps<"p">
+>(function FormMessage({ className, children, ...props }, ref) {
+  if (!children) return null;
+  return (
+    <p ref={ref} className={className} {...props}>
+      {children}
+    </p>
+  );
+});
 
 export const FormDescription = FormMessage;
