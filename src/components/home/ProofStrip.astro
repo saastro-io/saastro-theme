@@ -1,0 +1,66 @@
+---
+/**
+ * ProofStrip — sección `proof`: la franja de datos bajo el hero.
+ * Local: el adaptador recorre `items` él mismo, así cada par es editable.
+ */
+interface Props {
+  items: { label: string; value: string }[];
+  fieldPrefix?: string;
+}
+
+const { items, fieldPrefix = 'proof' } = Astro.props;
+---
+
+<div class="strip">
+  <div class="wrap strip-in">
+    {items.map((item) => (
+      <div>
+        <span class="k">{item.label}</span>
+        <span class="v">{item.value}</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .strip {
+    border-top: 1px solid var(--ds-border);
+    border-bottom: 1px solid var(--ds-border);
+    background: var(--ds-bg-sunken);
+  }
+  .strip-in {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .strip-in > div {
+    padding: 20px 16px;
+    border-left: 1px solid var(--ds-border);
+    display: grid;
+    gap: 6px;
+  }
+  .strip-in > div:first-child {
+    border-left: none;
+  }
+  .k {
+    font-family: var(--ds-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ds-fg-subtle);
+  }
+  .v {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  @media (max-width: 1000px) {
+    .strip-in { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .strip-in > div:nth-child(4) { border-left: none; }
+    .strip-in > div:nth-child(n + 4) { border-top: 1px solid var(--ds-border); }
+  }
+  @media (max-width: 560px) {
+    .strip-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .strip-in > div { border-left: none !important; border-top: 1px solid var(--ds-border); }
+    .strip-in > div:nth-child(even) { border-left: 1px solid var(--ds-border) !important; }
+    .strip-in > div:nth-child(-n + 2) { border-top: none; }
+  }
+</style>

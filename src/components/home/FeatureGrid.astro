@@ -1,0 +1,106 @@
+---
+/**
+ * FeatureGrid — sección `features`: lo que trae cada site.
+ *
+ * Local y no `features-01`: las tarjetas llevan etiquetas y algunas ocupan dos
+ * columnas (`wide`), que el bloque no tiene, y con el bloque su texto no sería
+ * editable. `icon` es el nombre de un icono de Tabler (sin prefijo).
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Item {
+  icon: string;
+  title: string;
+  description: string;
+  tags?: string[];
+  wide?: boolean;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  items: Item[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, description, items, fieldPrefix = 'features' } = Astro.props;
+---
+
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h2>{title}</h2>
+      {description && <p>{description}</p>}
+    </div>
+    <div class="feat">
+      {items.map((item) => (
+        <div class:list={['ds-card', 'card', { wide: item.wide }]}>
+          <span class="ic"><Icon name={`tabler:${item.icon}`} aria-hidden="true" /></span>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+          {item.tags && item.tags.length > 0 && (
+            <div class="tags">
+              {item.tags.map((tag) => <span class="ds-badge">{tag}</span>)}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .feat {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .card.wide {
+    grid-column: span 2;
+  }
+  .ic {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    background: var(--ds-bg-sunken);
+    box-shadow: var(--ds-shadow-ring);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ic :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 0 0;
+    letter-spacing: -0.01em;
+  }
+  p {
+    font-size: 14px;
+    color: var(--ds-fg-muted);
+    text-wrap: pretty;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  @media (max-width: 1000px) {
+    .feat { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .feat { grid-template-columns: 1fr; }
+    .card.wide { grid-column: auto; }
+  }
+</style>

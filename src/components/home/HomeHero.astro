@@ -1,0 +1,193 @@
+---
+/**
+ * HomeHero — sección `hero` de la home comercial de theme.saastro.io.
+ *
+ * LOCAL, no bloque del registry (mapa en `knowledge/src.md`): todo su texto
+ * lo pinta este fichero, que es el que declara `fieldPrefix`, así que el
+ * plugin de Studio lo instrumenta entero. El titular va en DOS props
+ * (`title` y `titleMuted`), no en un array: el acceso por índice no se
+ * instrumenta (medido en `StatementSection`).
+ *
+ * La maqueta de Studio es una isla (`StudioMock.tsx`) porque es interactiva:
+ * su copy viene de `hero.mock` y es una DEMO, no contenido editable.
+ */
+import { Icon } from 'astro-icon/components';
+import { StudioMock, type StudioMockCopy } from './StudioMock';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  titleMuted?: string;
+  subtitle: string;
+  primaryCta: string;
+  primaryHref: string;
+  secondaryCta?: string;
+  secondaryHref?: string;
+  mockNote?: string;
+  mock: StudioMockCopy;
+  fieldPrefix?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  titleMuted,
+  subtitle,
+  primaryCta,
+  primaryHref,
+  secondaryCta,
+  secondaryHref,
+  mockNote,
+  mock,
+  fieldPrefix = 'hero',
+} = Astro.props;
+---
+
+<section class="hero" id="top">
+  <div class="dot-grid hero-dots" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h1>{title} {titleMuted && <span class="muted">{titleMuted}</span>}</h1>
+      <p class="sub">{subtitle}</p>
+      <div class="ctas">
+        <a class="ds-btn ds-btn-primary" href={primaryHref}>
+          {primaryCta}
+          <Icon name="tabler:arrow-right" aria-hidden="true" />
+        </a>
+        {secondaryCta && secondaryHref && (
+          <a class="ds-btn ds-btn-secondary" href={secondaryHref} target="_blank" rel="noopener">
+            {secondaryCta}
+            <Icon name="tabler:arrow-up-right" aria-hidden="true" />
+          </a>
+        )}
+      </div>
+    </div>
+    <div class="frame-wrap">
+      <span class="rule-x" aria-hidden="true"></span>
+      <span class="rule-y l" aria-hidden="true"></span>
+      <span class="rule-y r" aria-hidden="true"></span>
+      <span class="ch tl" aria-hidden="true"></span>
+      <span class="ch tr" aria-hidden="true"></span>
+      <span class="ch bl" aria-hidden="true"></span>
+      <span class="ch br" aria-hidden="true"></span>
+      <StudioMock copy={mock} client:visible />
+    </div>
+    {mockNote && <p class="mock-note">{mockNote}</p>}
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 96px 0 64px;
+    overflow: hidden;
+  }
+  .hero-dots {
+    opacity: 0.55;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, oklch(0 0 0) 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, oklch(0 0 0) 30%, transparent 100%);
+  }
+  .hero-copy {
+    position: relative;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 24px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(42px, 7vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 .muted {
+    color: var(--ds-fg-subtle);
+  }
+  .sub {
+    font-size: 18px;
+    color: var(--ds-fg-muted);
+    max-width: 640px;
+    text-wrap: pretty;
+  }
+  .ctas {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .frame-wrap {
+    position: relative;
+    margin: 64px auto 0;
+    max-width: 1080px;
+  }
+  .ch {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .ch::before,
+  .ch::after {
+    content: '';
+    position: absolute;
+    background: var(--ds-border-strong);
+  }
+  .ch::before {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+  }
+  .ch::after {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    transform: translateY(-50%);
+  }
+  .ch.tl { top: -6px; left: -6px; }
+  .ch.tr { top: -6px; right: -6px; }
+  .ch.bl { bottom: -6px; left: -6px; }
+  .ch.br { bottom: -6px; right: -6px; }
+  .rule-x {
+    position: absolute;
+    top: 0;
+    left: -100vw;
+    right: -100vw;
+    height: 1px;
+    background: var(--ds-border);
+  }
+  .rule-y {
+    position: absolute;
+    top: -64px;
+    bottom: -40px;
+    width: 1px;
+    background: var(--ds-border);
+  }
+  .rule-y.l { left: 0; }
+  .rule-y.r { right: 0; }
+  .mock-note {
+    text-align: center;
+    margin-top: 16px;
+    font-family: var(--ds-font-mono);
+    font-size: 11px;
+    color: var(--ds-fg-subtle);
+    letter-spacing: 0.04em;
+  }
+  @media (max-width: 820px) {
+    .rule-y { display: none; }
+  }
+  @media (max-width: 560px) {
+    .hero { padding: 64px 0 48px; }
+    .ctas { flex-direction: column; align-self: stretch; width: 100%; }
+    .ctas .ds-btn { width: 100%; }
+  }
+</style>

@@ -1,12 +1,12 @@
 {
   "meta": {
-    "title": "Saastro Theme — Astro + React + shadcn/ui",
+    "title": "Saastro Theme — sites your team can edit",
     "description": "A modern Astro theme with shadcn/ui",
     "siteName": "Saastro",
     "ogImage": "/og-image.png",
     "pages": {
       "home": {
-        "description": "A fast, modern Astro starter with React islands, shadcn/ui and i18n — fully editable in the Saastro Studio."
+        "description": "The base we build client sites on: Astro, React islands, and Tailwind 4 on Cloudflare Workers. Your team edits text and images from the Hub."
       },
       "about": {
         "title": "About · Saastro Theme",
@@ -20,135 +20,290 @@
   },
   "nav": {
     "menu": [
-      { "key": "home", "title": "Home" },
-      { "key": "about", "title": "About" },
-      { "key": "blog", "title": "Blog" }
+      {
+        "key": "home",
+        "title": "Home"
+      },
+      {
+        "key": "about",
+        "title": "About"
+      },
+      {
+        "key": "blog",
+        "title": "Blog"
+      }
     ],
     "contact": "Contact"
   },
   "hero": {
-    "eyebrow": "Open Source",
-    "title": ["Build faster", "with Saastro"],
-    "subtitle": "A complete toolkit for web developers. UI components, themes, and CMS — all designed for Astro.",
-    "primaryCta": "Get Started",
-    "secondaryCta": "View on GitHub",
-    "stats": [
-      { "value": "50+", "label": "Components & blocks" },
-      { "value": "100%", "label": "TypeScript" },
-      { "value": "0kb", "label": "Default JS" },
-      { "value": "MIT", "label": "License" }
-    ]
+    "eyebrow": "Saastro Theme",
+    "title": "A fast website your team can edit.",
+    "titleMuted": "No page builder.",
+    "subtitle": "The base we build client sites on: Astro, React islands, and Tailwind 4 on Cloudflare Workers. Your team edits text and images from the Hub — without touching code.",
+    "primaryCta": "Request your site",
+    "secondaryCta": "See the blocks",
+    "mockNote": "Illustrative mock of Saastro Studio — try editing the heading",
+    "mock": {
+      "url": "yourcompany.com",
+      "badge": "Studio",
+      "brand": "Your company",
+      "nav": [
+        "About",
+        "Blog",
+        "Contact"
+      ],
+      "sectionTag": "Hero · editable",
+      "panelTitle": "Hero section",
+      "headingLabel": "Heading",
+      "subheadingLabel": "Subheading",
+      "imageLabel": "Image",
+      "imagePlaceholder": "IMAGE",
+      "replace": "Replace",
+      "unpublished": "Unpublished changes",
+      "publish": "Publish",
+      "published": "Published",
+      "samples": [
+        {
+          "lang": "EN",
+          "heading": "Precise work for teams that ship.",
+          "subheading": "Edit this heading on the right. The preview updates as you type."
+        },
+        {
+          "lang": "ES",
+          "heading": "Trabajo preciso para equipos que entregan.",
+          "subheading": "Edita este titular a la derecha. La vista previa se actualiza al escribir."
+        }
+      ]
+    }
   },
-  "products": {
-    "title": "Everything you need",
-    "subtitle": "A complete ecosystem of tools designed specifically for Astro developers.",
+  "proof": {
     "items": [
       {
-        "name": "UI",
-        "tagline": "Component Library",
-        "description": "50+ accessible components and blocks for Astro. Vanilla JS, zero dependencies, copy-paste ready.",
-        "href": "https://ui.saastro.io",
-        "icon": "squares",
-        "color": "from-blue-500 to-blue-600",
-        "features": ["Vanilla JS", "Tailwind CSS", "Accessible", "Dark mode"]
+        "label": "Framework",
+        "value": "Astro + React islands"
       },
       {
-        "name": "Forms",
-        "tagline": "Form Builder",
-        "description": "Visual form builder with validation, multi-step flows, and submission handling.",
-        "href": "https://forms.saastro.io",
-        "icon": "form",
-        "color": "from-green-500 to-green-600",
-        "features": ["Drag & drop", "Validation", "Multi-step", "Webhooks"]
+        "label": "Styling",
+        "value": "Tailwind 4"
       },
       {
-        "name": "Themes",
-        "tagline": "Theme Catalog",
-        "description": "Production-ready Astro themes. Landing pages, blogs, portfolios, and more.",
-        "href": "https://themes.saastro.io",
-        "icon": "palette",
-        "color": "from-purple-500 to-purple-600",
-        "features": ["Free & Pro", "Responsive", "SEO ready", "Fast"]
+        "label": "Runtime",
+        "value": "Cloudflare Workers"
       },
       {
-        "name": "CMS",
-        "tagline": "Headless CMS",
-        "description": "Content management for Astro sites. Self-hosted or cloud, your choice.",
-        "href": "https://cms.saastro.io",
-        "icon": "database",
-        "color": "from-orange-500 to-orange-600",
-        "badge": "Coming Soon",
-        "features": ["Markdown", "Media library", "API", "Plugins"]
+        "label": "Languages",
+        "value": "EN / ES"
+      },
+      {
+        "label": "SEO",
+        "value": "JSON-LD · OG · hreflang"
+      },
+      {
+        "label": "Ownership",
+        "value": "Your repo"
+      }
+    ]
+  },
+  "problem": {
+    "eyebrow": "The problem",
+    "title": "Editable or well-built. Most websites make you pick one.",
+    "items": [
+      {
+        "title": "Page builders",
+        "description": "Easy to edit, but your site lives inside someone else’s platform."
+      },
+      {
+        "title": "Hand-coded sites",
+        "description": "Fast and clean, but every text change becomes a developer ticket."
+      },
+      {
+        "title": "The usual compromise",
+        "description": "Teams end up choosing between control of the content and quality of the site."
       }
     ]
   },
   "how": {
-    "eyebrow": "How it works",
-    "title": "Three steps and you are live",
-    "description": "No setup call, no migration project. Connect, configure, publish.",
+    "eyebrow": "How it works · 3 steps",
+    "title": "From brief to a site your team runs.",
     "steps": [
       {
-        "title": "Connect your repo",
-        "description": "Point Saastro at a GitHub repository. It reads what is there \u2014 no rewrite, no lock-in."
+        "title": "We build your site",
+        "description": "We assemble it on Saastro Theme, from blocks in the ui.saastro.io registry."
       },
       {
-        "title": "Configure the content",
-        "description": "Collections, locales and forms are declared once. The editor picks them up on the next load."
+        "title": "It ships on Cloudflare Workers",
+        "description": "Astro renders the pages; React islands handle the interactive parts."
       },
       {
-        "title": "Publish",
-        "description": "Every push builds and deploys. Rolling back is a redeploy of the previous version."
+        "title": "Your team edits it",
+        "description": "Every section is wired to Saastro Studio. Text and images change from the Hub, not from code."
       }
     ]
   },
-  "trust": {
-    "left": "Replace five tools",
-    "middle": "Saastro",
-    "right": "One place for content, forms and deploys"
-  },
-  "statement": {
-    "eyebrow": "The problem",
-    "headline": ["Your site is a project.", "It should be a page you edit."],
-    "description": "Every copy change becomes a ticket, a branch and a deploy. That is why nothing gets changed.",
-    "points": [
-      {
-        "description": "The person who writes the copy is not the person who can publish it."
-      },
-       {
-        "description": "So the site stays as it was launched, and the launch was a year ago."
-      }
-    ]
-  },
-  "manifesto": {
-    "eyebrow": "Built for",
-    "title": "Teams that ship their own words",
-    "description": "Not an agency retainer. Not a page builder that owns your markup.",
-    "manifesto": "The repository stays yours, the content lives in your locales, and the editor is a layer on top — not a place your site gets trapped in.",
+  "features": {
+    "eyebrow": "Features",
+    "title": "What every site ships with.",
+    "description": "Included in the base — not plugins you add later.",
     "items": [
-      { "title": "You own it", "description": "Your repo, your history, your deploys. Leaving is a git clone, not a migration project." },
-      { "title": "Made to last", "description": "Zero-JS blocks, typed props and a build-time contract that fails when a section stops being editable." }
+      {
+        "icon": "pencil",
+        "title": "Edited from the Hub",
+        "description": "Every section is instrumented for Saastro Studio. Your team changes text and images without touching code.",
+        "tags": [
+          "Saastro Studio"
+        ],
+        "wide": true
+      },
+      {
+        "icon": "world",
+        "title": "Bilingual by default",
+        "description": "English and Spanish out of the box, with hreflang between versions.",
+        "tags": [
+          "EN",
+          "ES"
+        ]
+      },
+      {
+        "icon": "file-text",
+        "title": "Blog and legal pages",
+        "description": "Posts and legal pages are content collections, not one-off pages.",
+        "tags": [
+          "Collections"
+        ]
+      },
+      {
+        "icon": "mail",
+        "title": "Leads go to your CRM",
+        "description": "The contact form sends every lead to the CRM, through Hub → gen.",
+        "tags": [
+          "Hub → gen"
+        ]
+      },
+      {
+        "icon": "shield-check",
+        "title": "Real cookie consent",
+        "description": "GA4 and GTM load only after the visitor accepts. Not before.",
+        "tags": [
+          "GA4",
+          "GTM"
+        ]
+      },
+      {
+        "icon": "search",
+        "title": "SEO built in",
+        "description": "Structured data, Open Graph tags, and hreflang on every page.",
+        "tags": [
+          "JSON-LD",
+          "OG",
+          "hreflang"
+        ]
+      },
+      {
+        "icon": "moon",
+        "title": "Dark mode",
+        "description": "Light and dark themes ship with the site.",
+        "tags": []
+      },
+      {
+        "icon": "stack-2",
+        "title": "Registry blocks",
+        "description": "Sections come from the ui.saastro.io block registry.",
+        "tags": [
+          "ui.saastro.io"
+        ],
+        "wide": true
+      }
     ]
   },
   "compare": {
-    "eyebrow": "Why not a builder",
-    "title": "The same five decisions, made the other way around",
-    "description": "What you give up with a hosted builder, and what you keep here.",
-    "labels": { "left": "Hosted builder", "right": "Saastro" },
+    "eyebrow": "Compare",
+    "title": "Saastro Theme vs a page builder.",
+    "labelUs": "Saastro Theme",
+    "labelThem": "Typical page builder",
+    "labelThemShort": "Page builder",
     "rows": [
-      { "left": "Your markup lives in their database.", "right": "Your markup lives in your repository." },
-      { "left": "The editor decides what is possible.", "right": "The blocks are code you can read." },
-      { "left": "Leaving means rebuilding.", "right": "Leaving means cloning." },
-      { "left": "One language, or a plugin.", "right": "Locales are first-class." },
-      { "left": "Their uptime is your uptime.", "right": "It deploys to your own account." }
+      {
+        "label": "Editing",
+        "us": "Text and images from the Hub, via Saastro Studio",
+        "them": "Visual editor inside the builder"
+      },
+      {
+        "label": "Stack",
+        "us": "Astro, React islands, and Tailwind 4",
+        "them": "The builder’s own runtime"
+      },
+      {
+        "label": "Hosting",
+        "us": "Cloudflare Workers",
+        "them": "Usually the builder’s hosting"
+      },
+      {
+        "label": "Languages",
+        "us": "EN / ES out of the box",
+        "them": "Often an add-on or plugin"
+      },
+      {
+        "label": "Cookies",
+        "us": "GA4 / GTM load only after consent",
+        "them": "Depends on plugins and setup"
+      },
+      {
+        "label": "Leads",
+        "us": "Contact form straight to the CRM (Hub → gen)",
+        "them": "Third-party form integrations"
+      },
+      {
+        "label": "Leaving",
+        "us": "A git clone. The repo is yours.",
+        "them": "Export options vary by platform"
+      }
     ]
   },
-  "cta": {
-    "eyebrow": "Get started",
-    "title": "Put the first page up this afternoon",
-    "description": "Scaffold from this theme, connect the repo, and publish.",
-    "primaryCta": "Read the docs",
-    "secondaryCta": "See the blocks",
-    "notes": ["MIT licensed. No account required to try it."]
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Questions, answered.",
+    "askPrefix": "Something else?",
+    "askLink": "Ask us directly.",
+    "items": [
+      {
+        "question": "What is Saastro Theme?",
+        "answer": "The base we build client sites on: Astro with React islands and Tailwind 4, deployed on Cloudflare Workers, with blocks from the ui.saastro.io registry."
+      },
+      {
+        "question": "Can my team edit the site without a developer?",
+        "answer": "Yes. Every section is instrumented for Saastro Studio, so your team edits text and images from the Hub without touching code."
+      },
+      {
+        "question": "Who owns the code?",
+        "answer": "You do. The repository belongs to the client. Leaving is a git clone."
+      },
+      {
+        "question": "How are cookies and analytics handled?",
+        "answer": "The site ships with a cookie banner that records real consent. GA4 and GTM load only after the visitor accepts."
+      },
+      {
+        "question": "Where do contact form leads go?",
+        "answer": "Straight to the CRM, through Hub → gen. No separate form service to wire up."
+      }
+    ]
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Request your site.",
+    "description": "Tell us about your business or agency and the site you need.",
+    "points": [
+      "Built on Astro, React islands, and Tailwind 4",
+      "Your team edits it from the Hub",
+      "The repo is yours"
+    ],
+    "notConnected": "The request form isn’t connected yet. Please check back soon."
+  },
+  "final": {
+    "eyebrow": "Saastro Theme",
+    "title": "Your site. Your repo. Your team editing it.",
+    "code": "$ git clone — that’s the whole exit plan",
+    "primaryCta": "Request your site",
+    "secondaryCta": "See the blocks"
   },
   "about": {
     "title": "About",
@@ -160,9 +315,18 @@
     "values": {
       "title": "Our Values",
       "items": [
-        { "title": "Open Source", "description": "We build in public and share our work freely." },
-        { "title": "Developer First", "description": "Every decision starts with the developer experience." },
-        { "title": "Performance", "description": "Ship less JavaScript, load faster, rank higher." }
+        {
+          "title": "Open Source",
+          "description": "We build in public and share our work freely."
+        },
+        {
+          "title": "Developer First",
+          "description": "Every decision starts with the developer experience."
+        },
+        {
+          "title": "Performance",
+          "description": "Ship less JavaScript, load faster, rank higher."
+        }
       ]
     }
   },
@@ -170,15 +334,20 @@
     "copyright": "All rights reserved.",
     "legalLabel": "Legal",
     "legal": [
-      { "key": "privacy", "title": "Privacy Policy" },
-      { "key": "terms", "title": "Terms of Service" },
-      { "key": "cookies", "title": "Cookie Policy" }
+      {
+        "key": "privacy",
+        "title": "Privacy Policy"
+      },
+      {
+        "key": "terms",
+        "title": "Terms of Service"
+      },
+      {
+        "key": "cookies",
+        "title": "Cookie Policy"
+      }
     ],
     "manageCookies": "Manage cookies"
-  },
-  "announcement": {
-    "text": "Saastro Theme is now available",
-    "badge": "NEW"
   },
   "contactForm": {
     "sheetTitle": "Contact us",

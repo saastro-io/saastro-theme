@@ -32,7 +32,7 @@ export interface Translations {
     legal: { key: string; title: string }[];
     manageCookies: string;
   };
-  announcement: {
+  announcement?: {
     text: string;
     badge: string;
   };
