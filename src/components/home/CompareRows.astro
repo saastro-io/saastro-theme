@@ -1,0 +1,147 @@
+---
+/**
+ * CompareRows — sección `compare` de la home comercial: tres columnas
+ * (aspecto · Saastro Theme · un page builder típico).
+ *
+ * Local y no `compare-01`: ese bloque compara DOS columnas sin columna de
+ * etiqueta, y con él las filas no serían editables. En móvil cada fila se
+ * apila y repite el nombre de la columna (`.cmp-m`), porque la cabecera se
+ * oculta.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Row {
+  label: string;
+  us: string;
+  them: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  labelUs: string;
+  labelThem: string;
+  /** La etiqueta corta que repite cada celda en móvil. */
+  labelThemShort: string;
+  rows: Row[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, labelUs, labelThem, labelThemShort, rows, fieldPrefix = 'compare' } = Astro.props;
+---
+
+<section class="sec" id="compare">
+  <div class="wrap">
+    <div class="sec-head">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h2>{title}</h2>
+    </div>
+    <div class="cmp" role="table">
+      <div class="cmp-row cmp-head" role="row">
+        <div role="columnheader"></div>
+        <div role="columnheader">{labelUs}</div>
+        <div role="columnheader">{labelThem}</div>
+      </div>
+      {rows.map((row) => (
+        <div class="cmp-row" role="row">
+          <div class="lbl" role="rowheader">{row.label}</div>
+          <div class="us" role="cell">
+            <span class="cmp-m" aria-hidden="true">{labelUs}</span>
+            <Icon name="tabler:check" aria-hidden="true" />
+            <span>{row.us}</span>
+          </div>
+          <div class="them" role="cell">
+            <span class="cmp-m" aria-hidden="true">{labelThemShort}</span>
+            <Icon name="tabler:minus" aria-hidden="true" />
+            <span>{row.them}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cmp {
+    border-radius: 10px;
+    box-shadow: var(--ds-shadow-ring), var(--ds-shadow-sm);
+    overflow: hidden;
+    background: var(--ds-bg-elevated);
+  }
+  .cmp-row {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr);
+    border-top: 1px solid var(--ds-border);
+  }
+  .cmp-row:first-child {
+    border-top: none;
+  }
+  .cmp-row > div {
+    padding: 16px 20px;
+    font-size: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .cmp-row > div + div {
+    border-left: 1px solid var(--ds-border);
+  }
+  .cmp-head {
+    background: var(--ds-bg-sunken);
+  }
+  .cmp-head > div {
+    font-family: var(--ds-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ds-fg-muted);
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .lbl {
+    color: var(--ds-fg-muted);
+  }
+  .us {
+    font-weight: 500;
+  }
+  .them {
+    color: var(--ds-fg-muted);
+  }
+  .cmp-row :global(svg) {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 3px;
+  }
+  .cmp-m {
+    display: none;
+    font-family: var(--ds-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ds-fg-subtle);
+    margin-bottom: 4px;
+  }
+  @media (max-width: 820px) {
+    .cmp-row { grid-template-columns: 1fr; }
+    .cmp-row > div + div { border-left: none; }
+    .lbl {
+      padding-bottom: 0 !important;
+      font-family: var(--ds-font-mono);
+      font-size: 10.5px !important;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ds-fg) !important;
+    }
+    .us { padding-bottom: 6px !important; }
+    .us,
+    .them {
+      display: grid !important;
+      grid-template-columns: 14px minmax(0, 1fr);
+      column-gap: 10px;
+      row-gap: 0;
+    }
+    .cmp-m { display: block; grid-column: 1 / -1; }
+    .cmp-head { display: none; }
+  }
+</style>

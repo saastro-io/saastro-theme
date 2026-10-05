@@ -1,0 +1,67 @@
+---
+/**
+ * ProblemGrid — sección `problem`: tres celdas con el problema.
+ * Local: ningún bloque del registry pinta «cabecera + tres celdas unidas por
+ * filetes», y el adaptador recorre `items` para que sean editables.
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  items: { title: string; description: string }[];
+  fieldPrefix?: string;
+}
+
+const { eyebrow, title, items, fieldPrefix = 'problem' } = Astro.props;
+---
+
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h2>{title}</h2>
+    </div>
+    <div class="prob">
+      {items.map((item) => (
+        <div>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .prob {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: 10px;
+    box-shadow: var(--ds-shadow-ring);
+    overflow: hidden;
+  }
+  .prob > div {
+    padding: 28px;
+    border-left: 1px solid var(--ds-border);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .prob > div:first-child {
+    border-left: none;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  p {
+    color: var(--ds-fg-muted);
+    font-size: 14px;
+  }
+  @media (max-width: 820px) {
+    .prob { grid-template-columns: 1fr; }
+    .prob > div { border-left: none; border-top: 1px solid var(--ds-border); }
+    .prob > div:first-child { border-top: none; }
+  }
+</style>

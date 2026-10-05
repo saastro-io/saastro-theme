@@ -1,0 +1,111 @@
+---
+/**
+ * RequestSite — sección `contact`: «Request your site» con el HubForm en línea.
+ *
+ * El formulario NO se dibuja aquí: es el HubForm del site (`RequestSiteForm`,
+ * el mismo que abre el botón de contacto del Header). Si el site aún no está
+ * conectado al Hub (`forms.siteId` vacío) se pinta `notConnected` en su lugar
+ * y no se monta nada que pueda enviar.
+ */
+import { Icon } from 'astro-icon/components';
+import { getSettings } from '@/lib/settings';
+import type { Locale } from '@/i18n/config';
+import { RequestSiteForm } from './RequestSiteForm';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  points?: string[];
+  notConnected: string;
+  locale: Locale;
+  fieldPrefix?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  description,
+  points = [],
+  notConnected,
+  locale,
+  fieldPrefix = 'contact',
+} = Astro.props;
+
+const { siteId, contactFormSlug } = getSettings().forms;
+---
+
+<section class="sec" id="contact">
+  <div class="wrap contact">
+    <div>
+      <div class="sec-head">
+        {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+        <h2>{title}</h2>
+        {description && <p>{description}</p>}
+      </div>
+      {points.length > 0 && (
+        <ul>
+          {points.map((point) => (
+            <li>
+              <Icon name="tabler:check" aria-hidden="true" />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    <div class="ds-card form-card">
+      {siteId ? (
+        <RequestSiteForm locale={locale} siteId={siteId} formSlug={contactFormSlug} client:only="react" />
+      ) : (
+        <p class="not-connected">{notConnected}</p>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .contact .sec-head {
+    margin-bottom: 0;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    display: grid;
+    gap: 12px;
+  }
+  li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14px;
+    color: var(--ds-fg-muted);
+  }
+  li :global(svg) {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 3px;
+    color: var(--ds-fg);
+  }
+  .form-card {
+    padding: 28px;
+  }
+  .not-connected {
+    color: var(--ds-fg-muted);
+    font-size: 14px;
+  }
+  @media (max-width: 1000px) {
+    .contact { grid-template-columns: 1fr; gap: 32px; }
+  }
+  @media (max-width: 560px) {
+    .form-card { padding: 20px; }
+  }
+</style>

@@ -1,0 +1,109 @@
+---
+/**
+ * FaqList — sección `faq`: preguntas frecuentes con `<details>`, cero JS.
+ * Local, como `LandingFaq` (mapa en `knowledge/src.md`): `faq-02` no aporta
+ * nada técnico y con él las preguntas no serían editables. La primera sale
+ * abierta, como en el diseño.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  askPrefix?: string;
+  askLink?: string;
+  askHref?: string;
+  items: { question: string; answer: string }[];
+  fieldPrefix?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  askPrefix,
+  askLink,
+  askHref = '#contact',
+  items,
+  fieldPrefix = 'faq',
+} = Astro.props;
+---
+
+<section class="sec" id="faq">
+  <div class="wrap faq-grid">
+    <div class="sec-head">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h2>{title}</h2>
+      {(askPrefix || askLink) && (
+        <p>{askPrefix} {askLink && <a href={askHref}>{askLink}</a>}</p>
+      )}
+    </div>
+    <div class="faq">
+      {items.map((item, i) => (
+        <details open={i === 0}>
+          <summary>
+            <span>{item.question}</span>
+            <span class="pm" aria-hidden="true"><Icon name="tabler:plus" /></span>
+          </summary>
+          <p>{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 48px;
+  }
+  .faq-grid .sec-head {
+    margin-bottom: 0;
+    align-content: start;
+  }
+  .faq {
+    border-top: 1px solid var(--ds-border);
+  }
+  details {
+    border-bottom: 1px solid var(--ds-border);
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .pm {
+    flex: none;
+    display: inline-flex;
+    transition: transform 160ms var(--ds-ease);
+    color: var(--ds-fg-muted);
+  }
+  .pm :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  details[open] .pm {
+    transform: rotate(45deg);
+  }
+  details p {
+    padding: 0 40px 22px 0;
+    color: var(--ds-fg-muted);
+    text-wrap: pretty;
+  }
+  @media (max-width: 1000px) {
+    .faq-grid { grid-template-columns: 1fr; gap: 32px; }
+  }
+  @media (max-width: 560px) {
+    details p { padding-right: 0; }
+  }
+</style>
