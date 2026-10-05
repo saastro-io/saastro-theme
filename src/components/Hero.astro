@@ -27,12 +27,26 @@ const {
   secondaryCta,
   fieldPrefix = 'hero',
 } = Astro.props;
+
+// Dos modos, y ninguno depende de colores invertidos:
+// - CON imagen: la sección lleva la clase `dark`, así que todo lo de dentro usa
+// los tokens oscuros (texto claro, botones de modo oscuro) sobre un velo
+// `bg-background/70`. Se lee igual en claro y en oscuro: la foto manda.
+// - SIN imagen: superficie normal (`bg-muted/40`, texto `foreground`), sin la
+// altura de 85vh que solo tiene sentido para enseñar una foto.
+// Antes era `bg-foreground` + `text-primary-foreground`: en oscuro el bloque se
+// volvía blanco y los CTA salían blanco sobre blanco / negro sobre negro.
 ---
 
 <section
-  class="relative flex min-h-[85vh] flex-col justify-end overflow-hidden pb-16 pt-32 lg:pb-24"
+  class:list={[
+    'relative flex flex-col overflow-hidden text-foreground',
+    image
+      ? 'dark min-h-[85vh] justify-end pb-16 pt-32 lg:pb-24'
+      : 'bg-muted/40 pb-16 pt-16 lg:pb-24 lg:pt-24',
+  ]}
 >
-  {image ? (
+  {image && (
     <>
       <Img
         src={image}
@@ -46,10 +60,8 @@ const {
         fetchpriority="high"
         raw={!/^https?:\/\//.test(image)}
       />
-      <div class="absolute inset-0 bg-foreground/60"></div>
+      <div class="absolute inset-0 bg-background/70"></div>
     </>
-  ) : (
-    <div class="absolute inset-0 bg-foreground"></div>
   )}
 
   <div class="relative z-10 container mx-auto px-6 lg:px-12">
@@ -59,13 +71,13 @@ const {
       </Badge>
     )}
 
-    <h1 class="font-bold tracking-tight text-primary-foreground leading-[1.05]">
+    <h1 class="font-bold tracking-tight leading-[1.05]">
       {title.map((line) => (
         <span class="block text-[clamp(2.5rem,8vw,5.5rem)]">{line}</span>
       ))}
     </h1>
 
-    <p class="mt-6 max-w-lg text-lg text-primary-foreground/70 leading-relaxed">
+    <p class="mt-6 max-w-lg text-lg text-muted-foreground leading-relaxed">
       {subtitle}
     </p>
 
@@ -77,13 +89,7 @@ const {
           </a>
         )}
         {secondaryCta && (
-          <a
-            href={secondaryCta.href}
-            class={cn(
-              buttonVariants({ variant: 'outline' }),
-              'h-9 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10',
-            )}
-          >
+          <a href={secondaryCta.href} class={cn(buttonVariants({ variant: 'outline' }), 'h-9')}>
             {secondaryCta.label}
           </a>
         )}
@@ -91,13 +97,13 @@ const {
     )}
 
     {stats && stats.length > 0 && (
-      <div class="mt-12 border-t border-primary-foreground/20 pt-10 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12">
+      <div class="mt-12 border-t border-border pt-10 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12">
         {stats.map((stat) => (
           <div>
-            <p class="text-3xl lg:text-4xl font-bold text-primary-foreground tracking-tight">
+            <p class="text-3xl lg:text-4xl font-bold tracking-tight">
               {stat.value}
             </p>
-            <p class="mt-1 text-xs uppercase tracking-wider text-primary-foreground/60">
+            <p class="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
               {stat.label}
             </p>
           </div>

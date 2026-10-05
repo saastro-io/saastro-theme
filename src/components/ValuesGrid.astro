@@ -33,6 +33,18 @@ interface Props {
 }
 
 const { eyebrow, title, description, manifesto, items, fieldPrefix = 'manifesto' } = Astro.props;
+
+// El bloque pinta una rejilla FIJA de 3 columnas (sm:2, lg:3) y no se edita
+// aquí (es pristine del registry). Con menos de 3 tarjetas quedaría una rejilla
+// coja alineada a la izquierda, así que el adaptador estrecha el contenedor y
+// ajusta las columnas al número de tarjetas, desde fuera, con variantes de
+// descendiente sobre la `class` que el bloque sí acepta.
+const ajuste =
+  items.length === 1
+    ? '[&>div]:max-w-md sm:[&_.grid]:grid-cols-1 lg:[&_.grid]:grid-cols-1'
+    : items.length === 2
+      ? '[&>div]:max-w-4xl lg:[&_.grid]:grid-cols-2'
+      : '';
 ---
 
 <div class="border-t py-24 md:py-32">
@@ -45,5 +57,5 @@ const { eyebrow, title, description, manifesto, items, fieldPrefix = 'manifesto'
     {manifesto && <p class="mt-6 text-lg leading-relaxed">{manifesto}</p>}
   </div>
 
-  <Features01 features={items} class="py-0 pt-12 md:pt-16" />
+  <Features01 features={items} class={`py-0 pt-12 md:pt-16 ${ajuste}`.trim()} />
 </div>

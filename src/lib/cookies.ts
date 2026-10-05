@@ -26,7 +26,11 @@ export function setConsent(prefs: { analytics: boolean; personalization: boolean
     timestamp: new Date().toISOString(),
   }
   const value = encodeURIComponent(JSON.stringify(consent))
-  document.cookie = `${COOKIE_NAME}=${value}; path=/; max-age=${MAX_AGE}; SameSite=Lax; Secure`
+  // `Secure` solo sobre https: en http (dev en un host que no es localhost,
+  // p. ej. saastro.test) el navegador DESCARTA una cookie Secure en silencio y
+  // la elección no sobrevive a la recarga — el banner vuelve a salir.
+  const secure = location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${COOKIE_NAME}=${value}; path=/; max-age=${MAX_AGE}; SameSite=Lax${secure}`
 }
 
 export function getConsent(): CookieConsent | null {

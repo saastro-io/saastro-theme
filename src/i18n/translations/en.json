@@ -33,7 +33,7 @@
     "primaryCta": "Get Started",
     "secondaryCta": "View on GitHub",
     "stats": [
-      { "value": "10+", "label": "Components" },
+      { "value": "50+", "label": "Components & blocks" },
       { "value": "100%", "label": "TypeScript" },
       { "value": "0kb", "label": "Default JS" },
       { "value": "MIT", "label": "License" }
@@ -46,7 +46,7 @@
       {
         "name": "UI",
         "tagline": "Component Library",
-        "description": "50+ accessible UI components for Astro. Vanilla JS, zero dependencies, copy-paste ready.",
+        "description": "50+ accessible components and blocks for Astro. Vanilla JS, zero dependencies, copy-paste ready.",
         "href": "https://ui.saastro.io",
         "icon": "squares",
         "color": "from-blue-500 to-blue-600",
