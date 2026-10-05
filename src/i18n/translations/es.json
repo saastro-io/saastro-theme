@@ -27,13 +27,13 @@
     "contact": "Contacto"
   },
   "hero": {
-    "eyebrow": "Codigo Abierto",
-    "title": ["Construye rapido", "con Saastro"],
-    "subtitle": "Un kit completo para desarrolladores web. Componentes UI, temas y CMS — todo disenado para Astro.",
+    "eyebrow": "Código abierto",
+    "title": ["Construye rápido", "con Saastro"],
+    "subtitle": "Un kit completo para desarrolladores web. Componentes UI, temas y CMS — todo diseñado para Astro.",
     "primaryCta": "Empezar",
     "secondaryCta": "Ver en GitHub",
     "stats": [
-      { "value": "10+", "label": "Componentes" },
+      { "value": "50+", "label": "Componentes y bloques" },
       { "value": "100%", "label": "TypeScript" },
       { "value": "0kb", "label": "JS por defecto" },
       { "value": "MIT", "label": "Licencia" }
@@ -46,7 +46,7 @@
       {
         "name": "UI",
         "tagline": "Librería de Componentes",
-        "description": "Más de 50 componentes UI accesibles para Astro. Vanilla JS, cero dependencias, listos para copiar y pegar.",
+        "description": "Más de 50 componentes y bloques accesibles para Astro. Vanilla JS, cero dependencias, listos para copiar y pegar.",
         "href": "https://ui.saastro.io",
         "icon": "squares",
         "color": "from-blue-500 to-blue-600",
