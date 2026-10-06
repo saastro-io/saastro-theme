@@ -11,11 +11,24 @@ import { I18N_READS_ENABLED, injectReads, trackReads } from './i18n/reads';
  * `next()` envuelva al resto, redirecciones incluidas. Ver
  * `src/lib/security-headers.ts`, donde está el porqué de cada cabecera y la
  * regla de mantener las DOS listas a la par.
+ *
+ * Una respuesta de `Response.redirect()` (o de un `fetch()` reenviado) trae las
+ * cabeceras INMUTABLES: escribirlas lanza «Can't modify immutable headers» y la
+ * redirección sale como 500. Entonces se viste una COPIA
+ * (`new Response(body, response)` conserva estado, `Location` y cuerpo).
+ * Lo vigila `scripts/cabeceras-worker-check.mjs` con una ruta que lo hace.
  */
 const securityHeaders = defineMiddleware(async (_context, next) => {
   const response = await next();
-  applySecurityHeaders(response.headers);
-  return response;
+  try {
+    applySecurityHeaders(response.headers);
+    return response;
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    const mutable = new Response(response.body, response);
+    applySecurityHeaders(mutable.headers);
+    return mutable;
+  }
 });
 
 /**

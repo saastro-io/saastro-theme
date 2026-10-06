@@ -26,6 +26,26 @@ const stripStudioMeta = {
   },
 };
 
+// Rutas que solo existen en el build de `studio:check` (SAASTRO_CHECK_ROUTES=1):
+// casos que el Worker tiene que servir bien y que la plantilla no ejercita por
+// sí sola. En el build de producción no se inyectan, así que no son superficie
+// pública en ningún descendiente. Hoy, una: un `Response.redirect()` (cabeceras
+// inmutables) para `scripts/cabeceras-worker-check.mjs`.
+/** @type {import('astro').AstroIntegration} */
+const checkRoutes = {
+  name: 'saastro-check-routes',
+  hooks: {
+    'astro:config:setup': ({ injectRoute }) => {
+      if (process.env.SAASTRO_CHECK_ROUTES !== '1') return;
+      injectRoute({
+        pattern: '/__cabeceras-check-redirect',
+        entrypoint: fileURLToPath(new URL('./src/check-routes/redirect.ts', import.meta.url)),
+        prerender: false,
+      });
+    },
+  },
+};
+
 // Canonical site URL — drives <link rel="canonical">, OG/Twitter URLs, the
 // sitemap and hreflang. Each project MUST set its real domain via the SITE_URL
 // build env var (e.g. in the Cloudflare Workers Builds project), otherwise
@@ -101,6 +121,7 @@ export default defineConfig({
 
   integrations: [
     stripStudioMeta,
+    checkRoutes,
     react(),
     // Standard Astro sitemap. The site is statically prerendered, so it
     // enumerates every page automatically; the i18n option emits hreflang
