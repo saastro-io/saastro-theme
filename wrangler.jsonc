@@ -9,7 +9,13 @@
     "directory": "./dist"
   },
 
+  // Apagada de serie: con los logs encendidos, Workers Observability guarda la
+  // URL de cada petición, y un site cuyo HTML lleve URLs con token (p. ej.
+  // /shared/<token>) los dejaría escritos en el dashboard de Cloudflare.
+  // Enciéndela (true) solo si el site la necesita y sus URLs no llevan nada
+  // secreto: la medición render-vs-JS con `sink: 'log'` (settings.measure.renderRatio)
+  // escribe en estos logs y `pnpm ratio` los lee; con false no registra nada.
   "observability": {
-    "enabled": true
+    "enabled": false
   }
 }
