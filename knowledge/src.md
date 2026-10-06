@@ -249,7 +249,10 @@ tranquilizador o alarmante, y que no dice lo que parece decir.
   del DOM porque estas landings, al ser SSR, no entran en el contrato.
   La cifra se lee con **`pnpm ratio --worker=<nombre> --days=7`** (necesita
   `CLOUDFLARE_API_TOKEN` con *Workers Observability · Read*), que agrega los
-  logs del Worker y avisa solo cuando el número no es de fiar: muestreo,
+  logs del Worker —**que el theme trae apagados** (`observability.enabled:
+  false` en `wrangler.jsonc`): encender la medición con `sink: 'log'` obliga a
+  ponerlo a `true`, o `pnpm ratio` no tiene nada que leer— y avisa solo
+  cuando el número no es de fiar: muestreo,
   volumen bajo, o más `j` que `r` —que es imposible y significa que el pixel
   está perdiendo peticiones—. `pnpm ratio --self-test` la comprueba sin red.
 
