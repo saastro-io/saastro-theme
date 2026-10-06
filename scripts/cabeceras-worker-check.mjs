@@ -10,10 +10,12 @@
  *
  * Arranca el Worker construido (`dist/server/wrangler.json`) en local con
  * `unstable_startWorker` —el mismo workerd de `wrangler dev`, sin cuenta de
- * Cloudflare— y pide dos rutas que SOLO puede resolver el Worker:
+ * Cloudflare— y pide tres rutas que SOLO puede resolver el Worker:
  *
  *   - un 404 (ningún fichero del bundle casa)
  *   - una landing `/lp/<inexistente>` (SSR, redirige a home)
+ *   - un `Response.redirect()` SSR (`/__cabeceras-check-redirect`, que solo
+ *     existe en el build con SAASTRO_CHECK_ROUTES=1): cabeceras inmutables
  *
  * y exige en cada una TODAS las cabeceras del bloque `/*` de `public/_headers`,
  * con el mismo valor. Antes de arrancar comprueba que `_headers` y
@@ -42,6 +44,11 @@ const verde = (s) => `\x1b[32m${s}\x1b[0m`
 const RUTAS = [
   { ruta: '/__cabeceras-check-404', estado: (s) => s === 404, que: '404' },
   { ruta: '/lp/__cabeceras-check', estado: (s) => s >= 300 && s < 400, que: 'landing SSR (redirige)' },
+  // `Response.redirect()` nace con cabeceras INMUTABLES: si el middleware las
+  // escribe a pelo, workerd lanza y la redirección sale como 500. Las de la
+  // plantilla usan `Astro.redirect` (mutable) y no lo cazaban. La ruta solo
+  // existe en el build de `studio:check` (src/check-routes/redirect.ts).
+  { ruta: '/__cabeceras-check-redirect', estado: (s) => s === 301, que: 'Response.redirect SSR (301, cabeceras inmutables)', si404: 'el build no se hizo con SAASTRO_CHECK_ROUTES=1 (usa `pnpm studio:check`)' },
 ]
 
 if (!fs.existsSync(CONFIG)) {
@@ -94,14 +101,20 @@ try {
     config: CONFIG,
     dev: { server: { port: 0 }, inspector: false, logLevel: 'error' },
   })
-  for (const { ruta, estado, que } of RUTAS) {
+  for (const { ruta, estado, que, si404 } of RUTAS) {
     const r = await worker.fetch(`http://localhost${ruta}`, { redirect: 'manual' })
     await r.arrayBuffer()
+    if (r.status >= 500) {
+      fallos.push(`${ruta} (${que}): el Worker respondió ${r.status} — reventó (¿el middleware escribe cabeceras inmutables?).`)
+      continue
+    }
     if (!estado(r.status)) {
-      fallos.push(`${ruta} (${que}): estado ${r.status} inesperado — la ruta ya no mide lo que este check cree.`)
+      fallos.push(`${ruta} (${que}): estado ${r.status} inesperado — ${r.status === 404 && si404 ? si404 : 'la ruta ya no mide lo que este check cree'}.`)
       continue
     }
     const faltan = []
+    // Una redirección vestida a costa de perder su destino no es una redirección.
+    if (r.status >= 300 && r.status < 400 && !r.headers.get('location')) faltan.push('Location: falta (redirección sin destino)')
     for (const n of nombres) {
       const v = r.headers.get(n)
       if (v === null) faltan.push(`${n}: falta`)
