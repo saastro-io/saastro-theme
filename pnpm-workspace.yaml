@@ -19,4 +19,4 @@ minimumReleaseAgeExclude:
 # Overrides acotados a una advisory (pnpm 11 los lee de aquí, no de package.json).
 # sharp: GHSA-wq5f-xc86-pv6w; miniflare (vía wrangler) fija 0.35.4 exacto.
 overrides:
-  'sharp@<0.35.5': ^0.35.5
+  'sharp@>=0.35.0 <0.35.5': ^0.35.5
