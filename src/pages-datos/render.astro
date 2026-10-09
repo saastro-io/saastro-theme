@@ -1,0 +1,28 @@
+---
+/**
+ * `POST /__render` — un bloque suelto, para la vista previa del Hub.
+ *
+ * Cuerpo `{ v:1, siteId, locale, tema?, block:{id,type,variant?,props} }`,
+ * firmado en `x-saastro-sig` (src/lib/pages/firma.ts). Responde SOLO el HTML
+ * del bloque (página parcial: sin <html>, sin layout), que el puente de la
+ * vista previa inserta con `createContextualFragment` para que corran los
+ * scripts de las islas. 400 con los errores de Zod; 401 firma mala; 404 si el
+ * site no tiene `PAGES_RENDER_SECRET`.
+ */
+import RenderBlocks from '../components/pages/RenderBlocks.astro';
+import { prepareRender } from '../lib/pages/handlers';
+import { pagesRuntime } from '../lib/pages/runtime';
+import { locales } from '../i18n/config';
+
+export const partial = true;
+export const prerender = false;
+
+const rt = pagesRuntime(Astro.locals);
+const job = await prepareRender(Astro.request, rt.secret, locales);
+if (job instanceof Response) return job;
+
+Astro.response.headers.set('cache-control', 'no-store');
+Astro.response.headers.set('x-robots-tag', 'noindex');
+---
+
+<RenderBlocks blocks={[job.block]} tema={job.tema} locale={job.locale} bare />

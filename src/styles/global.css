@@ -8,6 +8,7 @@
 @source "../layouts/**/*.astro";
 @source "../widgets/**/*.{astro,tsx,ts}";
 @source "../pages/**/*.astro";
+@source "../blocks/**/*.{astro,tsx,ts}";
 
 @custom-variant dark (&:is(.dark *));
 

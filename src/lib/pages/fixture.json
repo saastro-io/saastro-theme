@@ -1,0 +1,148 @@
+[
+  {
+    "v": 1,
+    "siteId": "demo",
+    "locale": "es",
+    "slug": "demo",
+    "rev": 1,
+    "seo": {
+      "title": "Páginas como datos · demo",
+      "description": "Una página que no existe en el código: es un documento con cinco bloques validados."
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "hero",
+        "props": {
+          "eyebrow": "Prototipo",
+          "title": ["Páginas que se", "escriben como datos"],
+          "subtitle": "Esta página no está en el repositorio: es un documento. El site valida cada bloque con su esquema y lo pinta en el borde.",
+          "primaryCta": { "label": "Escríbenos", "href": "#form" },
+          "secondaryCta": { "label": "Ver los bloques", "href": "/__blocks.json" },
+          "stats": [
+            { "value": "5", "label": "bloques" },
+            { "value": "2", "label": "temas" },
+            { "value": "0", "label": "despliegues" }
+          ]
+        }
+      },
+      {
+        "id": "ventajas",
+        "type": "features",
+        "props": {
+          "title": "Qué cambia",
+          "description": "Tres ideas que este prototipo pone a prueba.",
+          "items": [
+            { "icon": "zap", "title": "Datos, no código", "description": "Una página nueva es un documento del Hub, sin commit ni despliegue." },
+            { "icon": "shield", "title": "Validado en el borde", "description": "Un bloque que no cumple su esquema se omite y se cuenta en Server-Timing." },
+            { "icon": "globe", "title": "Temas por host", "description": "El mismo documento se viste distinto según el dominio que lo sirve." }
+          ]
+        }
+      },
+      {
+        "id": "dudas",
+        "type": "faq",
+        "props": {
+          "title": "Preguntas frecuentes",
+          "items": [
+            { "q": "¿Hay que desplegar para publicar una página?", "a": "No. El site lee el documento publicado del Hub y lo guarda en caché hasta que el Hub la purga por tag." },
+            { "q": "¿Y si el Hub no responde?", "a": "Se sirve la última copia buena con la cabecera x-saastro-stale. Sin copia, un 503 con Retry-After." }
+          ]
+        }
+      },
+      {
+        "id": "cierre",
+        "type": "cta",
+        "props": {
+          "title": "¿Lo probamos en tu site?",
+          "description": "Un documento, cinco bloques y dos temas.",
+          "primaryCta": { "label": "Hablemos", "href": "#form" },
+          "notes": ["Sin despliegue", "Reversible"],
+          "tone": "primary"
+        }
+      },
+      {
+        "id": "form",
+        "type": "form",
+        "props": {
+          "title": "Cuéntanos tu caso",
+          "description": "Te respondemos en un día laborable.",
+          "formSlug": "contacto"
+        }
+      }
+    ]
+  },
+  {
+    "v": 1,
+    "siteId": "demo",
+    "locale": "en",
+    "slug": "demo",
+    "rev": 1,
+    "seo": {
+      "title": "Pages as data · demo",
+      "description": "A page that is not in the code: it is a document with five validated blocks."
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "hero",
+        "props": {
+          "eyebrow": "Prototype",
+          "title": ["Pages written", "as data"],
+          "subtitle": "This page is not in the repository: it is a document. The site validates every block against its schema and renders it at the edge.",
+          "primaryCta": { "label": "Write to us", "href": "#form" },
+          "secondaryCta": { "label": "See the blocks", "href": "/__blocks.json" },
+          "stats": [
+            { "value": "5", "label": "blocks" },
+            { "value": "2", "label": "themes" },
+            { "value": "0", "label": "deploys" }
+          ]
+        }
+      },
+      {
+        "id": "ventajas",
+        "type": "features",
+        "props": {
+          "title": "What changes",
+          "description": "Three ideas this prototype puts to the test.",
+          "items": [
+            { "icon": "zap", "title": "Data, not code", "description": "A new page is a Hub document: no commit, no deploy." },
+            { "icon": "shield", "title": "Validated at the edge", "description": "A block that fails its schema is skipped and counted in Server-Timing." },
+            { "icon": "globe", "title": "Themes per host", "description": "The same document dresses differently depending on the domain serving it." }
+          ]
+        }
+      },
+      {
+        "id": "dudas",
+        "type": "faq",
+        "props": {
+          "title": "FAQ",
+          "items": [
+            { "q": "Do I need to deploy to publish a page?", "a": "No. The site reads the published document from the Hub and caches it until the Hub purges it by tag." },
+            { "q": "What if the Hub is down?", "a": "The last good copy is served with the x-saastro-stale header. With no copy, a 503 with Retry-After." }
+          ]
+        }
+      },
+      {
+        "id": "cierre",
+        "type": "cta",
+        "props": {
+          "title": "Shall we try it on your site?",
+          "description": "One document, five blocks, two themes.",
+          "primaryCta": { "label": "Let's talk", "href": "#form" },
+          "notes": ["No deploy", "Reversible"],
+          "tone": "primary"
+        }
+      },
+      {
+        "id": "form",
+        "type": "form",
+        "props": {
+          "title": "Tell us about your case",
+          "description": "We reply within one business day.",
+          "formSlug": "contacto"
+        }
+      }
+    ]
+  }
+]

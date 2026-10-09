@@ -1,0 +1,36 @@
+/*
+ * Temas de «páginas como datos» — SOLO lo importa `src/pages/[...locale]/p/[slug].astro`.
+ *
+ * El tema lo elige el host (`TEMA_BY_HOST`) y se aplica como `data-tema` en el
+ * contenedor de bloques (`RenderBlocks.astro`). Solo se REDEFINEN tokens: los
+ * bloques usan `bg-primary`, `rounded-[var(--radius)]`, `font-heading`…, que
+ * leen estas variables por `@theme inline` (global.css). Nada de clases por
+ * tema, nada de hex sueltos.
+ *
+ * `a` = los tokens del theme tal cual (no hace falta declararlo).
+ * `b` = cálido y redondeado: crema, coral, radios grandes y titulares en mono.
+ *
+ * Fuentes autoalojadas (fontsource), como `home-ds.css`: sin transferencia a
+ * terceros que declarar.
+ */
+@import '@fontsource/space-mono/latin-700.css';
+
+[data-tema='b'] {
+  --radius: 1.25rem;
+  --font-display: 'Space Mono', ui-monospace, monospace;
+  --background: oklch(0.975 0.02 85);
+  --foreground: oklch(0.24 0.04 40);
+  --card: oklch(0.995 0.01 85);
+  --card-foreground: oklch(0.24 0.04 40);
+  --primary: oklch(0.64 0.19 36);
+  --primary-foreground: oklch(0.99 0.01 85);
+  --secondary: oklch(0.93 0.04 80);
+  --secondary-foreground: oklch(0.3 0.05 40);
+  --muted: oklch(0.94 0.03 82);
+  --muted-foreground: oklch(0.47 0.05 45);
+  --accent: oklch(0.88 0.08 150);
+  --accent-foreground: oklch(0.25 0.05 150);
+  --border: oklch(0.87 0.04 70);
+  --input: oklch(0.87 0.04 70);
+  --ring: oklch(0.64 0.19 36);
+}

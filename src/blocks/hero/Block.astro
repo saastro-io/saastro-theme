@@ -1,0 +1,152 @@
+---
+/**
+ * Hero de «páginas como datos». Dos composiciones con LAS MISMAS props
+ * (`schema.ts`):
+ *
+ * - `a`: la del `src/components/Hero.astro` del theme — titular a sangre, foto
+ *   de fondo con velo si la hay, stats en fila bajo una raya.
+ * - `b`: partida — texto a la izquierda sobre una banda tintada de `primary`,
+ *   y a la derecha la foto enmarcada o, sin foto, las stats como tarjeta.
+ *
+ * Las variantes no reciben clases: `align` es un enum que se traduce aquí.
+ */
+import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { field, sec } from '../markers';
+import type { HeroProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: HeroProps;
+}
+
+const { id, variant = 'a', props } = Astro.props;
+const { eyebrow, title, subtitle, image, imageAlt, primaryCta, secondaryCta, stats, align } = props;
+const centered = align === 'center';
+---
+
+{variant === 'b' ? (
+  <section {...sec(id)} class="relative overflow-hidden border-b border-border bg-primary/5 text-foreground">
+    <div class="container mx-auto grid items-center gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-12 lg:py-28">
+      <div class:list={['flex flex-col', centered ? 'items-center text-center lg:items-start lg:text-left' : 'items-start']}>
+        {eyebrow && (
+          <p {...field('eyebrow')} class="mb-5 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-wider text-primary-foreground uppercase">
+            {eyebrow}
+          </p>
+        )}
+        <h1 class="font-heading text-[clamp(2.25rem,6vw,4.5rem)] leading-[1.02] font-extrabold tracking-tight">
+          {title.map((line, i) => (
+            <span {...field(`title.${i}`)} class:list={['block', i % 2 === 1 && 'text-primary']}>{line}</span>
+          ))}
+        </h1>
+        <div class="mt-6 h-1 w-16 rounded-full bg-primary" aria-hidden="true"></div>
+        <p {...field('subtitle')} class="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{subtitle}</p>
+        {(primaryCta || secondaryCta) && (
+          <div class="mt-8 flex flex-wrap gap-3">
+            {primaryCta && (
+              <a href={primaryCta.href} class={cn(buttonVariants({ size: 'lg' }), 'h-11 rounded-full px-7')}>
+                <span {...field('primaryCta.label')}>{primaryCta.label}</span>
+              </a>
+            )}
+            {secondaryCta && (
+              <a href={secondaryCta.href} class={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-11 rounded-full px-7 underline underline-offset-4')}>
+                <span {...field('secondaryCta.label')}>{secondaryCta.label}</span>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {image ? (
+        <figure class="relative">
+          <div class="absolute -inset-3 rotate-2 rounded-[calc(var(--radius)*2)] bg-primary/20" aria-hidden="true"></div>
+          <img
+            {...field('image')}
+            src={image}
+            alt={imageAlt}
+            width="960"
+            height="720"
+            loading="eager"
+            fetchpriority="high"
+            class="relative aspect-[4/3] w-full rounded-[calc(var(--radius)*2)] object-cover shadow-xl"
+          />
+        </figure>
+      ) : stats.length > 0 ? (
+        <dl class="grid grid-cols-2 gap-4 rounded-[calc(var(--radius)*2)] bg-primary p-6 text-primary-foreground shadow-xl sm:p-8">
+          {stats.map((stat, i) => (
+            <div class="rounded-[var(--radius)] bg-primary-foreground/10 p-4">
+              <dt {...field(`stats.${i}.label`)} class="text-xs tracking-wider uppercase opacity-80">{stat.label}</dt>
+              <dd {...field(`stats.${i}.value`)} class="mt-1 font-heading text-4xl font-extrabold tracking-tight">{stat.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+    </div>
+  </section>
+) : (
+  <section
+    {...sec(id)}
+    class:list={[
+      'relative flex flex-col overflow-hidden text-foreground',
+      image ? 'dark min-h-[85vh] justify-end pb-16 pt-32 lg:pb-24' : 'bg-muted/40 pb-16 pt-16 lg:pb-24 lg:pt-24',
+    ]}
+  >
+    {image && (
+      <>
+        <img
+          {...field('image')}
+          src={image}
+          alt={imageAlt}
+          width="1920"
+          height="1080"
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <div class="absolute inset-0 bg-background/70"></div>
+      </>
+    )}
+    <div class:list={['relative z-10 container mx-auto px-6 lg:px-12', centered && 'text-center']}>
+      {eyebrow && (
+        <Badge variant="secondary" className="mb-6 text-xs tracking-wider uppercase">
+          <span {...field('eyebrow')}>{eyebrow}</span>
+        </Badge>
+      )}
+      <h1 class="font-heading font-bold tracking-tight leading-[1.05]">
+        {title.map((line, i) => (
+          <span {...field(`title.${i}`)} class="block text-[clamp(2.5rem,8vw,5.5rem)]">{line}</span>
+        ))}
+      </h1>
+      <p {...field('subtitle')} class:list={['mt-6 max-w-lg text-lg text-muted-foreground leading-relaxed', centered && 'mx-auto']}>
+        {subtitle}
+      </p>
+      {(primaryCta || secondaryCta) && (
+        <div class:list={['mt-8 flex flex-wrap gap-3', centered && 'justify-center']}>
+          {primaryCta && (
+            <a href={primaryCta.href} class={cn(buttonVariants(), 'h-9')}>
+              <span {...field('primaryCta.label')}>{primaryCta.label}</span>
+            </a>
+          )}
+          {secondaryCta && (
+            <a href={secondaryCta.href} class={cn(buttonVariants({ variant: 'outline' }), 'h-9')}>
+              <span {...field('secondaryCta.label')}>{secondaryCta.label}</span>
+            </a>
+          )}
+        </div>
+      )}
+      {stats.length > 0 && (
+        <div class="mt-12 grid grid-cols-2 gap-6 border-t border-border pt-10 lg:grid-cols-4 lg:gap-12">
+          {stats.map((stat, i) => (
+            <div>
+              <p {...field(`stats.${i}.value`)} class="text-3xl font-bold tracking-tight lg:text-4xl">{stat.value}</p>
+              <p {...field(`stats.${i}.label`)} class="mt-1 text-xs tracking-wider text-muted-foreground uppercase">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}

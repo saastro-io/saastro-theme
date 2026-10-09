@@ -17,5 +17,21 @@
   // escribe en estos logs y `pnpm ratio` los lee; con false no registra nada.
   "observability": {
     "enabled": false
+  },
+
+  // SOLO en la rama `proto/paginas-datos` (no se mergea): el Worker de pruebas
+  // de «páginas como datos». Va detrás de un entorno para que el build normal
+  // —el de CI y el de cualquier descendiente— no pida un service binding que no
+  // existe. Se construye con `CLOUDFLARE_ENV=pruebas pnpm build` y se despliega
+  // con `wrangler deploy --config dist/server/wrangler.json`.
+  // `vars` y `services` NO se heredan del nivel de arriba: van aquí enteros.
+  // El secreto va aparte: `wrangler secret put PAGES_RENDER_SECRET --env pruebas`.
+  "env": {
+    "pruebas": {
+      "services": [{ "binding": "HUB", "service": "saastro-hub-react" }],
+      "vars": {
+        "TEMA_BY_HOST": "{\"prototipo-b.enlolab.com\":\"b\"}"
+      }
+    }
   }
 }
