@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { lastGoodKey, loadPage, pagePath } from './source';
-import { verificarCabecera } from './firma';
+import crypto from 'node:crypto';
+import { verificarFirma } from './firma';
 
 const KEY = { siteId: 'site1', locale: 'es', slug: 'demo' };
 const DOC = {
@@ -101,8 +102,29 @@ describe('loadPage', () => {
     const { cache, store } = memCache();
     const r = await loadPage(KEY, { origin: 'https://hub.x', fetchImpl: fetchImpl as unknown as typeof fetch, cache, draft: true, secret: 'S' });
     expect(r).toMatchObject({ kind: 'ok', source: 'origin' });
-    expect(await verificarCabecera('S', sig, '')).toEqual({ ok: true });
+    const ruta = '/api/_public/pages/site1/es/demo?draft=1';
+    expect(await verificarFirma('S', sig, { siteId: 'site1', metodo: 'GET', ruta, cuerpo: '' })).toEqual({ ok: true });
+    // Byte a byte contra un vector calculado a mano con node:crypto.
+    const t = /^t=(\d+),/.exec(sig ?? '')![1];
+    expect(sig).toBe(`t=${t},v1=${crypto.createHmac('sha256', 'S').update(`${t}.site1.GET.${ruta}.`).digest('hex')}`);
     expect(store.size).toBe(0);
     expect(await loadPage(KEY, { origin: 'https://hub.x', fetchImpl: fetchImpl as unknown as typeof fetch, draft: true })).toMatchObject({ kind: 'unavailable' });
+  });
+
+  it('borrador: la ruta firmada es la que ve el Hub (origen con prefijo, binding)', async () => {
+    const sigs: Record<string, string> = {};
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      sigs[url] = (init?.headers as Record<string, string>)['x-saastro-sig'];
+      return new Response('x', { status: 500 });
+    });
+    const hub = { fetch: vi.fn(async (url: string, init?: RequestInit) => {
+      sigs[url] = (init?.headers as Record<string, string>)['x-saastro-sig'];
+      return new Response('x', { status: 500 });
+    }) };
+    await loadPage(KEY, { hub, origin: 'https://hub.x/base/', fetchImpl: fetchImpl as unknown as typeof fetch, draft: true, secret: 'S' });
+    const p = '/api/_public/pages/site1/es/demo?draft=1';
+    for (const [url, ruta] of [[`https://hub${p}`, p], [`https://hub.x/base${p}`, `/base${p}`]]) {
+      expect(await verificarFirma('S', sigs[url], { siteId: 'site1', metodo: 'GET', ruta, cuerpo: '' })).toEqual({ ok: true });
+    }
   });
 });

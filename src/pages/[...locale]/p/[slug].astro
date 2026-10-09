@@ -9,7 +9,8 @@
  * - Pública: caché de rutas por tag `pg:<siteId>:<locale>:<slug>` (1 día, swr
  *   60 s), que `POST /__purge` invalida al publicar.
  * - `?__pv=<exp>.<hmac>`: el BORRADOR, sin caché, encuadrable solo por el Hub
- *   (`PAGES_HUB_ORIGIN`) y con el puente `postMessage`. Sin secreto, 404.
+ *   (`PAGES_HUB_ORIGIN`) y con el puente `postMessage`. Sin secreto o sin
+ *   `PAGES_SITE_ID`, 404.
  * - Slug que no existe → home (igual que `/lp/*`). Hub caído sin copia → 503.
  */
 import SiteLayout from '../../../layouts/SiteLayout.astro';
@@ -41,7 +42,7 @@ if (!/^[a-z0-9][a-z0-9-]{0,99}$/.test(slug)) {
 const rt = pagesRuntime(Astro.locals);
 const key = { siteId: rt.siteId, locale: lang, slug };
 
-const pv = await checkPreview(Astro.url, rt.secret, key);
+const pv = await checkPreview(Astro.url, rt.secret, rt.siteIdFirmado, key);
 if (pv.mode === 'reject') return pv.response;
 const preview = pv.mode === 'preview';
 

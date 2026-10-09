@@ -6,11 +6,13 @@
  * - `POST /__purge`  → `handlePurge`.
  * - `/<locale>/p/<slug>?__pv=…` → `checkPreview`.
  *
- * Regla común: SIN `PAGES_RENDER_SECRET` todo esto responde 404, como si no
- * existiera. Es lo que hace inocuo el cambio para cada site descendiente.
+ * Regla común: SIN `PAGES_RENDER_SECRET` o SIN `PAGES_SITE_ID` todo esto
+ * responde 404, como si no existiera. Es lo que hace inocuo el cambio para cada
+ * site descendiente. La firma va atada a ese siteId, al método y a la ruta+query
+ * (`firma.ts`), y el siteId del cuerpo (o de los tags) tiene que ser el mismo.
  */
 import { z } from 'zod';
-import { CABECERA_FIRMA, verificarCabecera, verificarPreview, type PreviewKey } from './firma';
+import { CABECERA_FIRMA, rutaDe, verificarFirma, verificarPreview, type PreviewKey } from './firma';
 import { blockRefSchema, validateBlock, type ValidBlock } from './doc';
 import { isTema } from './tema';
 import type { Tema } from '../../blocks/registry';
@@ -22,6 +24,15 @@ const json = (status: number, body: unknown, headers: Record<string, string> = {
   });
 
 export const notFound = () => new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } });
+
+/** Firma de una petición entrante, atada a `siteId`, método y ruta+query tal cual llegan. */
+const firmaDe = (request: Request, secret: string, siteId: string, raw: string, now?: number) =>
+  verificarFirma(
+    secret,
+    request.headers.get(CABECERA_FIRMA),
+    { siteId, metodo: request.method, ruta: rutaDe(request.url), cuerpo: raw },
+    now,
+  );
 
 export const renderEnvelopeSchema = z.object({
   v: z.literal(1),
@@ -40,18 +51,20 @@ export interface RenderJob {
 
 /**
  * Devuelve la `Response` de error (404/405/401/400) o el trabajo de render.
- * `locales`: los del site; un locale ajeno es un 400, no un render en inglés.
+ * `siteId`: `PAGES_SITE_ID` (sin él, 404). `locales`: los del site; un locale
+ * ajeno es un 400, no un render en inglés.
  */
 export async function prepareRender(
   request: Request,
   secret: string | undefined | null,
+  siteId: string | undefined | null,
   locales: readonly string[],
   now?: number,
 ): Promise<Response | RenderJob> {
-  if (!secret) return notFound();
+  if (!secret || !siteId) return notFound();
   if (request.method !== 'POST') return new Response(null, { status: 405, headers: { allow: 'POST' } });
   const raw = await request.text();
-  const sig = await verificarCabecera(secret, request.headers.get(CABECERA_FIRMA), raw, now);
+  const sig = await firmaDe(request, secret, siteId, raw, now);
   if (!sig.ok) return json(401, { error: 'firma', motivo: sig.motivo });
 
   let body: unknown;
@@ -62,6 +75,9 @@ export async function prepareRender(
   }
   const env = renderEnvelopeSchema.safeParse(body);
   if (!env.success) return json(400, { error: 'sobre', issues: env.error.issues });
+  if (env.data.siteId !== siteId) {
+    return json(400, { error: 'siteId', issues: [{ path: ['siteId'], message: 'siteId de otro site' }] });
+  }
   if (!locales.includes(env.data.locale)) {
     return json(400, { error: 'locale', issues: [{ path: ['locale'], message: `locale fuera de ${locales.join(', ')}` }] });
   }
@@ -82,13 +98,14 @@ const purgeSchema = z.object({ tags: z.array(z.string().regex(TAG_RE)).min(1).ma
 export async function handlePurge(
   request: Request,
   secret: string | undefined | null,
+  siteId: string | undefined | null,
   invalidate: (tags: string[]) => Promise<void>,
   now?: number,
 ): Promise<Response> {
-  if (!secret) return notFound();
+  if (!secret || !siteId) return notFound();
   if (request.method !== 'POST') return new Response(null, { status: 405, headers: { allow: 'POST' } });
   const raw = await request.text();
-  const sig = await verificarCabecera(secret, request.headers.get(CABECERA_FIRMA), raw, now);
+  const sig = await firmaDe(request, secret, siteId, raw, now);
   if (!sig.ok) return json(401, { error: 'firma', motivo: sig.motivo });
   let body: unknown;
   try {
@@ -98,6 +115,8 @@ export async function handlePurge(
   }
   const parsed = purgeSchema.safeParse(body);
   if (!parsed.success) return json(400, { error: 'tags', issues: parsed.error.issues });
+  const ajenos = parsed.data.tags.filter((t) => t.split(':')[1] !== siteId);
+  if (ajenos.length > 0) return json(400, { error: 'siteId', issues: [{ path: ['tags'], message: `tags de otro site: ${ajenos.join(', ')}` }] });
   try {
     await invalidate(parsed.data.tags);
   } catch (err) {
@@ -111,15 +130,20 @@ export type PreviewCheck =
   | { mode: 'preview' }
   | { mode: 'reject'; response: Response };
 
-/** `?__pv` ausente → página pública. Presente → sin secreto 404; token malo 401. */
+/**
+ * `?__pv` ausente → página pública. Presente → sin secreto o sin
+ * `PAGES_SITE_ID` (`siteId`), 404 (la lectura del borrador va firmada con él);
+ * token malo 401.
+ */
 export async function checkPreview(
   url: URL,
   secret: string | undefined | null,
+  siteId: string | undefined | null,
   key: PreviewKey,
   now?: number,
 ): Promise<PreviewCheck> {
   if (!url.searchParams.has('__pv')) return { mode: 'public' };
-  if (!secret) return { mode: 'reject', response: notFound() };
+  if (!secret || !siteId || key.siteId !== siteId) return { mode: 'reject', response: notFound() };
   const ok = await verificarPreview(secret, key, url.searchParams.get('__pv'), now);
   if (!ok) {
     return {

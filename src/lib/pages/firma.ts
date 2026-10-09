@@ -5,9 +5,10 @@
  * Dos formas, las dos del contrato con el Hub:
  *
  * - Cabecera `x-saastro-sig: t=<unix>,v1=<hex>` con
- *   `hex = HMAC(secret, t + "." + cuerpoRaw)` y ventana ±60 s. La usan
- *   `POST /__render`, `POST /__purge` y la lectura del BORRADOR al Hub
- *   (`?draft=1`, cuerpo vacío).
+ *   `hex = HMAC(secret, "<t>.<siteId>.<METODO>.<ruta+query>.<cuerpoRaw>")` y
+ *   ventana ±60 s (Hub #655): una firma capturada no vale contra otro site,
+ *   otro método ni otra ruta. La usan `POST /__render`, `POST /__purge` y la
+ *   lectura del BORRADOR al Hub (`GET …?draft=1`, cuerpo vacío).
  * - Token de vista previa `?__pv=<exp>.<hex>` con
  *   `hex = HMAC(secret, "${siteId}:${locale}:${slug}:${exp}")`, exp en
  *   segundos y como mucho 15 min en el futuro.
@@ -48,16 +49,38 @@ export function timingSafeEqual(a: string, expected: string): boolean {
 
 const nowS = () => Math.floor(Date.now() / 1000);
 
-export async function firmarCabecera(secret: string, body: string, t = nowS()): Promise<string> {
-  return `t=${t},v1=${await hmacHex(secret, `${t}.${body}`)}`;
+/** Lo que ata una firma a UNA petición: site, método, ruta+query y cuerpo crudo. */
+export interface PeticionFirmada {
+  siteId: string;
+  /** Se normaliza a mayúsculas. */
+  metodo: string;
+  /** `url.pathname + url.search` tal cual llega (p. ej. `/__render`, `/api/…?draft=1`). */
+  ruta: string;
+  /** Cuerpo crudo; `''` en GET. */
+  cuerpo: string;
+}
+
+/** `<t>.<siteId>.<METODO>.<ruta+query>.<cuerpo>` — idéntico a `mensajeFirmado` del Hub. */
+export function mensajeFirmado(t: number | string, p: PeticionFirmada): string {
+  return `${t}.${p.siteId}.${p.metodo.toUpperCase()}.${p.ruta}.${p.cuerpo}`;
+}
+
+/** `pathname + search` de una URL: la ruta que entra en el mensaje firmado. */
+export function rutaDe(url: string | URL): string {
+  const u = typeof url === 'string' ? new URL(url) : url;
+  return u.pathname + u.search;
+}
+
+export async function firmarPeticion(secret: string, p: PeticionFirmada, t = nowS()): Promise<string> {
+  return `t=${t},v1=${await hmacHex(secret, mensajeFirmado(t, p))}`;
 }
 
 export type MotivoFirma = 'ausente' | 'malformada' | 'caducada' | 'no-coincide';
 
-export async function verificarCabecera(
+export async function verificarFirma(
   secret: string,
   header: string | null | undefined,
-  body: string,
+  p: PeticionFirmada,
   now = nowS(),
 ): Promise<{ ok: true } | { ok: false; motivo: MotivoFirma }> {
   if (!header) return { ok: false, motivo: 'ausente' };
@@ -73,7 +96,7 @@ export async function verificarCabecera(
   }
   const t = Number(tRaw);
   if (Math.abs(now - t) > VENTANA_S) return { ok: false, motivo: 'caducada' };
-  const expected = await hmacHex(secret, `${tRaw}.${body}`);
+  const expected = await hmacHex(secret, mensajeFirmado(tRaw, p));
   return timingSafeEqual(v1, expected) ? { ok: true } : { ok: false, motivo: 'no-coincide' };
 }
 

@@ -24,7 +24,13 @@ export interface PagesRuntime {
   secret: string | undefined;
   hubOrigin: string | undefined;
   temaByHost: string | undefined;
+  /** El de las páginas públicas: `PAGES_SITE_ID`, o `forms.siteId`, o `demo`. */
   siteId: string;
+  /**
+   * SOLO `PAGES_SITE_ID`, sin respaldo: el que ata las firmas Hub↔site. Sin él,
+   * `/__render`, `/__purge` y `?__pv` responden 404.
+   */
+  siteIdFirmado: string | undefined;
   source: Omit<SourceOptions, 'draft'>;
 }
 
@@ -37,6 +43,7 @@ export function pagesRuntime(locals: App.Locals): PagesRuntime {
     hubOrigin: PAGES_HUB_ORIGIN || undefined,
     temaByHost: TEMA_BY_HOST || undefined,
     siteId: PAGES_SITE_ID || getSettings().forms.siteId || 'demo',
+    siteIdFirmado: PAGES_SITE_ID || undefined,
     source: {
       hub,
       origin: PAGES_ORIGIN || null,

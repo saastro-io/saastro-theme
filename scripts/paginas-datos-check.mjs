@@ -12,9 +12,13 @@
  *      pintan la fixture (cinco bloques con su marcador, cabeceras de rev,
  *      Server-Timing y tag de caché) y `/__render`, `/__purge` y `?__pv`
  *      responden 404.
- *   2. CON secreto, `PAGES_HUB_ORIGIN` y `TEMA_BY_HOST`: `/__render` firmado
- *      pinta un bloque suelto, la vista previa abre `frame-ancestors` al Hub e
- *      inyecta el puente, y el host del tema b pinta `data-tema="b"` y el hero b.
+ *   2. CON secreto pero SIN `PAGES_SITE_ID`: las rutas firmadas siguen en 404.
+ *   3. CON secreto, `PAGES_SITE_ID`, `PAGES_HUB_ORIGIN` y `TEMA_BY_HOST`:
+ *      `/__render` firmado (Hub #655: `<t>.<siteId>.<METODO>.<ruta>.<cuerpo>`)
+ *      pinta un bloque suelto; el formato viejo, otro site, otra ruta u otro
+ *      método dan 401 y un cuerpo de otro site 400; la vista previa abre
+ *      `frame-ancestors` al Hub e inyecta el puente, y el host del tema b pinta
+ *      `data-tema="b"` y el hero b.
  */
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -93,18 +97,43 @@ await conWorker({}, async (get) => {
   ok(Array.isArray(manifest) && manifest.length === 6 && manifest.every((e) => e.jsonSchema?.type === 'object'), '/__blocks.json: 6 entradas (5 tipos) con jsonSchema')
 })
 
-// ── 2. Con secreto ───────────────────────────────────────────────────────────
-console.log('Con PAGES_RENDER_SECRET:')
+// ── 2. Con secreto y sin PAGES_SITE_ID ───────────────────────────────────────
 const S = 'paginas-datos-check'
+const SITE = 'demo'
 const HUB = 'https://hub.example.test'
 const hmac = (m) => crypto.createHmac('sha256', S).update(m).digest('hex')
-const sig = (body) => {
+// Contrato del Hub #655: firma atada a site, método y ruta+query.
+const sig = (body, { siteId = SITE, metodo = 'POST', ruta = '/__render' } = {}) => {
+  const t = Math.floor(Date.now() / 1000)
+  return `t=${t},v1=${hmac(`${t}.${siteId}.${metodo}.${ruta}.${body}`)}`
+}
+const sigVieja = (body) => {
   const t = Math.floor(Date.now() / 1000)
   return `t=${t},v1=${hmac(`${t}.${body}`)}`
 }
+
+console.log('Con PAGES_RENDER_SECRET y sin PAGES_SITE_ID:')
+await conWorker({ PAGES_RENDER_SECRET: { type: 'plain_text', value: S } }, async (get) => {
+  const body = JSON.stringify({ v: 1, siteId: SITE, locale: 'es', block: { id: 'f', type: 'faq', props: { title: 'T', items: [{ q: 'q', a: 'a' }] } } })
+  const r = await get('/__render', { method: 'POST', body, headers: { 'x-saastro-sig': sig(body) } })
+  await r.arrayBuffer()
+  ok(r.status === 404, `/__render firmado sin PAGES_SITE_ID → 404 (fue ${r.status})`)
+  const pbody = '{"tags":["pg:demo:es:demo"]}'
+  const p = await get('/__purge', { method: 'POST', body: pbody, headers: { 'x-saastro-sig': sig(pbody, { ruta: '/__purge' }) } })
+  await p.arrayBuffer()
+  ok(p.status === 404, `/__purge firmado sin PAGES_SITE_ID → 404 (fue ${p.status})`)
+  const exp = Math.floor(Date.now() / 1000) + 600
+  const pv = await get(`/es/p/demo?__pv=${exp}.${hmac(`demo:es:demo:${exp}`)}`)
+  await pv.arrayBuffer()
+  ok(pv.status === 404, `?__pv válido sin PAGES_SITE_ID → 404 (fue ${pv.status})`)
+})
+
+// ── 3. Con secreto y PAGES_SITE_ID ───────────────────────────────────────────
+console.log('Con PAGES_RENDER_SECRET y PAGES_SITE_ID:')
 await conWorker(
   {
     PAGES_RENDER_SECRET: { type: 'plain_text', value: S },
+    PAGES_SITE_ID: { type: 'plain_text', value: SITE },
     PAGES_HUB_ORIGIN: { type: 'plain_text', value: HUB },
     TEMA_BY_HOST: { type: 'plain_text', value: '{"tema-b.test":"b"}' },
   },
@@ -126,6 +155,30 @@ await conWorker(
     const bad = await get('/__render', { method: 'POST', body, headers: { 'content-type': 'application/json', 'x-saastro-sig': sig(body + ' ') } })
     await bad.arrayBuffer()
     ok(bad.status === 401, `/__render firma mala → 401 (fue ${bad.status})`)
+
+    for (const [nombre, h] of [
+      ['formato viejo', sigVieja(body)],
+      ['de otro siteId', sig(body, { siteId: 'otro' })],
+      ['de otra ruta', sig(body, { ruta: '/__purge' })],
+      ['de otro método', sig(body, { metodo: 'PUT' })],
+    ]) {
+      const r401 = await get('/__render', { method: 'POST', body, headers: { 'x-saastro-sig': h } })
+      await r401.arrayBuffer()
+      ok(r401.status === 401, `/__render firma ${nombre} → 401 (fue ${r401.status})`)
+    }
+    const ajeno = JSON.stringify({ ...JSON.parse(body), siteId: 'otro' })
+    const r400 = await get('/__render', { method: 'POST', body: ajeno, headers: { 'x-saastro-sig': sig(ajeno) } })
+    await r400.arrayBuffer()
+    ok(r400.status === 400, `/__render cuerpo con otro siteId → 400 (fue ${r400.status})`)
+
+    const ptags = '{"tags":["pg:otro:es:demo"]}'
+    const p400 = await get('/__purge', { method: 'POST', body: ptags, headers: { 'x-saastro-sig': sig(ptags, { ruta: '/__purge' }) } })
+    await p400.arrayBuffer()
+    ok(p400.status === 400, `/__purge tag de otro siteId → 400 (fue ${p400.status})`)
+    const pvieja = '{"tags":["pg:demo:es:demo"]}'
+    const p401 = await get('/__purge', { method: 'POST', body: pvieja, headers: { 'x-saastro-sig': sigVieja(pvieja) } })
+    await p401.arrayBuffer()
+    ok(p401.status === 401, `/__purge firma de formato viejo → 401 (fue ${p401.status})`)
 
     const exp = Math.floor(Date.now() / 1000) + 600
     const pv = await get(`/es/p/demo?__pv=${exp}.${hmac(`demo:es:demo:${exp}`)}`)

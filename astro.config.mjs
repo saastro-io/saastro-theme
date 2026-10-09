@@ -141,7 +141,9 @@ export default defineConfig({
       PAGES_ORIGIN: envField.string({ context: 'server', access: 'secret', optional: true }),
       PAGES_HUB_ORIGIN: envField.string({ context: 'server', access: 'secret', optional: true }),
       TEMA_BY_HOST: envField.string({ context: 'server', access: 'secret', optional: true }),
-      // siteId del documento en el Hub. Sin él: `forms.siteId` de settings.yaml, y si no, `demo`.
+      // siteId del documento en el Hub. Sin él, las páginas públicas usan
+      // `forms.siteId` de settings.yaml (y si no, `demo`), pero `/__render`,
+      // `/__purge` y `?__pv` responden 404: la firma Hub↔site va atada a él.
       PAGES_SITE_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },

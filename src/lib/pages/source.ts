@@ -17,7 +17,7 @@
  * `SourceOptions`, así que esto se prueba en node sin workerd.
  */
 import fixtureDocs from './fixture.json';
-import { CABECERA_FIRMA, firmarCabecera } from './firma';
+import { CABECERA_FIRMA, firmarPeticion, rutaDe } from './firma';
 import { pageDocSchema, type PageDoc } from './doc';
 
 export const TIMEOUT_MS = 1500;
@@ -82,11 +82,11 @@ export async function loadPage(key: PageKey, opts: SourceOptions = {}): Promise<
   const fetchImpl = opts.fetchImpl ?? fetch;
   const timeoutMs = opts.timeoutMs ?? TIMEOUT_MS;
 
-  const upstreams: { name: 'hub' | 'origin'; go: (path: string, init: RequestInit) => Promise<Response> }[] = [];
-  if (opts.hub) upstreams.push({ name: 'hub', go: (p, init) => opts.hub!.fetch(`https://hub${p}`, init) });
+  const upstreams: { name: 'hub' | 'origin'; url: (path: string) => string; go: (url: string, init: RequestInit) => Promise<Response> }[] = [];
+  if (opts.hub) upstreams.push({ name: 'hub', url: (p) => `https://hub${p}`, go: (u, init) => opts.hub!.fetch(u, init) });
   if (opts.origin) {
     const base = opts.origin.replace(/\/+$/, '');
-    upstreams.push({ name: 'origin', go: (p, init) => fetchImpl(`${base}${p}`, init) });
+    upstreams.push({ name: 'origin', url: (p) => `${base}${p}`, go: (u, init) => fetchImpl(u, init) });
   }
 
   if (upstreams.length === 0) {
@@ -101,9 +101,14 @@ export async function loadPage(key: PageKey, opts: SourceOptions = {}): Promise<
   const reasons: string[] = [];
   for (const up of upstreams) {
     try {
+      const url = up.url(path);
       const headers: Record<string, string> = { accept: 'application/json' };
-      if (draft) headers[CABECERA_FIRMA] = await firmarCabecera(opts.secret!, '');
-      const res = await up.go(path, { headers, signal: AbortSignal.timeout(timeoutMs) });
+      // La ruta firmada es la que VE el Hub (pathname+search de la URL final:
+      // un `PAGES_ORIGIN` con prefijo de ruta la cambia), atada al siteId.
+      if (draft) {
+        headers[CABECERA_FIRMA] = await firmarPeticion(opts.secret!, { siteId: key.siteId, metodo: 'GET', ruta: rutaDe(url), cuerpo: '' });
+      }
+      const res = await up.go(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
       if (res.status === 404) {
         await res.body?.cancel();
         return { kind: 'not-found' };

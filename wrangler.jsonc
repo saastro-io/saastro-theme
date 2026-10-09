@@ -26,11 +26,15 @@
   // con `wrangler deploy --config dist/server/wrangler.json`.
   // `vars` y `services` NO se heredan del nivel de arriba: van aquí enteros.
   // El secreto va aparte: `wrangler secret put PAGES_RENDER_SECRET --env pruebas`.
+  // `PAGES_SITE_ID` es el id del site en el Hub: la firma `x-saastro-sig` va
+  // atada a él y, sin él, `/__render`, `/__purge` y `?__pv` dan 404.
   "env": {
     "pruebas": {
       "services": [{ "binding": "HUB", "service": "saastro-hub-react" }],
       "vars": {
         "TEMA_BY_HOST": "{\"prototipo-b.enlolab.com\":\"b\"}"
+        // Añadir aquí `"PAGES_SITE_ID": "<id del site en el Hub>"` antes de
+        // desplegar el Worker de pruebas; sin él las rutas firmadas dan 404.
       }
     }
   }
