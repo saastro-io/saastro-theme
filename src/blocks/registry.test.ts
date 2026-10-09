@@ -14,9 +14,9 @@ describe('registro de bloques', () => {
     expect(BLOCKS.filter((b) => b.type === 'hero').map((b) => b.variant)).toEqual(['a', 'b']);
     expect(resolveBlock('hero', undefined, 'a')?.variant).toBe('a');
     expect(resolveBlock('hero', undefined, 'b')?.variant).toBe('b');
-    // Una variante explícita manda sobre el tema.
-    expect(resolveBlock('hero', 'a', 'b')?.variant).toBe('a');
-    expect(resolveBlock('hero', 'z', 'a')).toBeNull();
+    // En el hero manda el tema aunque el bloque traiga variant.
+    expect(resolveBlock('hero', 'a', 'b')?.variant).toBe('b');
+    expect(resolveBlock('hero', 'b', 'a')?.variant).toBe('a');
     expect(resolveBlock('faq', undefined, 'b')?.type).toBe('faq');
     expect(resolveBlock('carrusel', undefined, 'a')).toBeNull();
   });
@@ -34,6 +34,16 @@ describe('registro de bloques', () => {
     for (const type of BLOCK_TYPES) {
       expect(existsSync(here(`./${type}/Block.astro`)), type).toBe(true);
       expect(render).toMatch(new RegExp(`^\\s+${type}: \\w+,$`, 'm'));
+    }
+  });
+
+  it('los href no aceptan javascript: ni data:', () => {
+    const hero = BLOCKS.find((b) => b.type === 'hero')!;
+    for (const href of ['javascript:alert(1)', 'data:text/html,x', '//evil.test', 'http://x.test']) {
+      expect(hero.propsSchema.safeParse({ title: ['t'], subtitle: 's', primaryCta: { label: 'l', href } }).success, href).toBe(false);
+    }
+    for (const href of ['#form', '/es/x', 'https://x.test', 'mailto:a@b.c', 'tel:+34']) {
+      expect(hero.propsSchema.safeParse({ title: ['t'], subtitle: 's', primaryCta: { label: 'l', href } }).success, href).toBe(true);
     }
   });
 

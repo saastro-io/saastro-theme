@@ -151,6 +151,14 @@ export default defineConfig({
   // usan las rutas que llaman a `Astro.cache.set()`; el resto no cambia.
   cache: { provider: cacheCloudflare() },
 
+  // `checkOrigin` (403 a todo POST con content-type de formulario o text/plain
+  // sin `Origin` del propio site) tumbaba `/__render` y `/__purge` antes de
+  // llegar a la ruta cuando el Hub manda el cuerpo sin `content-type` (un
+  // `fetch` con body string viaja como text/plain). Esas dos rutas van
+  // autenticadas por HMAC, que es más fuerte que mirar `Origin`, y el site no
+  // tiene ninguna otra ruta que procese un POST (los formularios van al Hub).
+  security: { checkOrigin: false },
+
   // Declarative i18n config. `routing: 'manual'` means Astro does NOT inject its
   // own locale routing — our middleware + the `[locale]/` routes own that (EN at
   // the root, ES prefixed). This block exists so tooling (Saastro Studio/Hub)

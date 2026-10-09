@@ -78,9 +78,11 @@ await conWorker({}, async (get) => {
 
   const json = { 'content-type': 'application/json' }
   for (const path of ['/__render', '/__purge']) {
-    const r = await get(path, { method: 'POST', body: '{}', headers: json })
-    await r.arrayBuffer()
-    ok(r.status === 404, `POST ${path} → 404 sin secreto (fue ${r.status})`)
+    for (const headers of [json, {}]) {
+      const r = await get(path, { method: 'POST', body: '{}', headers })
+      await r.arrayBuffer()
+      ok(r.status === 404, `POST ${path}${headers['content-type'] ? '' : ' sin content-type'} → 404 sin secreto (fue ${r.status})`)
+    }
   }
   const pv = await get('/p/demo?__pv=1.ab')
   await pv.arrayBuffer()
@@ -114,6 +116,12 @@ await conWorker(
     ok(!/<html|<head/i.test(html), '/__render es parcial (sin <html>/<head>)')
     ok(html.includes('bg-primary/5'), '/__render con tema b pinta el hero b')
     ok(/render;dur=/.test(r.headers.get('server-timing') ?? ''), '/__render Server-Timing render;dur')
+
+    // Sin content-type (un fetch con body string viaja como text/plain): no
+    // puede caer en el 403 de checkOrigin antes de llegar a la firma.
+    const plano = await get('/__render', { method: 'POST', body, headers: { 'x-saastro-sig': sig(body) } })
+    await plano.arrayBuffer()
+    ok(plano.status === 200, `/__render firmado sin content-type → 200 (fue ${plano.status})`)
 
     const bad = await get('/__render', { method: 'POST', body, headers: { 'content-type': 'application/json', 'x-saastro-sig': sig(body + ' ') } })
     await bad.arrayBuffer()

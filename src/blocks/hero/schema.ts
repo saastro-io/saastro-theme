@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import type { BlockDef } from '../types';
+import { safeHref } from '../href';
 
 const cta = z.object({
   label: z.string().min(1).max(40),
-  href: z.string().min(1).max(500),
+  href: safeHref,
 });
 
 /**

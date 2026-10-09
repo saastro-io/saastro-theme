@@ -45,10 +45,11 @@ export function installPreviewBridge(hubOrigin: string): void {
     } else if (m.type === 'remove') {
       if (el) el.remove();
     } else if (m.type === 'move') {
-      if (!el) return;
-      el.remove();
-      root.insertBefore(el, before(m.index));
-    } else {
+      if (el) {
+        el.remove();
+        root.insertBefore(el, before(m.index));
+      }
+    } else if (m.type !== 'swap' && m.type !== 'insert') {
       return;
     }
     const source = e.source as Window | null;

@@ -19,8 +19,10 @@ export type Tema = 'a' | 'b';
 export const TEMAS: readonly Tema[] = ['a', 'b'];
 
 /**
- * Variante por defecto de cada tipo según el tema del host. Un bloque del
- * documento que NO fija `variant` toma la de su tema; uno que la fija, manda.
+ * Variante de cada tipo según el tema del host. En los tipos que están aquí
+ * MANDA EL TEMA, aunque el bloque traiga `variant` (p. ej. copiada de
+ * `hero-a` del manifiesto): el mismo documento se viste según el host. En el
+ * resto, `variant` elige entre las que haya.
  */
 const VARIANTE_POR_TEMA: Record<string, Record<Tema, string>> = {
   hero: { a: 'a', b: 'b' },
@@ -29,9 +31,9 @@ const VARIANTE_POR_TEMA: Record<string, Record<Tema, string>> = {
 export function resolveBlock(type: string, variant: string | undefined, tema: Tema): BlockDef | null {
   const candidates = BLOCKS.filter((b) => b.type === type);
   if (candidates.length === 0) return null;
-  if (variant !== undefined) return candidates.find((b) => b.variant === variant) ?? null;
   const porTema = VARIANTE_POR_TEMA[type]?.[tema];
   if (porTema) return candidates.find((b) => b.variant === porTema) ?? null;
+  if (variant !== undefined) return candidates.find((b) => b.variant === variant) ?? null;
   return candidates.find((b) => b.variant === undefined) ?? candidates[0];
 }
 

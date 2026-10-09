@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { BlockDef } from '../types';
+import { safeHref } from '../href';
 
-const link = z.object({ label: z.string().min(1).max(40), href: z.string().min(1).max(500) }).strict();
+const link = z.object({ label: z.string().min(1).max(40), href: safeHref }).strict();
 
 export const propsSchema = z
   .object({

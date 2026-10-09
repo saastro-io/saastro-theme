@@ -22,8 +22,10 @@ export const pageDocSchema = z.object({
   locale: z.string().min(2).max(10),
   slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/),
   rev: z.union([z.number().int().nonnegative(), z.string().min(1).max(64)]),
-  seo: z.object({ title: z.string().min(1).max(200), description: z.string().max(400) }),
-  blocks: z.array(blockRefSchema).max(60),
+  seo: z.object({ title: z.string(), description: z.string() }),
+  // Cada bloque se valida APARTE (`validateBlocks`): uno con mala forma se
+  // omite y se cuenta; no tumba la página entera.
+  blocks: z.array(z.unknown()),
 });
 
 export type BlockRef = z.infer<typeof blockRefSchema>;
@@ -39,7 +41,7 @@ export interface ValidBlock {
 export interface BlockIssue {
   id: string;
   type: string;
-  reason: 'tipo-desconocido' | 'props-invalidas' | 'id-repetido';
+  reason: 'forma-invalida' | 'tipo-desconocido' | 'props-invalidas' | 'id-repetido';
   issues?: z.core.$ZodIssue[];
 }
 
@@ -64,11 +66,18 @@ export function validateBlock(
 }
 
 /** Los bloques que se pintan y los que se omiten (con por qué). Ids repetidos: gana el primero. */
-export function validateBlocks(blocks: BlockRef[], tema: Tema): { valid: ValidBlock[]; skipped: BlockIssue[] } {
+export function validateBlocks(blocks: unknown[], tema: Tema): { valid: ValidBlock[]; skipped: BlockIssue[] } {
   const valid: ValidBlock[] = [];
   const skipped: BlockIssue[] = [];
   const seen = new Set<string>();
-  for (const b of blocks) {
+  for (const raw of blocks) {
+    const ref = blockRefSchema.safeParse(raw);
+    if (!ref.success) {
+      const r = (raw ?? {}) as { id?: unknown; type?: unknown };
+      skipped.push({ id: String(r.id ?? '?'), type: String(r.type ?? '?'), reason: 'forma-invalida', issues: ref.error.issues });
+      continue;
+    }
+    const b = ref.data;
     if (seen.has(b.id)) {
       skipped.push({ id: b.id, type: b.type, reason: 'id-repetido' });
       continue;
