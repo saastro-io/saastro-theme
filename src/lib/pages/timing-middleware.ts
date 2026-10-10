@@ -5,7 +5,8 @@ import { CABECERA_FASES_MS, serverTiming } from './handlers';
  * `Server-Timing` en `/p/*` y `/__render`: la ruta pone sus fases (`firma`,
  * `doc`) y esto añade `render;dur`, `total;dur` e `isolate;desc=frio|caliente`.
  *
- * - `render` = total − fases medidas por la ruta. Solo se puede medir desde
+ * - `render` = total − fases medidas por la ruta: el render más cualquier E/S
+ *   que no sea `doc` ni `firma` (p. ej. el esquema del formulario del Hub). Solo se puede medir desde
  *   fuera consumiendo el cuerpo entero (con streaming las cabeceras salen antes
  *   de que la página termine), así que esto bufferiza — solo en estas rutas,
  *   que son HTML pequeño.
@@ -16,19 +17,22 @@ import { CABECERA_FASES_MS, serverTiming } from './handlers';
  *   CPU, solo tras una E/S (mitigación de Spectre). Por eso un render sin E/S
  *   sale `0` en producción: no es un error de medida, es todo lo que el
  *   runtime deja ver. Lo que sí avanza es lo que espera a la red (`doc`).
- * - `isolate;desc="frio"` en la primera petición de cada isolate: el arranque
- *   en frío no lo ve ningún reloj del Worker y suele explicar el TTFB extra.
+ * - `isolate;desc="frio"` en la primera petición de cada isolate (a cualquier
+ *   ruta): el arranque en frío no lo ve ningún reloj del Worker y suele
+ *   explicar el TTFB extra.
+ * - Ojo con un HIT de la caché del borde: trae el `Server-Timing` de la copia
+ *   original (el Worker no corrió); mírese junto a `cf-cache-status`.
  */
 const PAGE_RE = /^\/(?:[a-z]{2}\/)?p\/[^/]+\/?$/;
 
 let primera = true;
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  const frio = primera;
+  primera = false;
   const { pathname } = context.url;
   if (pathname !== '/__render' && !PAGE_RE.test(pathname)) return next();
 
-  const frio = primera;
-  primera = false;
   const t0 = performance.now();
   const response = await next();
   const type = response.headers.get('content-type') ?? '';
