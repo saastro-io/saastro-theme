@@ -23,7 +23,8 @@ interface Fetcher {
 export interface PagesRuntime {
   secret: string | undefined;
   hubOrigin: string | undefined;
-  temaByHost: string | undefined;
+  /** String JSON u objeto: ver `tema.ts`. */
+  temaByHost: unknown;
   /** El de las páginas públicas: `PAGES_SITE_ID`, o `forms.siteId`, o `demo`. */
   siteId: string;
   /**
@@ -35,13 +36,16 @@ export interface PagesRuntime {
 }
 
 export function pagesRuntime(locals: App.Locals): PagesRuntime {
-  const hub = ((cfEnv as { HUB?: Fetcher } | undefined)?.HUB as Fetcher | undefined) ?? null;
+  const raw = cfEnv as { HUB?: Fetcher; TEMA_BY_HOST?: unknown } | undefined;
+  const hub = raw?.HUB ?? null;
   const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default ?? null;
   const ctx = locals.cfContext;
   return {
     secret: PAGES_RENDER_SECRET || undefined,
     hubOrigin: PAGES_HUB_ORIGIN || undefined,
-    temaByHost: TEMA_BY_HOST || undefined,
+    // Directo del env de workerd y no solo de `astro:env`: una var JSON llega
+    // como OBJETO y `astro:env` la convierte en `undefined` (solo pasa strings).
+    temaByHost: raw?.TEMA_BY_HOST ?? (TEMA_BY_HOST || undefined),
     siteId: PAGES_SITE_ID || getSettings().forms.siteId || 'demo',
     siteIdFirmado: PAGES_SITE_ID || undefined,
     source: {

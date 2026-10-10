@@ -47,6 +47,8 @@ export interface RenderJob {
   locale: string;
   tema: Tema;
   block: ValidBlock;
+  /** Lo que tardó la verificación de la firma, en ms (para `Server-Timing`). */
+  firmaMs: number;
 }
 
 /**
@@ -64,7 +66,9 @@ export async function prepareRender(
   if (!secret || !siteId) return notFound();
   if (request.method !== 'POST') return new Response(null, { status: 405, headers: { allow: 'POST' } });
   const raw = await request.text();
+  const t0 = performance.now();
   const sig = await firmaDe(request, secret, siteId, raw, now);
+  const firmaMs = performance.now() - t0;
   if (!sig.ok) return json(401, { error: 'firma', motivo: sig.motivo });
 
   let body: unknown;
@@ -89,7 +93,7 @@ export async function prepareRender(
   if (!r.ok) {
     return json(400, { error: r.issue.reason, issues: r.issue.issues ?? [] });
   }
-  return { siteId: env.data.siteId, locale: env.data.locale, tema, block: r.block };
+  return { siteId: env.data.siteId, locale: env.data.locale, tema, block: r.block, firmaMs };
 }
 
 const TAG_RE = /^pg:[^:\s]{1,100}:[^:\s]{1,10}:[a-z0-9][a-z0-9-]{0,99}$/;
@@ -127,7 +131,7 @@ export async function handlePurge(
 
 export type PreviewCheck =
   | { mode: 'public' }
-  | { mode: 'preview' }
+  | { mode: 'preview'; firmaMs: number }
   | { mode: 'reject'; response: Response };
 
 /**
@@ -144,7 +148,9 @@ export async function checkPreview(
 ): Promise<PreviewCheck> {
   if (!url.searchParams.has('__pv')) return { mode: 'public' };
   if (!secret || !siteId || key.siteId !== siteId) return { mode: 'reject', response: notFound() };
+  const t0 = performance.now();
   const ok = await verificarPreview(secret, key, url.searchParams.get('__pv'), now);
+  const firmaMs = performance.now() - t0;
   if (!ok) {
     return {
       mode: 'reject',
@@ -154,7 +160,7 @@ export async function checkPreview(
       }),
     };
   }
-  return { mode: 'preview' };
+  return { mode: 'preview', firmaMs };
 }
 
 /** CSP de la vista previa: el Hub puede encuadrarla; nadie más. */
@@ -167,6 +173,13 @@ export function previewFrameAncestors(hubOrigin: string | undefined | null): str
   }
   return origin ? `frame-ancestors 'self' ${origin}` : "frame-ancestors 'self'";
 }
+
+/**
+ * Cabecera INTERNA: la ruta deja aquí la suma (ms) de las fases que midió ella
+ * —firma, documento— y el middleware de tiempos (`timing-middleware.ts`) la
+ * resta del total para sacar `render`, y la borra antes de responder.
+ */
+export const CABECERA_FASES_MS = 'x-saastro-fases-ms';
 
 /** `Server-Timing` con la duración en ms y los bloques omitidos. */
 export function serverTiming(parts: { name: string; dur?: number; desc?: string }[]): string {

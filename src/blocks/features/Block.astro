@@ -12,9 +12,11 @@ interface Props {
   id: string;
   variant?: string;
   props: FeaturesProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
 }
 
-const { id, props } = Astro.props;
+const { id, tema, props } = Astro.props;
 const { title, description, items, columns } = props;
 
 // Mismos SVG (lucide, stroke) que features-01.
@@ -31,7 +33,7 @@ const ICONS: Record<string, string> = {
 };
 ---
 
-<section {...sec(id)} class="w-full px-6 py-24 md:py-32">
+<section {...sec(id, tema)} class="w-full px-6 py-24 md:py-32">
   <div class="mx-auto max-w-6xl">
     {(title || description) && (
       <div class="mx-auto mb-16 max-w-2xl text-center">

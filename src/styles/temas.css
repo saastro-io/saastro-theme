@@ -8,7 +8,14 @@
  * tema, nada de hex sueltos.
  *
  * `a` = los tokens del theme tal cual (no hace falta declararlo).
- * `b` = cálido y redondeado: crema, coral, radios grandes y titulares en mono.
+ * `b` = cálido y redondeado: fondo arena, primario coral, acento verde menta,
+ *       radios grandes y titulares en mono, MAYÚSCULAS y más grandes. Tiene que
+ *       verse distinto a primera vista con la misma rev: lo vigila
+ *       `src/lib/pages/temas-css.test.ts` (Δ de fondo, acento y titular).
+ *
+ * La escala del titular es la única regla que no es un token: los bloques
+ * fijan el tamaño con clases (`text-4xl md:text-6xl`), y `[data-tema] h1`
+ * (0,1,1) gana a una clase (0,1,0) sin `!important`.
  *
  * Fuentes autoalojadas (fontsource), como `home-ds.css`: sin transferencia a
  * terceros que declarar.
@@ -18,7 +25,7 @@
 [data-tema='b'] {
   --radius: 1.25rem;
   --font-display: 'Space Mono', ui-monospace, monospace;
-  --background: oklch(0.975 0.02 85);
+  --background: oklch(0.92 0.065 75);
   --foreground: oklch(0.24 0.04 40);
   --card: oklch(0.995 0.01 85);
   --card-foreground: oklch(0.24 0.04 40);
@@ -28,9 +35,24 @@
   --secondary-foreground: oklch(0.3 0.05 40);
   --muted: oklch(0.94 0.03 82);
   --muted-foreground: oklch(0.47 0.05 45);
-  --accent: oklch(0.88 0.08 150);
-  --accent-foreground: oklch(0.25 0.05 150);
+  --accent: oklch(0.82 0.13 160);
+  --accent-foreground: oklch(0.25 0.06 160);
   --border: oklch(0.87 0.04 70);
   --input: oklch(0.87 0.04 70);
   --ring: oklch(0.64 0.19 36);
+}
+
+[data-tema='b'] h1,
+[data-tema='b'] h2 {
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+[data-tema='b'] h1 {
+  font-size: clamp(2.75rem, 7vw, 5.75rem);
+}
+
+[data-tema='b'] h2 {
+  font-size: clamp(2rem, 4.5vw, 3.75rem);
 }

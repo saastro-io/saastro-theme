@@ -7,7 +7,8 @@
  * - SSR siempre (como `/lp/*`): una página nueva no pide build ni despliegue, y
  *   fuera del sitemap y del contrato de Studio.
  * - Pública: caché de rutas por tag `pg:<siteId>:<locale>:<slug>` (1 día, swr
- *   60 s), que `POST /__purge` invalida al publicar.
+ *   60 s), que `POST /__purge` invalida al publicar, más `pgh:<host>:…` porque
+ *   el HTML depende del host (tema). `x-saastro-tema` dice qué tema salió.
  * - `?__pv=<exp>.<hmac>`: el BORRADOR, sin caché, encuadrable solo por el Hub
  *   (`PAGES_HUB_ORIGIN`) y con el puente `postMessage`. Sin secreto o sin
  *   `PAGES_SITE_ID`, 404.
@@ -17,9 +18,9 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 import RenderBlocks from '../../../components/pages/RenderBlocks.astro';
 import { previewBridgeScript } from '../../../components/pages/preview-bridge';
 import { loadPage } from '../../../lib/pages/source';
-import { pageTag, validateBlocks } from '../../../lib/pages/doc';
-import { checkPreview, previewFrameAncestors, serverTiming } from '../../../lib/pages/handlers';
-import { temaForHost } from '../../../lib/pages/tema';
+import { pageCacheTags, validateBlocks } from '../../../lib/pages/doc';
+import { CABECERA_FASES_MS, checkPreview, previewFrameAncestors, serverTiming } from '../../../lib/pages/handlers';
+import { resolverTema } from '../../../lib/pages/tema';
 import { pagesRuntime } from '../../../lib/pages/runtime';
 import '../../../styles/temas.css';
 
@@ -62,7 +63,10 @@ if (result.kind === 'unavailable') {
 }
 
 const { doc } = result;
-const tema = temaForHost(Astro.url.hostname, rt.temaByHost);
+// El host es el de la URL de la petición (en Workers, la cabecera Host con la
+// que Cloudflare la enruta). `X-Forwarded-Host` NO cuenta: sin
+// `security.allowedDomains` Astro no lo aplica.
+const { tema, fuente: fuenteTema } = resolverTema(Astro.url.hostname, rt.temaByHost);
 const { valid, skipped } = validateBlocks(doc.blocks, tema);
 if (skipped.length > 0) {
   console.warn(
@@ -71,13 +75,18 @@ if (skipped.length > 0) {
 }
 
 const h = Astro.response.headers;
+const firmaMs = pv.mode === 'preview' ? pv.firmaMs : 0;
 h.set('x-saastro-page-rev', String(doc.rev));
-h.set('x-saastro-doc-ms', String(docMs));
+// Diagnóstico: qué tema salió y por qué (mapa, host fuera del mapa, sin mapa…).
+h.set('x-saastro-tema', `${tema}; fuente=${fuenteTema}`);
+h.set(CABECERA_FASES_MS, String(docMs + firmaMs));
 h.set(
   'server-timing',
   serverTiming([
+    ...(pv.mode === 'preview' ? [{ name: 'firma', dur: firmaMs }] : []),
     { name: 'doc', dur: docMs, desc: result.source },
     { name: 'skipped', desc: String(skipped.length) },
+    { name: 'tema', desc: tema },
   ]),
 );
 if (result.stale) h.set('x-saastro-stale', '1');
@@ -88,9 +97,9 @@ if (preview) {
   h.set('x-robots-tag', 'noindex');
 } else if (result.stale) {
   // Copia rancia: poco rato, para volver a intentar el origen pronto.
-  Astro.cache.set({ maxAge: 30, tags: [pageTag(rt.siteId, lang, slug)] });
+  Astro.cache.set({ maxAge: 30, tags: pageCacheTags(Astro.url.hostname, rt.siteId, lang, slug) });
 } else {
-  Astro.cache.set({ maxAge: 86400, swr: 60, tags: [pageTag(rt.siteId, lang, slug)] });
+  Astro.cache.set({ maxAge: 86400, swr: 60, tags: pageCacheTags(Astro.url.hostname, rt.siteId, lang, slug) });
 }
 
 let hubOrigin = '';

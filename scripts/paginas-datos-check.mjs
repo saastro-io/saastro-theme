@@ -17,8 +17,13 @@
  *      `/__render` firmado (Hub #655: `<t>.<siteId>.<METODO>.<ruta>.<cuerpo>`)
  *      pinta un bloque suelto; el formato viejo, otro site, otra ruta u otro
  *      método dan 401 y un cuerpo de otro site 400; la vista previa abre
- *      `frame-ancestors` al Hub e inyecta el puente, y el host del tema b pinta
- *      `data-tema="b"` y el hero b.
+ *      `frame-ancestors` al Hub e inyecta el puente. Tema por host con los
+ *      hosts reales: `prototipo-b.enlolab.com` pinta `data-tema="b"` y
+ *      `prototipo.enlolab.com` `"a"`, el HTML difiere y `Cache-Tag` lleva el
+ *      host; `/__render` con tema b trae `data-tema="b"` en la raíz; y
+ *      `Server-Timing` sale con firma, doc, render y total en ms.
+ *   4. `TEMA_BY_HOST` como var JSON (OBJETO, no string): la causa medida en
+ *      producción el 10-oct — el host b salía con el tema a.
  */
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -45,6 +50,8 @@ const ok = (cond, msg) => {
   else fallos.push(msg)
 }
 const BLOQUES_FIXTURE = ['intro', 'ventajas', 'dudas', 'cierre', 'form']
+/** ¿Lleva `Server-Timing` cada fase con un `dur` numérico? */
+const fases = (st, nombres) => nombres.every((n) => new RegExp(`(^|, )${n};dur=\\d+(\\.\\d+)?(;|,|$)`).test(st))
 
 async function conWorker(bindings, fn) {
   const worker = await unstable_startWorker({
@@ -135,7 +142,7 @@ await conWorker(
     PAGES_RENDER_SECRET: { type: 'plain_text', value: S },
     PAGES_SITE_ID: { type: 'plain_text', value: SITE },
     PAGES_HUB_ORIGIN: { type: 'plain_text', value: HUB },
-    TEMA_BY_HOST: { type: 'plain_text', value: '{"tema-b.test":"b"}' },
+    TEMA_BY_HOST: { type: 'plain_text', value: '{"prototipo-b.enlolab.com":"b"}' },
   },
   async (get) => {
     const body = JSON.stringify({ v: 1, siteId: 'demo', locale: 'es', tema: 'b', block: { id: 'h1', type: 'hero', props: { title: ['Hola'], subtitle: 'x', stats: [{ value: '1', label: 'uno' }] } } })
@@ -144,7 +151,10 @@ await conWorker(
     ok(r.status === 200 && html.trimStart().startsWith('<section data-saastro="sec:h1"'), `/__render firmado → solo el bloque (${r.status})`)
     ok(!/<html|<head/i.test(html), '/__render es parcial (sin <html>/<head>)')
     ok(html.includes('bg-primary/5'), '/__render con tema b pinta el hero b')
-    ok(/render;dur=/.test(r.headers.get('server-timing') ?? ''), '/__render Server-Timing render;dur')
+    ok(/^<section data-saastro="sec:h1" data-tema="b"/.test(html.trimStart()), '/__render con tema b → data-tema="b" en la raíz del fragmento')
+    const rst = r.headers.get('server-timing') ?? ''
+    ok(fases(rst, ['firma', 'render', 'total']) && /isolate;desc="(frio|caliente)"/.test(rst), `/__render Server-Timing firma + render + total en ms (${rst})`)
+    ok(!r.headers.has('x-saastro-fases-ms'), '/__render no filtra la cabecera interna de fases')
 
     // Sin content-type (un fetch con body string viaja como text/plain): no
     // puede caer en el 403 de checkOrigin antes de llegar a la firma.
@@ -184,6 +194,8 @@ await conWorker(
     const pv = await get(`/es/p/demo?__pv=${exp}.${hmac(`demo:es:demo:${exp}`)}`)
     const pvHtml = await pv.text()
     ok(pv.status === 200, `vista previa firmada → 200 (fue ${pv.status})`)
+    const pvst = pv.headers.get('server-timing') ?? ''
+    ok(fases(pvst, ['firma', 'doc', 'render', 'total']), `vista previa Server-Timing firma + doc + render + total (${pvst})`)
     ok(pv.headers.get('content-security-policy') === `frame-ancestors 'self' ${HUB}`, `vista previa: frame-ancestors abre ${HUB}`)
     ok(pv.headers.get('cache-control') === 'no-store', 'vista previa: Cache-Control no-store')
     ok(pvHtml.includes('installPreviewBridge') && pvHtml.includes(JSON.stringify(HUB)), 'vista previa: puente postMessage inyectado')
@@ -191,11 +203,34 @@ await conWorker(
     const pub = await get('/p/demo')
     ok(!(await pub.text()).includes('installPreviewBridge'), 'la página pública no lleva el puente')
 
-    const b = await get('/p/demo', { host: 'tema-b.test' })
-    const bHtml = await b.text()
-    ok(bHtml.includes('data-tema="b"') && bHtml.includes('bg-primary/5'), 'host del tema b → data-tema="b" y hero b')
+    const porHost = {}
+    for (const host of ['prototipo.enlolab.com', 'prototipo-b.enlolab.com']) {
+      const res = await get('/p/demo', { host })
+      porHost[host] = { html: await res.text(), tags: (res.headers.get('cache-tag') ?? '').split(','), st: res.headers.get('server-timing') ?? '', tema: res.headers.get('x-saastro-tema') }
+    }
+    const pa = porHost['prototipo.enlolab.com']
+    const pb = porHost['prototipo-b.enlolab.com']
+    ok(pb.html.includes('data-tema="b"') && pb.html.includes('bg-primary/5'), 'Host prototipo-b.enlolab.com → data-tema="b" y hero b')
+    ok(pa.html.includes('data-tema="a"') && !pa.html.includes('data-tema="b"'), 'Host prototipo.enlolab.com → data-tema="a"')
+    ok(pa.html !== pb.html, 'el HTML de los dos hosts difiere')
+    ok(pb.tema === 'b; fuente=mapa' && pa.tema === 'a; fuente=host-fuera-del-mapa', `x-saastro-tema dice el tema y su fuente (${pa.tema} | ${pb.tema})`)
+    ok(
+      pa.tags.includes('pg:demo:en:demo') && pb.tags.includes('pg:demo:en:demo') &&
+        pa.tags.includes('pgh:prototipo.enlolab.com:demo:en:demo') && pb.tags.includes('pgh:prototipo-b.enlolab.com:demo:en:demo') &&
+        !pb.tags.includes('pgh:prototipo.enlolab.com:demo:en:demo'),
+      `Cache-Tag: el de página común y uno por host (${pb.tags.join(',')})`,
+    )
+    ok(fases(pa.st, ['doc', 'render', 'total']), `/p/demo Server-Timing doc + render + total en ms (${pa.st})`)
   },
 )
+
+// ── 4. TEMA_BY_HOST como var JSON (objeto) ───────────────────────────────────
+console.log('TEMA_BY_HOST como var JSON (objeto):')
+await conWorker({ TEMA_BY_HOST: { type: 'json', value: { 'prototipo-b.enlolab.com': 'b' } } }, async (get) => {
+  const r = await get('/p/demo', { host: 'prototipo-b.enlolab.com' })
+  const html = await r.text()
+  ok(html.includes('data-tema="b"'), `var JSON → Host prototipo-b pinta data-tema="b" (${r.headers.get('x-saastro-tema')})`)
+})
 
 if (fallos.length === 0) {
   console.log(verde('✓ paginas-datos-check — /p/*, /__render, /__purge, ?__pv y /__blocks.json se comportan como el contrato.'))

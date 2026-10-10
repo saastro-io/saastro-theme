@@ -20,15 +20,17 @@ interface Props {
   id: string;
   variant?: string;
   props: HeroProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
 }
 
-const { id, variant = 'a', props } = Astro.props;
+const { id, tema, variant = 'a', props } = Astro.props;
 const { eyebrow, title, subtitle, image, imageAlt, primaryCta, secondaryCta, stats, align } = props;
 const centered = align === 'center';
 ---
 
 {variant === 'b' ? (
-  <section {...sec(id)} class="relative overflow-hidden border-b border-border bg-primary/5 text-foreground">
+  <section {...sec(id, tema)} class="relative overflow-hidden border-b border-border bg-primary/5 text-foreground">
     <div class="container mx-auto grid items-center gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-12 lg:py-28">
       <div class:list={['flex flex-col', centered ? 'items-center text-center lg:items-start lg:text-left' : 'items-start']}>
         {eyebrow && (
@@ -87,7 +89,7 @@ const centered = align === 'center';
   </section>
 ) : (
   <section
-    {...sec(id)}
+    {...sec(id, tema)}
     class:list={[
       'relative flex flex-col overflow-hidden text-foreground',
       image ? 'dark min-h-[85vh] justify-end pb-16 pt-32 lg:pb-24' : 'bg-muted/40 pb-16 pt-16 lg:pb-24 lg:pt-24',

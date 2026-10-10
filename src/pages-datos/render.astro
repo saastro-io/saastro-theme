@@ -11,7 +11,7 @@
  * o `PAGES_SITE_ID`.
  */
 import RenderBlocks from '../components/pages/RenderBlocks.astro';
-import { prepareRender } from '../lib/pages/handlers';
+import { CABECERA_FASES_MS, prepareRender, serverTiming } from '../lib/pages/handlers';
 import { pagesRuntime } from '../lib/pages/runtime';
 import { locales } from '../i18n/config';
 
@@ -24,6 +24,9 @@ if (job instanceof Response) return job;
 
 Astro.response.headers.set('cache-control', 'no-store');
 Astro.response.headers.set('x-robots-tag', 'noindex');
+// `firma` aquí; `render`, `total` e `isolate` los añade timing-middleware.ts.
+Astro.response.headers.set('server-timing', serverTiming([{ name: 'firma', dur: job.firmaMs }, { name: 'tema', desc: job.tema }]));
+Astro.response.headers.set(CABECERA_FASES_MS, String(job.firmaMs));
 ---
 
 <RenderBlocks blocks={[job.block]} tema={job.tema} locale={job.locale} bare />

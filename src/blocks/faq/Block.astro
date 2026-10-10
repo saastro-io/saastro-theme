@@ -10,13 +10,15 @@ interface Props {
   id: string;
   variant?: string;
   props: FaqProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
 }
 
-const { id, props } = Astro.props;
+const { id, tema, props } = Astro.props;
 const { title, items } = props;
 ---
 
-<section {...sec(id)} class="px-6 py-16 lg:px-10">
+<section {...sec(id, tema)} class="px-6 py-16 lg:px-10">
   <div class="mx-auto max-w-3xl">
     <h2 {...field('title')} class="mb-4 font-heading text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-tight text-foreground">
       {title}

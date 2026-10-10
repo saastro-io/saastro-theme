@@ -73,6 +73,8 @@ describe('POST /__render', () => {
   it('firma válida y bloque válido → trabajo de render con props parseadas', async () => {
     const r = await prepareRender(await post('/__render', renderBody(FAQ, { tema: 'b' })), S, SITE, LOCALES);
     expect(r).toMatchObject({ siteId: 's', locale: 'es', tema: 'b', block: { id: 'b1', type: 'faq' } });
+    expect(typeof (r as { firmaMs: number }).firmaMs).toBe('number');
+    expect((r as { firmaMs: number }).firmaMs).toBeGreaterThanOrEqual(0);
   });
 
   it('hero sin variante toma la del tema', async () => {
@@ -151,7 +153,9 @@ describe('vista previa', () => {
   it('sin ?__pv es pública; con token bueno, preview; con token malo, 401', async () => {
     expect((await checkPreview(new URL('https://site.test/es/p/demo'), S, SITE, key)).mode).toBe('public');
     const tok = await firmarPreview(S, key, Math.floor(Date.now() / 1000) + 300);
-    expect((await checkPreview(new URL(`https://site.test/es/p/demo?__pv=${tok}`), S, SITE, key)).mode).toBe('preview');
+    const ok = await checkPreview(new URL(`https://site.test/es/p/demo?__pv=${tok}`), S, SITE, key);
+    expect(ok.mode).toBe('preview');
+    expect(ok.mode === 'preview' && typeof ok.firmaMs).toBe('number');
     const bad = await checkPreview(new URL(`https://site.test/es/p/otra?__pv=${tok}`), S, SITE, { ...key, slug: 'otra' });
     expect(bad.mode === 'reject' && bad.response.status).toBe(401);
   });

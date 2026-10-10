@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fixture from './fixture.json';
-import { pageDocSchema, pageTag, validateBlocks, type BlockRef } from './doc';
+import { pageCacheTags, pageDocSchema, pageTag, validateBlocks, type BlockRef } from './doc';
 
 const doc = (over: Record<string, unknown> = {}) => ({
   v: 1,
@@ -82,5 +82,16 @@ describe('fixture', () => {
         expect([...new Set(valid.map((b) => b.type))].sort()).toEqual(['cta', 'faq', 'features', 'form', 'hero']);
       }
     }
+  });
+});
+
+describe('pageCacheTags', () => {
+  it('el tag de página es el mismo en todos los hosts y el de host varía', () => {
+    const a = pageCacheTags('prototipo.enlolab.com', 's', 'es', 'demo');
+    const b = pageCacheTags('PROTOTIPO-B.enlolab.com', 's', 'es', 'demo');
+    expect(a[0]).toBe('pg:s:es:demo');
+    expect(b[0]).toBe(a[0]);
+    expect(a[1]).toBe('pgh:prototipo.enlolab.com:s:es:demo');
+    expect(b[1]).toBe('pgh:prototipo-b.enlolab.com:s:es:demo');
   });
 });

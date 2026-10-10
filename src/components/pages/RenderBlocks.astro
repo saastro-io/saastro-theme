@@ -7,7 +7,8 @@
  * El contenedor lleva `data-tema` (los tokens de `src/styles/temas.css`) y
  * `data-saastro-blocks`, que es donde el puente de vista previa inserta, quita
  * y mueve bloques. Con `bare` no hay contenedor: `/__render` devuelve solo el
- * bloque, que el puente mete en el contenedor que ya existe.
+ * bloque, que el puente mete en el contenedor que ya existe, y es la RAÍZ del
+ * bloque la que lleva `data-tema` (`src/blocks/markers.ts`).
  */
 import Hero from '../../blocks/hero/Block.astro';
 import Features from '../../blocks/features/Block.astro';
@@ -43,7 +44,7 @@ const formSiteId = getSettings().forms.siteId;
 {bare ? (
   blocks.map((b) => {
     const C = COMPONENTS[b.type];
-    return C ? <C id={b.id} variant={b.variant} props={b.props} locale={locale} formSiteId={formSiteId} /> : null;
+    return C ? <C id={b.id} tema={tema} variant={b.variant} props={b.props} locale={locale} formSiteId={formSiteId} /> : null;
   })
 ) : (
   <div data-tema={tema} data-saastro-blocks class="bg-background text-foreground font-sans">

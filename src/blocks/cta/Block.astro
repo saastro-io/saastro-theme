@@ -10,9 +10,11 @@ interface Props {
   id: string;
   variant?: string;
   props: CtaProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
 }
 
-const { id, props } = Astro.props;
+const { id, tema, props } = Astro.props;
 const { eyebrow, title, description, primaryCta, secondaryCta, notes, tone } = props;
 const filled = tone === 'primary';
 
@@ -20,7 +22,7 @@ const btn =
   'inline-flex h-11 items-center justify-center rounded-[var(--radius)] px-6 text-base font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px';
 ---
 
-<section {...sec(id)} class:list={['py-24 md:py-32', filled ? 'bg-primary text-primary-foreground' : 'border-t']}>
+<section {...sec(id, tema)} class:list={['py-24 md:py-32', filled ? 'bg-primary text-primary-foreground' : 'border-t']}>
   <div class="mx-auto max-w-3xl px-6 text-center">
     {eyebrow && (
       <p {...field('eyebrow')} class:list={['mb-4 text-sm font-semibold tracking-wider uppercase', filled ? 'opacity-80' : 'text-primary']}>
