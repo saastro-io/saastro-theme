@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
 import icon from 'astro-icon';
 import { defineConfig, envField } from 'astro/config';
 import saastroStudio from '@saastro/studio';
@@ -66,6 +67,39 @@ if (!process.env.SITE_URL) {
 // descendant collide.
 const DEV_PORT = process.env.DEV_PORT ? Number(process.env.DEV_PORT) : undefined;
 
+// «Páginas como datos» (prototipo). Dos cosas:
+// - Las rutas `/__render`, `/__purge` y `/__blocks.json` se INYECTAN: Astro
+//   ignora en `src/pages/` todo fichero que empiece por `_`, y el contrato con
+//   el Hub fija esos nombres. Viven en `src/pages-datos/`.
+// - Un middleware mide el render de `/p/*` y `/__render` y lo añade a
+//   `Server-Timing`. No puede hacerlo la página: con streaming las cabeceras
+//   salen antes de que termine de pintar.
+/** @type {import('astro').AstroIntegration} */
+const pagesDatos = {
+  name: 'saastro-pages-datos',
+  hooks: {
+    'astro:config:setup': ({ addMiddleware, injectRoute }) => {
+      const at = (/** @type {string} */ f) => fileURLToPath(new URL(`./src/pages-datos/${f}`, import.meta.url));
+      injectRoute({ pattern: '/__render', entrypoint: at('render.astro'), prerender: false });
+      injectRoute({ pattern: '/__purge', entrypoint: at('purge.ts'), prerender: false });
+      injectRoute({ pattern: '/__blocks.json', entrypoint: at('blocks.json.ts'), prerender: true });
+      addMiddleware({
+        entrypoint: fileURLToPath(new URL('./src/lib/pages/timing-middleware.ts', import.meta.url)),
+        order: 'pre',
+      });
+    },
+  },
+};
+
+// Lo que el plugin de Studio NO instrumenta: los bloques de «páginas como
+// datos» llevan sus marcadores a mano (clave = id del bloque en el documento,
+// no un namespace de i18n) y sus rutas son de datos. Ver src/blocks/markers.ts.
+/** @param {string} id */
+const studioInclude = (id) =>
+  /\.(astro|tsx|jsx)$/.test(id) &&
+  !/\/src\/(blocks|components\/pages|pages-datos)\//.test(id) &&
+  !/\/src\/pages\/\[\.\.\.locale\]\/p\//.test(id);
+
 export default defineConfig({
   site: SITE_URL,
   output: 'server',
@@ -97,8 +131,37 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+      // «Páginas como datos» (prototipo). Todas OPCIONALES por la misma razón
+      // que la de arriba: sin `PAGES_RENDER_SECRET`, `/__render`, `/__purge` y
+      // `?__pv` responden 404 y un descendiente no nota nada. Todas van
+      // con `access: 'secret'` aunque solo la primera lo sea: en astro:env un
+      // `public` de servidor se HORNEA en el build, y `TEMA_BY_HOST` y los
+      // orígenes vienen de `vars` de wrangler en RUNTIME.
+      PAGES_RENDER_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
+      PAGES_ORIGIN: envField.string({ context: 'server', access: 'secret', optional: true }),
+      PAGES_HUB_ORIGIN: envField.string({ context: 'server', access: 'secret', optional: true }),
+      TEMA_BY_HOST: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // siteId del documento en el Hub. Sin él, las páginas públicas usan
+      // `forms.siteId` de settings.yaml (y si no, `demo`), pero `/__render`,
+      // `/__purge` y `?__pv` responden 404: la firma Hub↔site va atada a él.
+      PAGES_SITE_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
+
+  // Caché de rutas de Astro 7 sobre la caché de Workers. Hoy NINGUNA ruta llama
+  // a `Astro.cache.set()`: `/p/*` salió (su HTML depende del host y la clave de
+  // esta caché no lo lleva; medido el 10-oct) y cachea el documento en
+  // `caches.default` (src/lib/pages/source.ts). Se mantiene para que
+  // `POST /__purge` pueda purgar copias de HTML de antes del arreglo.
+  cache: { provider: cacheCloudflare() },
+
+  // `checkOrigin` (403 a todo POST con content-type de formulario o text/plain
+  // sin `Origin` del propio site) tumbaba `/__render` y `/__purge` antes de
+  // llegar a la ruta cuando el Hub manda el cuerpo sin `content-type` (un
+  // `fetch` con body string viaja como text/plain). Esas dos rutas van
+  // autenticadas por HMAC, que es más fuerte que mirar `Origin`, y el site no
+  // tiene ninguna otra ruta que procese un POST (los formularios van al Hub).
+  security: { checkOrigin: false },
 
   // Declarative i18n config. `routing: 'manual'` means Astro does NOT inject its
   // own locale routing — our middleware + the `[locale]/` routes own that (EN at
@@ -122,6 +185,7 @@ export default defineConfig({
   integrations: [
     stripStudioMeta,
     checkRoutes,
+    pagesDatos,
     react(),
     // Standard Astro sitemap. The site is statically prerendered, so it
     // enumerates every page automatically; the i18n option emits hreflang
@@ -133,7 +197,7 @@ export default defineConfig({
       },
     }),
     icon(),
-    saastroStudio({ autoWrap: true, autoWrapPages: true }),
+    saastroStudio({ autoWrap: true, autoWrapPages: true, include: studioInclude }),
   ],
   vite: {
     plugins: [tailwindcss()],

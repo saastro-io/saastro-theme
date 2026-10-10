@@ -1,0 +1,51 @@
+---
+/**
+ * Formulario de «páginas como datos»: el formulario del Hub (`formSlug`) que
+ * pinta `src/components/lp/LandingForm.tsx`. Se IMPORTA, no se copia: su
+ * `import.meta.glob('../ui/*.tsx')` es relativo a su carpeta y solo vale allí.
+ *
+ * El esquema se precarga en el servidor (`fetchHubFormSchema`, timeout y
+ * fallback a null) para que el formulario salga en el HTML, como en `/lp/*`.
+ */
+import { LandingForm } from '@/components/lp/LandingForm';
+import { fetchHubFormSchema } from '@/lib/hub-form-schema';
+import { field, sec } from '../markers';
+import { formCopy } from './copy';
+import type { FormProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: FormProps;
+  locale: string;
+  /** Site del Hub al que van los leads (vacío ⇒ aviso «no conectado»). */
+  formSiteId: string;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
+}
+
+const { id, tema, props, locale, formSiteId } = Astro.props;
+const { title, description, formSlug, note } = props;
+const { lang, notConfigured } = formCopy(locale);
+const formSchema = formSiteId ? await fetchHubFormSchema(formSiteId, formSlug) : null;
+---
+
+<section {...sec(id, tema)} id={id} class="px-6 py-20 lg:px-10">
+  <div class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+    <div>
+      {title && <h2 {...field('title')} class="font-heading text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>}
+      {description && <p {...field('description')} class="mt-4 text-lg text-muted-foreground">{description}</p>}
+      {note && <p {...field('note')} class="mt-6 text-sm text-muted-foreground">{note}</p>}
+    </div>
+    <div class="rounded-[calc(var(--radius)*1.6)] border bg-card p-6 shadow-sm">
+      <LandingForm
+        client:load
+        siteId={formSiteId}
+        formSlug={formSlug}
+        locale={lang}
+        notConfigured={notConfigured}
+        initialSchema={formSchema}
+      />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,118 @@
+---
+/**
+ * «Páginas como datos» (prototipo): una página que no está en el código. Lee
+ * el documento PUBLICADO del Hub (`src/lib/pages/source.ts`), valida cada
+ * bloque con su esquema y lo pinta con `SiteLayout`.
+ *
+ * - SSR siempre (como `/lp/*`): una página nueva no pide build ni despliegue, y
+ *   fuera del sitemap y del contrato de Studio.
+ * - Pública: SIN caché de rutas (`Cloudflare-CDN-Cache-Control: no-store`). El
+ *   HTML depende del host (tema) y la caché de rutas de Cloudflare lo servía de
+ *   un host en el otro (medido el 10-oct: su clave ignora host y query). Lo que
+ *   se cachea es el DOCUMENTO (`source.ts`, 60 s), igual para todos los hosts;
+ *   `POST /__purge` lo borra. `x-saastro-tema` dice qué tema salió.
+ * - `?__pv=<exp>.<hmac>`: el BORRADOR, sin caché, encuadrable solo por el Hub
+ *   (`PAGES_HUB_ORIGIN`) y con el puente `postMessage`. Sin secreto o sin
+ *   `PAGES_SITE_ID`, 404.
+ * - Slug que no existe → home (igual que `/lp/*`). Hub caído sin copia → 503.
+ */
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import RenderBlocks from '../../../components/pages/RenderBlocks.astro';
+import { previewBridgeScript } from '../../../components/pages/preview-bridge';
+import { loadPage } from '../../../lib/pages/source';
+import { validateBlocks } from '../../../lib/pages/doc';
+import { CABECERA_FASES_MS, checkPreview, previewFrameAncestors, serverTiming } from '../../../lib/pages/handlers';
+import { resolverTema } from '../../../lib/pages/tema';
+import { pagesRuntime } from '../../../lib/pages/runtime';
+import '../../../styles/temas.css';
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const lp = Astro.locals.localePath;
+const { slug = '' } = Astro.params;
+
+// `[...locale]` casa cualquier prefijo: solo vale el del idioma (o `/en/` para
+// el por defecto, que es como la firma de vista previa nombra el locale).
+const prefix = Astro.params.locale;
+if (prefix !== undefined && prefix !== lang) {
+  return new Response(null, { status: 404 });
+}
+if (!/^[a-z0-9][a-z0-9-]{0,99}$/.test(slug)) {
+  return Astro.redirect(lp('/'));
+}
+
+const rt = pagesRuntime(Astro.locals);
+const key = { siteId: rt.siteId, locale: lang, slug };
+
+const pv = await checkPreview(Astro.url, rt.secret, rt.siteIdFirmado, key);
+if (pv.mode === 'reject') return pv.response;
+const preview = pv.mode === 'preview';
+
+const t0 = performance.now();
+const result = await loadPage(key, { ...rt.source, draft: preview });
+const docMs = performance.now() - t0;
+
+if (result.kind === 'not-found') {
+  if (preview) return new Response('borrador no encontrado', { status: 404, headers: { 'cache-control': 'no-store' } });
+  return Astro.redirect(lp('/'));
+}
+if (result.kind === 'unavailable') {
+  return new Response('Página no disponible ahora mismo.', {
+    status: 503,
+    headers: { 'retry-after': '30', 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
+  });
+}
+
+const { doc } = result;
+// El host es el de la URL de la petición (en Workers, la cabecera Host con la
+// que Cloudflare la enruta). `X-Forwarded-Host` NO cuenta: sin
+// `security.allowedDomains` Astro no lo aplica.
+const { tema, fuente: fuenteTema } = resolverTema(Astro.url.hostname, rt.temaByHost);
+const { valid, skipped } = validateBlocks(doc.blocks, tema);
+if (skipped.length > 0) {
+  console.warn(
+    JSON.stringify({ evento: 'pages.bloques-omitidos', slug, locale: lang, rev: doc.rev, skipped: skipped.map((s) => ({ id: s.id, type: s.type, reason: s.reason })) }),
+  );
+}
+
+const h = Astro.response.headers;
+const firmaMs = pv.mode === 'preview' ? pv.firmaMs : 0;
+h.set('x-saastro-page-rev', String(doc.rev));
+// Diagnóstico: qué tema salió y por qué (mapa, host fuera del mapa, sin mapa…).
+h.set('x-saastro-tema', `${tema}; fuente=${fuenteTema}`);
+h.set(CABECERA_FASES_MS, String(docMs + firmaMs));
+h.set(
+  'server-timing',
+  serverTiming([
+    ...(pv.mode === 'preview' ? [{ name: 'firma', dur: firmaMs }] : []),
+    { name: 'doc', dur: docMs, desc: result.source },
+    { name: 'skipped', desc: String(skipped.length) },
+    { name: 'tema', desc: tema },
+  ]),
+);
+if (result.stale) h.set('x-saastro-stale', '1');
+
+// Nunca en la caché de rutas del borde: su clave no lleva el host.
+h.set('cloudflare-cdn-cache-control', 'no-store');
+if (preview) {
+  h.set('cache-control', 'no-store');
+  h.set('content-security-policy', previewFrameAncestors(rt.hubOrigin));
+  h.set('x-robots-tag', 'noindex');
+} else {
+  // El navegador cachea por origen (host incluido): ahí no hay cruce.
+  h.set('cache-control', 'public, max-age=0, must-revalidate');
+}
+
+let hubOrigin = '';
+try {
+  hubOrigin = preview && rt.hubOrigin ? new URL(rt.hubOrigin).origin : '';
+} catch {
+  hubOrigin = '';
+}
+---
+
+<SiteLayout title={doc.seo.title} description={doc.seo.description}>
+  <RenderBlocks blocks={valid} tema={tema} locale={lang} />
+  {hubOrigin && <script is:inline set:html={previewBridgeScript(hubOrigin)} />}
+</SiteLayout>

@@ -1,0 +1,44 @@
+---
+/**
+ * FAQ de «páginas como datos». Composición de `src/components/lp/LandingFaq.astro`
+ * (`<details>`: respuestas en el HTML, indexables y sin JS).
+ */
+import { field, sec } from '../markers';
+import type { FaqProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: FaqProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { title, items } = props;
+---
+
+<section {...sec(id, tema)} class="px-6 py-16 lg:px-10">
+  <div class="mx-auto max-w-3xl">
+    <h2 {...field('title')} class="mb-4 font-heading text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-tight text-foreground">
+      {title}
+    </h2>
+    <div class="flex flex-col">
+      {items.map((f, i) => (
+        <details class="group border-b border-border">
+          <summary class="flex cursor-pointer list-none items-center gap-4 py-4.5 [&::-webkit-details-marker]:hidden">
+            <span {...field(`items.${i}.q`)} class="flex-1 font-heading text-base font-bold text-foreground">{f.q}</span>
+            <span
+              class="flex size-8 shrink-0 items-center justify-center rounded-[calc(var(--radius)-1px)] bg-primary text-[19px] font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              <span class="group-open:hidden">+</span>
+              <span class="hidden group-open:inline">−</span>
+            </span>
+          </summary>
+          <p {...field(`items.${i}.a`)} class="pb-5 pr-1 text-[13.5px] leading-relaxed text-muted-foreground">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

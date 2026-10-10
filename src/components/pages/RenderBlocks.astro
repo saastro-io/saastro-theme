@@ -1,0 +1,56 @@
+---
+/**
+ * Pinta una lista de bloques YA VALIDADOS (`src/lib/pages/doc.ts`) con su
+ * componente. La usan `/p/[slug]` (la página entera) y `/__render` (un bloque
+ * suelto para la vista previa del Hub).
+ *
+ * El contenedor lleva `data-tema` (los tokens de `src/styles/temas.css`) y
+ * `data-saastro-blocks`, que es donde el puente de vista previa inserta, quita
+ * y mueve bloques. Con `bare` no hay contenedor: `/__render` devuelve solo el
+ * bloque, que el puente mete en el contenedor que ya existe, y es la RAÍZ del
+ * bloque la que lleva `data-tema` (`src/blocks/markers.ts`).
+ */
+import Hero from '../../blocks/hero/Block.astro';
+import Features from '../../blocks/features/Block.astro';
+import Faq from '../../blocks/faq/Block.astro';
+import Cta from '../../blocks/cta/Block.astro';
+import Form from '../../blocks/form/Block.astro';
+import { getSettings } from '../../lib/settings';
+import type { ValidBlock } from '../../lib/pages/doc';
+import type { Tema } from '../../blocks/registry';
+
+interface Props {
+  blocks: ValidBlock[];
+  tema: Tema;
+  locale: string;
+  bare?: boolean;
+}
+
+const { blocks, tema, locale, bare = false } = Astro.props;
+
+// Un `type` del registro sin componente aquí es un error de programación, no
+// de datos: el test del manifiesto exige que los dos mapas coincidan.
+const COMPONENTS: Record<string, any> = {
+  hero: Hero,
+  features: Features,
+  faq: Faq,
+  cta: Cta,
+  form: Form,
+};
+
+const formSiteId = getSettings().forms.siteId;
+---
+
+{bare ? (
+  blocks.map((b) => {
+    const C = COMPONENTS[b.type];
+    return C ? <C id={b.id} tema={tema} variant={b.variant} props={b.props} locale={locale} formSiteId={formSiteId} /> : null;
+  })
+) : (
+  <div data-tema={tema} data-saastro-blocks class="bg-background text-foreground font-sans">
+    {blocks.map((b) => {
+      const C = COMPONENTS[b.type];
+      return C ? <C id={b.id} variant={b.variant} props={b.props} locale={locale} formSiteId={formSiteId} /> : null;
+    })}
+  </div>
+)}

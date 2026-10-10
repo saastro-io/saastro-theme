@@ -1,0 +1,58 @@
+---
+/**
+ * CTA de «páginas como datos». Composición de `src/components/CtaBanner.astro`;
+ * `tone` (enum) elige superficie neutra o de color `primary`.
+ */
+import { field, sec } from '../markers';
+import type { CtaProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: CtaProps;
+  /** Solo en el fragmento suelto de `/__render` (ver `../markers.ts`). */
+  tema?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { eyebrow, title, description, primaryCta, secondaryCta, notes, tone } = props;
+const filled = tone === 'primary';
+
+const btn =
+  'inline-flex h-11 items-center justify-center rounded-[var(--radius)] px-6 text-base font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px';
+---
+
+<section {...sec(id, tema)} class:list={['py-24 md:py-32', filled ? 'bg-primary text-primary-foreground' : 'border-t']}>
+  <div class="mx-auto max-w-3xl px-6 text-center">
+    {eyebrow && (
+      <p {...field('eyebrow')} class:list={['mb-4 text-sm font-semibold tracking-wider uppercase', filled ? 'opacity-80' : 'text-primary']}>
+        {eyebrow}
+      </p>
+    )}
+    <h2 {...field('title')} class="font-heading text-3xl font-bold tracking-tight text-balance sm:text-4xl">{title}</h2>
+    {description && (
+      <p {...field('description')} class:list={['mt-4 text-lg', filled ? 'opacity-85' : 'text-muted-foreground']}>{description}</p>
+    )}
+    <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a
+        href={primaryCta.href}
+        class:list={[btn, filled ? 'bg-background text-foreground hover:bg-background/90' : 'bg-primary text-primary-foreground hover:bg-primary/90']}
+      >
+        <span {...field('primaryCta.label')}>{primaryCta.label}</span>
+      </a>
+      {secondaryCta && (
+        <a
+          href={secondaryCta.href}
+          class:list={[btn, filled ? 'border border-primary-foreground/40 hover:bg-primary-foreground/10' : 'border bg-background hover:bg-secondary']}
+        >
+          <span {...field('secondaryCta.label')}>{secondaryCta.label}</span>
+        </a>
+      )}
+    </div>
+    {notes.length > 0 && (
+      <div class:list={['mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm', filled ? 'opacity-80' : 'text-muted-foreground']}>
+        {notes.map((nota, i) => <p {...field(`notes.${i}`)}>{nota}</p>)}
+      </div>
+    )}
+  </div>
+</section>

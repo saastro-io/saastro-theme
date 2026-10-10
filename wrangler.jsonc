@@ -17,5 +17,37 @@
   // escribe en estos logs y `pnpm ratio` los lee; con false no registra nada.
   "observability": {
     "enabled": false
+  },
+
+  // SOLO en la rama `proto/paginas-datos` (no se mergea): el Worker de pruebas
+  // de «páginas como datos», `saastro-proto-paginas`, tal cual está desplegado
+  // (prototipo.enlolab.com con el tema a, prototipo-b.enlolab.com con el b). Va
+  // detrás de un entorno para que el build normal —el de CI y el de cualquier
+  // descendiente— no pida un service binding que no existe ni dominios ajenos.
+  //
+  //   CLOUDFLARE_ENV=pruebas pnpm build
+  //   wrangler deploy --config dist/server/wrangler.json
+  //
+  // `name`, `routes`, `vars` y `services` NO se heredan del nivel de arriba: van
+  // aquí enteros. Los SECRETOS van aparte, nunca en el repo:
+  //   wrangler secret put PAGES_RENDER_SECRET --env pruebas
+  //   wrangler secret put PAGES_HUB_ORIGIN --env pruebas   # https://hub.saastro.io
+  // `TEMA_BY_HOST` es un string JSON; como objeto JSON también vale
+  // (src/lib/pages/tema.ts), pero `astro:env` solo pasa strings.
+  "env": {
+    "pruebas": {
+      "name": "saastro-proto-paginas",
+      "routes": [
+        { "pattern": "prototipo.enlolab.com", "custom_domain": true },
+        { "pattern": "prototipo-b.enlolab.com", "custom_domain": true }
+      ],
+      "services": [{ "binding": "HUB", "service": "saastro-hub-react" }],
+      "vars": {
+        // id del site en el Hub: ata la firma `x-saastro-sig` y es el siteId
+        // de los documentos y de los tags `pg:<siteId>:…`.
+        "PAGES_SITE_ID": "2b771188-8ef0-4d5f-be85-341aaece10ab",
+        "TEMA_BY_HOST": "{\"prototipo-b.enlolab.com\":\"b\"}"
+      }
+    }
   }
 }
