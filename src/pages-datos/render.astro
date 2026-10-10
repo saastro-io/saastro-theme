@@ -2,8 +2,11 @@
 /**
  * `POST /__render` — un bloque suelto, para la vista previa del Hub.
  *
- * Cuerpo `{ v:1, siteId, locale, tema?, block:{id,type,variant?,props} }`,
- * firmado en `x-saastro-sig` (src/lib/pages/firma.ts). Responde SOLO el HTML
+ * Cuerpo `{ v:1, siteId, locale, slug?, tema?, block:{id,type,variant?,props} }`,
+ * firmado por el Hub en `x-saastro-sig` (src/lib/pages/firma.ts) o, en el
+ * render DIRECTO del navegador, con el token de vista previa en `x-saastro-pv`
+ * (`slug` obligatorio) y CORS solo para `PAGES_HUB_ORIGIN`
+ * (src/lib/pages/handlers.ts, donde está el contrato entero). Responde SOLO el HTML
  * del bloque (página parcial: sin <html>, sin layout), que el puente de la
  * vista previa inserta con `createContextualFragment` para que corran los
  * scripts de las islas. 400 con los errores de Zod o con un `siteId` que no es
@@ -19,13 +22,18 @@ export const partial = true;
 export const prerender = false;
 
 const rt = pagesRuntime(Astro.locals);
-const job = await prepareRender(Astro.request, rt.secret, rt.siteIdFirmado, locales);
+const job = await prepareRender(Astro.request, rt.secret, rt.siteIdFirmado, locales, { hubOrigin: rt.hubOrigin });
 if (job instanceof Response) return job;
 
+for (const [k, v] of Object.entries(job.cors)) Astro.response.headers.set(k, v);
 Astro.response.headers.set('cache-control', 'no-store');
 Astro.response.headers.set('x-robots-tag', 'noindex');
-// `firma` aquí; `render`, `total` e `isolate` los añade timing-middleware.ts.
-Astro.response.headers.set('server-timing', serverTiming([{ name: 'firma', dur: job.firmaMs }, { name: 'tema', desc: job.tema }]));
+// `firma` (HMAC del Hub o token del navegador, según `auth`) aquí; `render`,
+// `total` e `isolate` los añade timing-middleware.ts.
+Astro.response.headers.set(
+  'server-timing',
+  serverTiming([{ name: 'firma', dur: job.firmaMs }, { name: 'auth', desc: job.auth }, { name: 'tema', desc: job.tema }]),
+);
 Astro.response.headers.set(CABECERA_FASES_MS, String(job.firmaMs));
 ---
 

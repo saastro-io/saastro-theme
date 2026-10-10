@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { checkPreview, handlePurge, prepareRender, previewFrameAncestors } from './handlers';
+import { MAX_RENDER_BYTES, checkPreview, handlePurge, prepareRender, previewFrameAncestors } from './handlers';
 import { firmarPeticion, firmarPreview } from './firma';
 
 const S = 'secreto';
@@ -164,5 +164,114 @@ describe('vista previa', () => {
     expect(previewFrameAncestors('https://hub.saastro.io/ruta?x=1')).toBe("frame-ancestors 'self' https://hub.saastro.io");
     expect(previewFrameAncestors(undefined)).toBe("frame-ancestors 'self'");
     expect(previewFrameAncestors('no es una url')).toBe("frame-ancestors 'self'");
+  });
+});
+
+describe('render directo del navegador (x-saastro-pv) y CORS', () => {
+  const HUB = 'https://hub.saastro.io';
+  const key = { siteId: SITE, locale: 'es', slug: 'demo' };
+  const ahora = () => Math.floor(Date.now() / 1000);
+  const body = (extra: Record<string, unknown> = {}) => JSON.stringify({ v: 1, siteId: SITE, locale: 'es', slug: 'demo', block: FAQ, ...extra });
+  const directo = (b: string, headers: Record<string, string>) =>
+    new Request('https://site.test/__render', { method: 'POST', body: b, headers: { 'content-type': 'application/json', origin: HUB, ...headers } });
+  const render = (req: Request, hubOrigin: string | null = HUB, secret: string | null = S, siteId: string | null = SITE) =>
+    prepareRender(req, secret, siteId, LOCALES, { hubOrigin });
+  const tok = (k = key, exp = ahora() + 300) => firmarPreview(S, k, exp);
+
+  it('token válido + Origin del Hub → trabajo de render con CORS exacto y auth pv', async () => {
+    const r = await render(directo(body(), { 'x-saastro-pv': await tok() }));
+    expect(r).toMatchObject({ siteId: SITE, locale: 'es', auth: 'pv', block: { id: 'b1', type: 'faq' } });
+    expect((r as { cors: Record<string, string> }).cors).toEqual({
+      vary: 'Origin',
+      'access-control-allow-origin': HUB,
+      'access-control-expose-headers': 'server-timing',
+      'timing-allow-origin': HUB,
+    });
+  });
+
+  it('sin token, token caducado, de otro site, de otro locale o de otro slug → 401/403 sin render', async () => {
+    // Sin ninguna cabecera de auth: 401 de firma ausente, como siempre.
+    expect(await status(render(directo(body(), {})))).toBe(401);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': '' })))).toBe(401);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': await tok(key, ahora() - 1) })))).toBe(401);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, siteId: 'otro' }) })))).toBe(401);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, locale: 'en' }) })))).toBe(401);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, slug: 'otra' }) })))).toBe(401);
+    // Token del otro site y cuerpo que dice ser ese site: 403 (no se renderiza como otro site).
+    const ajeno = { ...key, siteId: 'otro' };
+    expect(await status(render(directo(body({ siteId: 'otro' }), { 'x-saastro-pv': await tok(ajeno) })))).toBe(403);
+    // Sin slug no hay a qué atar el token.
+    expect(await status(render(directo(body({ slug: undefined }), { 'x-saastro-pv': await tok() })))).toBe(400);
+  });
+
+  it('el error del render directo lleva CORS para que el editor lo lea', async () => {
+    const r = (await render(directo(body(), { 'x-saastro-pv': 'nada' }))) as Response;
+    expect(r.status).toBe(401);
+    expect(r.headers.get('access-control-allow-origin')).toBe(HUB);
+  });
+
+  it('Origin distinto (o ausente, o reflejado con otra forma) → sin cabeceras CORS y 403', async () => {
+    for (const origin of ['https://evil.test', 'https://hub.saastro.io.evil.test', 'http://hub.saastro.io', 'null']) {
+      const r = (await render(directo(body(), { origin, 'x-saastro-pv': await tok() }))) as Response;
+      expect(r.status).toBe(403);
+      expect(r.headers.get('access-control-allow-origin')).toBeNull();
+      expect(r.headers.get('vary')).toBe('Origin');
+    }
+    const sinOrigin = new Request('https://site.test/__render', { method: 'POST', body: body(), headers: { 'x-saastro-pv': await tok() } });
+    expect(await status(render(sinOrigin))).toBe(403);
+  });
+
+  it('OPTIONS con el Origin del Hub → 204 con las cabeceras exactas; con otro, 403 sin CORS', async () => {
+    const pre = (origin: string) =>
+      new Request('https://site.test/__render', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type, x-saastro-pv' } });
+    const ok = (await render(pre(HUB))) as Response;
+    expect(ok.status).toBe(204);
+    expect(Object.fromEntries(ok.headers)).toEqual({
+      vary: 'Origin',
+      'access-control-allow-origin': HUB,
+      'access-control-allow-methods': 'POST, OPTIONS',
+      'access-control-allow-headers': 'content-type, x-saastro-pv',
+      'access-control-max-age': '600',
+      'access-control-expose-headers': 'server-timing',
+      'timing-allow-origin': HUB,
+    });
+    const no = (await render(pre('https://evil.test'))) as Response;
+    expect(no.status).toBe(403);
+    expect(no.headers.get('access-control-allow-origin')).toBeNull();
+    expect(no.headers.get('access-control-allow-methods')).toBeNull();
+  });
+
+  it('la firma HMAC Hub→site sigue funcionando (sin Origin, sin CORS)', async () => {
+    const r = await render(await post('/__render', renderBody(FAQ)));
+    expect(r).toMatchObject({ auth: 'hmac', cors: { vary: 'Origin' } });
+    expect((r as { cors: Record<string, string> }).cors['access-control-allow-origin']).toBeUndefined();
+    // Con las dos cabeceras manda la firma: un token válido no salva una firma mala.
+    const malaFirma = await post('/__render', renderBody(FAQ), { secret: 'otro' });
+    malaFirma.headers.set('x-saastro-pv', await tok());
+    expect(await status(render(malaFirma))).toBe(401);
+  });
+
+  it('cuerpo mayor que el tope → 413, en los dos modos', async () => {
+    const grande = body({ block: { ...FAQ, props: { title: 'x'.repeat(MAX_RENDER_BYTES), items: [{ q: 'q', a: 'a' }] } } });
+    expect(await status(render(directo(grande, { 'x-saastro-pv': await tok() })))).toBe(413);
+    expect(await status(render(await post('/__render', grande)))).toBe(413);
+    // Sin content-length (cuerpo en stream): también.
+    const stream = new Request('https://site.test/__render', {
+      method: 'POST',
+      body: new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(grande)); c.close(); } }),
+      headers: { origin: HUB, 'x-saastro-pv': await tok() },
+      duplex: 'half',
+    } as RequestInit);
+    expect(await status(render(stream))).toBe(413);
+  });
+
+  it('sin secreto, sin PAGES_SITE_ID → 404; sin PAGES_HUB_ORIGIN el directo y el preflight → 404', async () => {
+    const t = await tok();
+    expect(await status(render(directo(body(), { 'x-saastro-pv': t }), HUB, null))).toBe(404);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': t }), HUB, S, null))).toBe(404);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': t }), null))).toBe(404);
+    expect(await status(render(directo(body(), { 'x-saastro-pv': t }), 'no es una url'))).toBe(404);
+    expect(await status(render(new Request('https://site.test/__render', { method: 'OPTIONS', headers: { origin: HUB } }), null))).toBe(404);
+    expect(await status(render(new Request('https://site.test/__render', { method: 'OPTIONS', headers: { origin: HUB } }), HUB, null))).toBe(404);
   });
 });

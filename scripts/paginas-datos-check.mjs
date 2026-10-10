@@ -22,6 +22,9 @@
  *      `prototipo.enlolab.com` `"a"`, el HTML difiere y `Cache-Tag` lleva el
  *      host; `/__render` con tema b trae `data-tema="b"` en la raíz; y
  *      `Server-Timing` sale con firma, doc, render y total en ms.
+ *      Render DIRECTO del navegador: `x-saastro-pv` + `Origin` del Hub → 200
+ *      con CORS exacto; otro Origin, token caducado o de otro locale → sin
+ *      render; preflight `OPTIONS` 204 con las cabeceras exactas; 413 por tope.
  *   4. `TEMA_BY_HOST` como var JSON (OBJETO, no string): la causa medida en
  *      producción el 10-oct — el host b salía con el tema a.
  */
@@ -98,6 +101,12 @@ await conWorker({}, async (get) => {
   const pv = await get('/p/demo?__pv=1.ab')
   await pv.arrayBuffer()
   ok(pv.status === 404, `/p/demo?__pv → 404 sin secreto (fue ${pv.status})`)
+  const opt = await get('/__render', { method: 'OPTIONS', headers: { origin: 'https://hub.saastro.io', 'access-control-request-method': 'POST' } })
+  await opt.arrayBuffer()
+  ok(opt.status === 404 && !opt.headers.has('access-control-allow-origin'), `OPTIONS /__render → 404 sin secreto, sin CORS (fue ${opt.status})`)
+  const dir = await get('/__render', { method: 'POST', body: '{}', headers: { origin: 'https://hub.saastro.io', 'x-saastro-pv': '1.ab' } })
+  await dir.arrayBuffer()
+  ok(dir.status === 404, `render directo → 404 sin secreto (fue ${dir.status})`)
 
   const m = await get('/__blocks.json')
   const manifest = m.status === 200 ? await m.json() : []
@@ -133,6 +142,10 @@ await conWorker({ PAGES_RENDER_SECRET: { type: 'plain_text', value: S } }, async
   const pv = await get(`/es/p/demo?__pv=${exp}.${hmac(`demo:es:demo:${exp}`)}`)
   await pv.arrayBuffer()
   ok(pv.status === 404, `?__pv válido sin PAGES_SITE_ID → 404 (fue ${pv.status})`)
+  const dbody = JSON.stringify({ v: 1, siteId: SITE, locale: 'es', slug: 'demo', block: { id: 'f', type: 'faq', props: { title: 'T', items: [{ q: 'q', a: 'a' }] } } })
+  const dir = await get('/__render', { method: 'POST', body: dbody, headers: { origin: 'https://hub.saastro.io', 'x-saastro-pv': `${exp}.${hmac(`demo:es:demo:${exp}`)}` } })
+  await dir.arrayBuffer()
+  ok(dir.status === 404, `render directo con token válido sin PAGES_SITE_ID → 404 (fue ${dir.status})`)
 })
 
 // ── 3. Con secreto y PAGES_SITE_ID ───────────────────────────────────────────
@@ -203,6 +216,44 @@ await conWorker(
     const pub = await get('/p/demo')
     ok(!(await pub.text()).includes('installPreviewBridge'), 'la página pública no lleva el puente')
 
+    // ── Render directo del navegador ──
+    const tok = (k = 'demo:es:demo', e = exp) => `${e}.${hmac(`${k}:${e}`)}`
+    const dbody = JSON.stringify({ v: 1, siteId: SITE, locale: 'es', slug: 'demo', tema: 'b', block: { id: 'd1', type: 'faq', props: { title: 'T', items: [{ q: 'q', a: 'a' }] } } })
+    const directo = (headers, b = dbody) => get('/__render', { method: 'POST', body: b, headers: { 'content-type': 'application/json', origin: HUB, ...headers } })
+    const d = await directo({ 'x-saastro-pv': tok() })
+    const dHtml = await d.text()
+    ok(d.status === 200 && dHtml.trimStart().startsWith('<section data-saastro="sec:d1" data-tema="b"') && dHtml.includes('data-saastro-field='), `render directo con token → 200 y fragmento con marcadores (${d.status})`)
+    ok(d.headers.get('access-control-allow-origin') === HUB && d.headers.get('vary') === 'Origin' && !d.headers.has('access-control-allow-credentials'), `render directo: ACAO = ${HUB}, Vary: Origin, sin credenciales`)
+    const dst = d.headers.get('server-timing') ?? ''
+    ok(fases(dst, ['firma', 'render', 'total']) && dst.includes('auth;desc="pv"'), `render directo Server-Timing firma + render + total, auth pv (${dst})`)
+    for (const [nombre, h, esperado] of [
+      ['sin token', { 'x-saastro-pv': '' }, 401],
+      ['caducado', { 'x-saastro-pv': tok('demo:es:demo', Math.floor(Date.now() / 1000) - 5) }, 401],
+      ['de otro locale', { 'x-saastro-pv': tok('demo:en:demo') }, 401],
+      ['de otro site', { 'x-saastro-pv': tok('otro:es:demo') }, 401],
+      ['con otro Origin', { 'x-saastro-pv': tok(), origin: 'https://evil.test' }, 403],
+    ]) {
+      const x = await directo(h)
+      const t = await x.text()
+      ok(x.status === esperado && !t.includes('<section'), `render directo ${nombre} → ${esperado} sin render (fue ${x.status})`)
+      if (nombre === 'con otro Origin') ok(!x.headers.has('access-control-allow-origin'), 'otro Origin → sin cabeceras CORS')
+    }
+    const pre = await get('/__render', { method: 'OPTIONS', headers: { origin: HUB, 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type, x-saastro-pv' } })
+    await pre.arrayBuffer()
+    ok(
+      pre.status === 204 &&
+        pre.headers.get('access-control-allow-origin') === HUB &&
+        pre.headers.get('access-control-allow-methods') === 'POST, OPTIONS' &&
+        pre.headers.get('access-control-allow-headers') === 'content-type, x-saastro-pv' &&
+        pre.headers.get('access-control-max-age') === '600' &&
+        pre.headers.get('vary') === 'Origin' &&
+        !pre.headers.has('access-control-allow-credentials'),
+      `OPTIONS con Origin del Hub → 204 con las cabeceras CORS exactas (fue ${pre.status})`,
+    )
+    const preMal = await get('/__render', { method: 'OPTIONS', headers: { origin: 'https://evil.test', 'access-control-request-method': 'POST' } })
+    await preMal.arrayBuffer()
+    ok(preMal.status === 403 && !preMal.headers.has('access-control-allow-origin'), `OPTIONS con otro Origin → 403 sin CORS (fue ${preMal.status})`)
+
     const porHost = {}
     for (const host of ['prototipo.enlolab.com', 'prototipo-b.enlolab.com']) {
       const res = await get('/p/demo', { host })
@@ -221,6 +272,14 @@ await conWorker(
       `Cache-Tag: el de página común y uno por host (${pb.tags.join(',')})`,
     )
     ok(fases(pa.st, ['doc', 'render', 'total']), `/p/demo Server-Timing doc + render + total en ms (${pa.st})`)
+
+    // El último de este Worker: el proxy de `wrangler dev` pierde la conexión
+    // de la petición siguiente cuando el Worker responde sin leer un cuerpo
+    // grande (artefacto del banco local, no de Cloudflare).
+    const grande = JSON.stringify({ v: 1, siteId: SITE, locale: 'es', slug: 'demo', block: { id: 'g', type: 'faq', props: { title: 'x'.repeat(70_000), items: [] } } })
+    const big = await directo({ 'x-saastro-pv': tok() }, grande)
+    await big.arrayBuffer()
+    ok(big.status === 413, `render directo con cuerpo > 64 KiB → 413 (fue ${big.status})`)
   },
 )
 
