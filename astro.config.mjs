@@ -148,9 +148,11 @@ export default defineConfig({
     },
   },
 
-  // Caché de rutas de Astro 7 sobre la caché de Workers: `/p/*` se cachea por
-  // tag (`pg:<siteId>:<locale>:<slug>`) y `POST /__purge` la invalida. Solo la
-  // usan las rutas que llaman a `Astro.cache.set()`; el resto no cambia.
+  // Caché de rutas de Astro 7 sobre la caché de Workers. Hoy NINGUNA ruta llama
+  // a `Astro.cache.set()`: `/p/*` salió (su HTML depende del host y la clave de
+  // esta caché no lo lleva; medido el 10-oct) y cachea el documento en
+  // `caches.default` (src/lib/pages/source.ts). Se mantiene para que
+  // `POST /__purge` pueda purgar copias de HTML de antes del arreglo.
   cache: { provider: cacheCloudflare() },
 
   // `checkOrigin` (403 a todo POST con content-type de formulario o text/plain
