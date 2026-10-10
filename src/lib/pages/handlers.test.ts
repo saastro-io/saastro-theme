@@ -197,11 +197,29 @@ describe('render directo del navegador (x-saastro-pv) y CORS', () => {
     expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, siteId: 'otro' }) })))).toBe(401);
     expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, locale: 'en' }) })))).toBe(401);
     expect(await status(render(directo(body(), { 'x-saastro-pv': await tok({ ...key, slug: 'otra' }) })))).toBe(401);
-    // Token del otro site y cuerpo que dice ser ese site: 403 (no se renderiza como otro site).
+    // Token de otro site y cuerpo que dice ser ese site: 401 (el token se
+    // comprueba contra PAGES_SITE_ID, no contra lo que diga el cuerpo).
     const ajeno = { ...key, siteId: 'otro' };
-    expect(await status(render(directo(body({ siteId: 'otro' }), { 'x-saastro-pv': await tok(ajeno) })))).toBe(403);
+    expect(await status(render(directo(body({ siteId: 'otro' }), { 'x-saastro-pv': await tok(ajeno) })))).toBe(401);
+    // Token bueno de ESTE site y cuerpo que pide ser otro: 403.
+    expect(await status(render(directo(body({ siteId: 'otro' }), { 'x-saastro-pv': await tok() })))).toBe(403);
     // Sin slug no hay a qué atar el token.
-    expect(await status(render(directo(body({ slug: undefined }), { 'x-saastro-pv': await tok() })))).toBe(400);
+    expect(await status(render(directo(body({ slug: undefined }), { 'x-saastro-pv': await tok() })))).toBe(401);
+  });
+
+  it('sin token válido no hay oráculo: siteId acertado o no, sobre roto o no → el mismo 401', async () => {
+    for (const b of [body(), body({ siteId: 'otro' }), body({ block: { id: '!' } }), body({ v: 2 })]) {
+      const r = (await render(directo(b, { 'x-saastro-pv': 'basura' }))) as Response;
+      expect(r.status).toBe(401);
+      expect(await r.json()).toEqual({ error: 'pv', motivo: 'token ausente, caducado, malformado o de otro site, locale o slug' });
+    }
+  });
+
+  it('PAGES_HUB_ORIGIN se normaliza (barra final, mayúsculas, puerto por defecto)', async () => {
+    for (const cfg of ['https://HUB.saastro.io/', 'https://hub.saastro.io:443', 'https://hub.saastro.io/ruta?x=1']) {
+      const r = await render(directo(body(), { 'x-saastro-pv': await tok() }), cfg);
+      expect((r as { cors: Record<string, string> }).cors['access-control-allow-origin']).toBe(HUB);
+    }
   });
 
   it('el error del render directo lleva CORS para que el editor lo lea', async () => {

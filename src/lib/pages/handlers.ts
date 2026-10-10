@@ -45,6 +45,12 @@ export const renderEnvelopeSchema = z.object({
   block: blockRefSchema,
 });
 
+/** Lo que ata el token `__pv`, sacado del cuerpo antes de validarlo entero. */
+const pvKeySchema = z.object({
+  locale: z.string().min(2).max(10),
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/),
+});
+
 /** Token de vista previa (`?__pv` del iframe) del render directo. Cabecera, nunca query: no queda en logs. */
 export const CABECERA_PV = 'x-saastro-pv';
 /** Tope del cuerpo de `/__render` (los dos modos): un bloque son unos pocos KB. */
@@ -210,20 +216,26 @@ export async function prepareRender(
   } catch {
     return fail(400, { error: 'json' });
   }
+
+  if (modo === 'pv') {
+    // El token se comprueba ANTES de mirar nada más del cuerpo, y contra
+    // `PAGES_SITE_ID`, no contra el `siteId` que diga el cuerpo: sin token
+    // válido no hay respuesta que distinga un siteId acertado de uno fallido
+    // ni errores de Zod. (El `Origin` no autentica: un servidor lo falsifica;
+    // lo que autoriza es el token, y el render solo pinta los props recibidos.)
+    const llave = pvKeySchema.safeParse(body);
+    const t0 = performance.now();
+    const ok = llave.success && (await verificarPreview(secret, { siteId, ...llave.data }, pv, opts.now));
+    firmaMs = performance.now() - t0;
+    if (!ok) return fail(401, { error: 'pv', motivo: 'token ausente, caducado, malformado o de otro site, locale o slug' });
+  }
+
   const env = renderEnvelopeSchema.safeParse(body);
   if (!env.success) return fail(400, { error: 'sobre', issues: env.error.issues });
   if (env.data.siteId !== siteId) {
-    // Con firma, el Hub mandó un sobre incoherente (400). Con token, el
-    // navegador pide renderizar como otro site: prohibido (403).
+    // Con firma, el Hub mandó un sobre incoherente (400). Con token (ya
+    // válido para ESTE site), el cuerpo pide renderizar como otro: 403.
     return fail(modo === 'pv' ? 403 : 400, { error: 'siteId', issues: [{ path: ['siteId'], message: 'siteId de otro site' }] });
-  }
-
-  if (modo === 'pv') {
-    if (!env.data.slug) return fail(400, { error: 'slug', issues: [{ path: ['slug'], message: 'el render directo exige el slug del token' }] });
-    const t0 = performance.now();
-    const ok = await verificarPreview(secret, { siteId, locale: env.data.locale, slug: env.data.slug }, pv, opts.now);
-    firmaMs = performance.now() - t0;
-    if (!ok) return fail(401, { error: 'pv', motivo: 'token caducado, malformado o de otro site, locale o slug' });
   }
 
   if (!locales.includes(env.data.locale)) {
