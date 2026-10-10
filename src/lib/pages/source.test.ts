@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { lastGoodKey, loadPage, pagePath } from './source';
+import { DOC_TTL_S, docKey, keyFromTag, lastGoodKey, loadPage, pagePath, purgeDocs } from './source';
 import crypto from 'node:crypto';
 import { verificarFirma } from './firma';
 
@@ -23,6 +23,7 @@ function memCache() {
     cache: {
       put: async (k: string, r: Response) => void m.set(k, await r.text()),
       match: async (k: string) => (m.has(k) ? new Response(m.get(k)) : undefined),
+      delete: async (k: string) => m.delete(k),
     } as unknown as Cache,
   };
 }
@@ -126,5 +127,47 @@ describe('loadPage', () => {
     for (const [url, ruta] of [[`https://hub${p}`, p], [`https://hub.x/base${p}`, `/base${p}`]]) {
       expect(await verificarFirma('S', sigs[url], { siteId: 'site1', metodo: 'GET', ruta, cuerpo: '' })).toEqual({ ok: true });
     }
+  });
+});
+
+describe('caché del DOCUMENTO publicado (no del HTML)', () => {
+  it('la clave no lleva host: es del documento, igual para todos los hosts', () => {
+    expect(docKey(KEY)).toBe('https://pages-doc.saastro.internal/api/_public/pages/site1/es/demo');
+    expect(docKey(KEY)).not.toMatch(/prototipo|enlolab/);
+    expect(DOC_TTL_S).toBe(60);
+  });
+
+  it('el primer acceso lee el Hub y guarda el documento; el segundo sale de la caché sin red', async () => {
+    const fetchImpl = vi.fn(async () => ok({ doc: DOC }));
+    const { cache, store } = memCache();
+    const opts = { origin: 'https://hub.x', fetchImpl: fetchImpl as unknown as typeof fetch, cache };
+    expect(await loadPage(KEY, opts)).toMatchObject({ kind: 'ok', source: 'origin' });
+    expect(JSON.parse(store.get(docKey(KEY))!)).toMatchObject({ rev: 7 });
+    expect(await loadPage(KEY, opts)).toMatchObject({ kind: 'ok', source: 'cache', doc: { rev: 7 } });
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  it('un borrador ni lee ni escribe la caché del documento', async () => {
+    const { cache, store } = memCache();
+    await cache.put(docKey(KEY), new Response(JSON.stringify({ ...DOC, rev: 1 })));
+    const fetchImpl = vi.fn(async () => ok({ doc: DOC }));
+    const r = await loadPage(KEY, { origin: 'https://hub.x', fetchImpl: fetchImpl as unknown as typeof fetch, cache, draft: true, secret: 'S' });
+    expect(r).toMatchObject({ source: 'origin', doc: { rev: 7 } });
+    expect(JSON.parse(store.get(docKey(KEY))!)).toMatchObject({ rev: 1 });
+  });
+
+  it('purgeDocs borra el documento del tag pg:… y el siguiente acceso vuelve al Hub', async () => {
+    const fetchImpl = vi.fn(async () => ok({ doc: DOC }));
+    const { cache, store } = memCache();
+    const opts = { origin: 'https://hub.x', fetchImpl: fetchImpl as unknown as typeof fetch, cache };
+    await loadPage(KEY, opts);
+    expect(await purgeDocs(cache, ['pg:site1:es:demo', 'pg:site1:en:otra'])).toBe(1);
+    expect(store.has(docKey(KEY))).toBe(false);
+    expect(store.has(lastGoodKey(KEY))).toBe(true);
+    expect(await loadPage(KEY, opts)).toMatchObject({ source: 'origin' });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(keyFromTag('pg:s:es:demo')).toEqual({ siteId: 's', locale: 'es', slug: 'demo' });
+    expect(keyFromTag('astro-path:/p/demo')).toBeNull();
+    expect(await purgeDocs(null, ['pg:s:es:demo'])).toBe(0);
   });
 });

@@ -83,7 +83,7 @@ await conWorker({}, async (get) => {
     ok(r.headers.get('x-saastro-page-rev') === '1', `${path} x-saastro-page-rev: 1`)
     const st = r.headers.get('server-timing') ?? ''
     ok(/doc;dur=/.test(st) && /render;dur=/.test(st) && /skipped;desc="0"/.test(st), `${path} Server-Timing doc + render + skipped (${st})`)
-    ok((r.headers.get('cache-tag') ?? '').split(',').includes(`pg:demo:${locale}:demo`), `${path} Cache-Tag pg:demo:${locale}:demo`)
+    ok(/no-store/.test(r.headers.get('cloudflare-cdn-cache-control') ?? ''), `${path} fuera de la caché de rutas del borde (Cloudflare-CDN-Cache-Control: no-store)`)
     ok(r.headers.get('x-frame-options') === 'SAMEORIGIN', `${path} conserva las cabeceras de seguridad`)
   }
   const nope = await get('/p/no-existe')
@@ -198,6 +198,10 @@ await conWorker(
     const p400 = await get('/__purge', { method: 'POST', body: ptags, headers: { 'x-saastro-sig': sig(ptags, { ruta: '/__purge' }) } })
     await p400.arrayBuffer()
     ok(p400.status === 400, `/__purge tag de otro siteId → 400 (fue ${p400.status})`)
+    const pok = '{"tags":["pg:demo:es:demo"]}'
+    const p200 = await get('/__purge', { method: 'POST', body: pok, headers: { 'x-saastro-sig': sig(pok, { ruta: '/__purge' }) } })
+    const p200b = await p200.text()
+    ok(p200.status === 200 && p200b.includes('pg:demo:es:demo'), `/__purge firmado → 200 (fue ${p200.status} ${p200b.slice(0, 80)})`)
     const pvieja = '{"tags":["pg:demo:es:demo"]}'
     const p401 = await get('/__purge', { method: 'POST', body: pvieja, headers: { 'x-saastro-sig': sigVieja(pvieja) } })
     await p401.arrayBuffer()
@@ -257,7 +261,7 @@ await conWorker(
     const porHost = {}
     for (const host of ['prototipo.enlolab.com', 'prototipo-b.enlolab.com']) {
       const res = await get('/p/demo', { host })
-      porHost[host] = { html: await res.text(), tags: (res.headers.get('cache-tag') ?? '').split(','), st: res.headers.get('server-timing') ?? '', tema: res.headers.get('x-saastro-tema') }
+      porHost[host] = { html: await res.text(), cdn: res.headers.get('cloudflare-cdn-cache-control') ?? '', st: res.headers.get('server-timing') ?? '', tema: res.headers.get('x-saastro-tema') }
     }
     const pa = porHost['prototipo.enlolab.com']
     const pb = porHost['prototipo-b.enlolab.com']
@@ -265,12 +269,25 @@ await conWorker(
     ok(pa.html.includes('data-tema="a"') && !pa.html.includes('data-tema="b"'), 'Host prototipo.enlolab.com → data-tema="a"')
     ok(pa.html !== pb.html, 'el HTML de los dos hosts difiere')
     ok(pb.tema === 'b; fuente=mapa' && pa.tema === 'a; fuente=host-fuera-del-mapa', `x-saastro-tema dice el tema y su fuente (${pa.tema} | ${pb.tema})`)
-    ok(
-      pa.tags.includes('pg:demo:en:demo') && pb.tags.includes('pg:demo:en:demo') &&
-        pa.tags.includes('pgh:prototipo.enlolab.com:demo:en:demo') && pb.tags.includes('pgh:prototipo-b.enlolab.com:demo:en:demo') &&
-        !pb.tags.includes('pgh:prototipo.enlolab.com:demo:en:demo'),
-      `Cache-Tag: el de página común y uno por host (${pb.tags.join(',')})`,
-    )
+    ok(/no-store/.test(pa.cdn) && /no-store/.test(pb.cdn), `los dos hosts: Cloudflare-CDN-Cache-Control: no-store (${pa.cdn} | ${pb.cdn})`)
+
+    // La caché de rutas del borde TAL COMO SE MIDIÓ en producción el 10-oct:
+    // clave = solo el pathname (ignora host y query) y guarda lo que
+    // `Cloudflare-CDN-Cache-Control` permita. Pidiendo b y luego a por ella, a
+    // NO puede recibir la copia de b.
+    const borde = new Map()
+    const porBorde = async (host, path) => {
+      const k = new URL(path, 'http://x').pathname
+      if (borde.has(k)) return { ...borde.get(k), hit: true }
+      const res = await get(path, { host })
+      const r = { html: await res.text(), tema: res.headers.get('x-saastro-tema'), hit: false }
+      const cdn = res.headers.get('cloudflare-cdn-cache-control') ?? ''
+      if (/max-age=\d+/.test(cdn) && !/no-store|private/.test(cdn)) borde.set(k, r)
+      return r
+    }
+    const vb = await porBorde('prototipo-b.enlolab.com', '/es/p/demo?nc=1')
+    const va = await porBorde('prototipo.enlolab.com', '/es/p/demo?nc=2')
+    ok(vb.html.includes('data-tema="b"') && va.html.includes('data-tema="a"') && !va.hit, `borde con clave = pathname: el segundo host NO recibe la copia del primero (a: ${va.tema}${va.hit ? ', HIT' : ''})`)
     ok(fases(pa.st, ['doc', 'render', 'total']), `/p/demo Server-Timing doc + render + total en ms (${pa.st})`)
 
     // El último de este Worker: el proxy de `wrangler dev` pierde la conexión

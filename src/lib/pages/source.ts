@@ -7,6 +7,14 @@
  *   3. la fixture `fixture.json` — SOLO si no hay ni binding ni origen, que es
  *      el caso del theme y de cualquier descendiente: `/p/demo` se ve sin Hub.
  *
+ * Lo publicado se cachea como DOCUMENTO en `caches.default` (`docKey`, 60 s):
+ * el documento no depende del host, el HTML sí (tema por host), así que la
+ * caché vive en el documento y el HTML se pinta en cada petición. NO se usa la
+ * caché de rutas de Cloudflare para `/p/*`: medido el 10-oct, su clave ignora
+ * host y query y servía la página de un host en el otro. `POST /__purge` borra
+ * el documento (`purgeDocs`); `caches.default` es por centro de datos, así que
+ * en los demás el TTL corto acota lo rancio a 60 s.
+ *
  * Un 404 del Hub es la verdad (la página no existe o no está publicada) y no
  * se reintenta. Cualquier otro fallo —timeout de 1.500 ms, 5xx, JSON que no
  * cumple el contrato— pasa al siguiente origen; si se acaban, se sirve el
@@ -22,6 +30,8 @@ import { pageDocSchema, type PageDoc } from './doc';
 
 export const TIMEOUT_MS = 1500;
 export const LAST_GOOD_TTL_S = 7 * 24 * 60 * 60;
+/** Vida del documento publicado en `caches.default` (por centro de datos). */
+export const DOC_TTL_S = 60;
 
 export interface PageKey {
   siteId: string;
@@ -50,7 +60,7 @@ export interface SourceOptions {
 }
 
 export type LoadResult =
-  | { kind: 'ok'; doc: PageDoc; source: 'hub' | 'origin' | 'fixture'; stale: false }
+  | { kind: 'ok'; doc: PageDoc; source: 'hub' | 'origin' | 'fixture' | 'cache'; stale: false }
   | { kind: 'ok'; doc: PageDoc; source: 'last-good'; stale: true }
   | { kind: 'not-found' }
   | { kind: 'unavailable'; reason: string };
@@ -63,6 +73,31 @@ export function pagePath(key: PageKey, draft = false): string {
 /** Clave sintética del «último bueno» en `caches.default` (nunca sale a la red). */
 export function lastGoodKey(key: PageKey): string {
   return `https://pages-last-good.saastro.internal${pagePath(key)}`;
+}
+
+/**
+ * Clave del documento publicado en `caches.default`. Sin host A PROPÓSITO: es
+ * el documento (igual para todos los hosts), no el HTML. Nunca sale a la red.
+ */
+export function docKey(key: PageKey): string {
+  return `https://pages-doc.saastro.internal${pagePath(key)}`;
+}
+
+/** `pg:<siteId>:<locale>:<slug>` → su `PageKey` (null si no es un tag de página). */
+export function keyFromTag(tag: string): PageKey | null {
+  const m = /^pg:([^:\s]+):([^:\s]+):([a-z0-9][a-z0-9-]*)$/.exec(tag);
+  return m ? { siteId: m[1], locale: m[2], slug: m[3] } : null;
+}
+
+/** Borra de `caches.default` el documento de cada tag `pg:…` (vale para todos los hosts). */
+export async function purgeDocs(cache: Cache | null | undefined, tags: string[]): Promise<number> {
+  if (!cache) return 0;
+  let n = 0;
+  for (const t of tags) {
+    const k = keyFromTag(t);
+    if (k && (await cache.delete(docKey(k)))) n++;
+  }
+  return n;
 }
 
 function fromFixture(key: PageKey, fixture: unknown): PageDoc | null {
@@ -97,6 +132,21 @@ export async function loadPage(key: PageKey, opts: SourceOptions = {}): Promise<
 
   if (draft && !opts.secret) return { kind: 'unavailable', reason: 'borrador sin secreto' };
 
+  // Lo publicado, del documento en caché si está (un borrador, nunca).
+  if (!draft && opts.cache) {
+    try {
+      const hit = await opts.cache.match(docKey(key));
+      if (hit) {
+        const parsed = pageDocSchema.safeParse(await hit.json());
+        if (parsed.success && parsed.data.locale === key.locale && parsed.data.slug === key.slug) {
+          return { kind: 'ok', doc: parsed.data, source: 'cache', stale: false };
+        }
+      }
+    } catch {
+      // Caché ilegible = ir al origen.
+    }
+  }
+
   const path = pagePath(key, draft);
   const reasons: string[] = [];
   for (const up of upstreams) {
@@ -125,17 +175,14 @@ export async function loadPage(key: PageKey, opts: SourceOptions = {}): Promise<
         continue;
       }
       if (!draft && opts.cache) {
-        const put = opts.cache
-          .put(
-            lastGoodKey(key),
+        const guardar = (k: string, ttl: number) =>
+          opts.cache!.put(
+            k,
             new Response(JSON.stringify(parsed.data), {
-              headers: {
-                'content-type': 'application/json',
-                'cache-control': `public, max-age=${LAST_GOOD_TTL_S}`,
-              },
+              headers: { 'content-type': 'application/json', 'cache-control': `public, max-age=${ttl}` },
             }),
-          )
-          .catch(() => undefined);
+          );
+        const put = Promise.all([guardar(docKey(key), DOC_TTL_S), guardar(lastGoodKey(key), LAST_GOOD_TTL_S)]).catch(() => undefined);
         if (opts.waitUntil) opts.waitUntil(put);
         else await put;
       }

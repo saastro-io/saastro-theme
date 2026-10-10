@@ -93,16 +93,3 @@ export function validateBlocks(blocks: unknown[], tema: Tema): { valid: ValidBlo
 /** Tag de caché de una página publicada. */
 export const pageTag = (siteId: string, locale: string, slug: string) => `pg:${siteId}:${locale}:${slug}`;
 
-/**
- * Tags de caché de la RESPUESTA de `/p/<slug>`: el de la página (`pg:…`, el que
- * purga el Hub al publicar y que cubre todos los hosts) y uno por host
- * (`pgh:<host>:…`). La respuesta cambia con el host (el tema), así que cada
- * copia en caché queda marcada con el host que la pintó: en producción se ve
- * en `Cache-Tag` si un host sirve la copia de otro. (`/__purge` solo acepta
- * `pg:…`, que cubre todos los hosts; `pgh:` no se purga desde el Hub.) La CLAVE de caché la pone la caché de Workers de Cloudflare (host +
- * ruta + query), no este código.
- */
-export const pageCacheTags = (host: string, siteId: string, locale: string, slug: string) => [
-  pageTag(siteId, locale, slug),
-  `pgh:${host.toLowerCase()}:${siteId}:${locale}:${slug}`,
-];
