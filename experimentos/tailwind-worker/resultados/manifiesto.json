@@ -1,0 +1,13 @@
+{
+  "clasesEnManifiesto": 927,
+  "deltaDeTodoElManifiestoBytes": 2330,
+  "deltaDeTodoElManifiesto": "@layer utilities {\n  .shimmer {\n    --_spread: var(--shimmer-spread, calc(3ch + 40px));\n    --_base: currentColor;\n    --_highlight: var( --shimmer-color, oklch(from currentColor l c h / calc(alpha* 0.2)) );\n    background-image: var( --shimmer-image, linear-gradient( calc(90deg + var(--shimmer-angle)), var(--_base) calc(50% - var(--_spread)), var(--_highlight) calc(50% - var(--_spread) * 0.5), va",
+  "falsosPositivos": [
+    "animate-accordion-down",
+    "animate-accordion-up",
+    "shimmer"
+  ],
+  "candidatosFueraProbados": 198,
+  "falsosNegativos": [],
+  "ms": 34324
+}

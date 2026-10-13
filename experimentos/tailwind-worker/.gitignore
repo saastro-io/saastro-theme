@@ -1,0 +1,7 @@
+node_modules/
+.wrangler/
+out/
+fixtures/vacio/
+# generados por scripts/empaquetar-assets.mjs y scripts/comparar.mjs
+src/assets.generated.mjs
+fixtures/

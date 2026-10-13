@@ -1,0 +1,2402 @@
+{
+  "REPS": 5,
+  "CALIENTES": 10,
+  "resumen": [
+    {
+      "n": 10,
+      "faltan": 10,
+      "deltaKB": 1.1,
+      "frio": {
+        "compileMs": 83,
+        "buildMs": 9,
+        "restaMs": 16,
+        "totalWorkerMs": 106,
+        "paredClienteMs": 117.6,
+        "cpuWorkerdMs": 218.2
+      },
+      "caliente": {
+        "compileMs": 29,
+        "buildMs": 2,
+        "restaMs": 2,
+        "totalWorkerMs": 35,
+        "paredClienteMs": 42.6,
+        "cpuWorkerdMs": 72.9
+      }
+    },
+    {
+      "n": 100,
+      "faltan": 99,
+      "deltaKB": 16.4,
+      "frio": {
+        "compileMs": 85,
+        "buildMs": 14,
+        "restaMs": 16,
+        "totalWorkerMs": 111,
+        "paredClienteMs": 119.8,
+        "cpuWorkerdMs": 219.4
+      },
+      "caliente": {
+        "compileMs": 30,
+        "buildMs": 4,
+        "restaMs": 2,
+        "totalWorkerMs": 37,
+        "paredClienteMs": 44.3,
+        "cpuWorkerdMs": 79.8
+      }
+    },
+    {
+      "n": 500,
+      "faltan": 498,
+      "deltaKB": 45.3,
+      "frio": {
+        "compileMs": 79,
+        "buildMs": 27,
+        "restaMs": 19,
+        "totalWorkerMs": 120,
+        "paredClienteMs": 128.5,
+        "cpuWorkerdMs": 243.7
+      },
+      "caliente": {
+        "compileMs": 30,
+        "buildMs": 9,
+        "restaMs": 4,
+        "totalWorkerMs": 44,
+        "paredClienteMs": 50.8,
+        "cpuWorkerdMs": 86.6
+      }
+    }
+  ],
+  "crudo": [
+    {
+      "n": 10,
+      "frios": [
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 10,
+            "compile": 83,
+            "build": 10,
+            "resta": 3,
+            "total": 96
+          },
+          "paredCliente": 117.59218699999974,
+          "cpuWorkerd": 210.931356
+        },
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 11,
+            "compile": 78,
+            "build": 7,
+            "resta": 5,
+            "total": 90
+          },
+          "paredCliente": 109.3503639999999,
+          "cpuWorkerd": 219.5383
+        },
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 12,
+            "compile": 90,
+            "build": 9,
+            "resta": 4,
+            "total": 103
+          },
+          "paredCliente": 124.52804400000059,
+          "cpuWorkerd": 228.945746
+        },
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 13,
+            "compile": 84,
+            "build": 9,
+            "resta": 3,
+            "total": 96
+          },
+          "paredCliente": 119.59996800000044,
+          "cpuWorkerd": 218.24087
+        },
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 14,
+            "compile": 82,
+            "build": 7,
+            "resta": 3,
+            "total": 92
+          },
+          "paredCliente": 113.87707999999839,
+          "cpuWorkerd": 210.129403
+        }
+      ],
+      "calientes": [
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 53,
+            "build": 3,
+            "resta": 4,
+            "total": 60
+          },
+          "paredCliente": 73.7805870000002,
+          "cpuWorkerd": 129.521099
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 43,
+            "build": 2,
+            "resta": 2,
+            "total": 47
+          },
+          "paredCliente": 55.49974299999985,
+          "cpuWorkerd": 77.75781
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 3,
+            "resta": 3,
+            "total": 47
+          },
+          "paredCliente": 57.50137700000005,
+          "cpuWorkerd": 97.110868
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 2,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 54.60084400000005,
+          "cpuWorkerd": 83.289851
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 3,
+            "resta": 2,
+            "total": 42
+          },
+          "paredCliente": 49.83116999999993,
+          "cpuWorkerd": 111.713276
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 34,
+            "build": 3,
+            "resta": 3,
+            "total": 40
+          },
+          "paredCliente": 48.21678100000008,
+          "cpuWorkerd": 61.374509
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 2,
+            "resta": 4,
+            "total": 29
+          },
+          "paredCliente": 37.48826299999973,
+          "cpuWorkerd": 73.72728
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
+            "resta": 1,
+            "total": 37
+          },
+          "paredCliente": 44.03975799999989,
+          "cpuWorkerd": 49.550666
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 2,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 43.61229800000001,
+          "cpuWorkerd": 82.107322
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 2,
+            "resta": 2,
+            "total": 28
+          },
+          "paredCliente": 34.67659499999991,
+          "cpuWorkerd": 48.923835
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 46,
+            "build": 3,
+            "resta": 2,
+            "total": 51
+          },
+          "paredCliente": 57.43572800000038,
+          "cpuWorkerd": 113.018702
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 2,
+            "resta": 4,
+            "total": 39
+          },
+          "paredCliente": 44.97202800000014,
+          "cpuWorkerd": 78.972853
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 3,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 37.68861299999935,
+          "cpuWorkerd": 72.908252
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 3,
+            "resta": 1,
+            "total": 31
+          },
+          "paredCliente": 38.50801899999988,
+          "cpuWorkerd": 60.736842
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 2,
+            "resta": 2,
+            "total": 27
+          },
+          "paredCliente": 35.619981000000735,
+          "cpuWorkerd": 85.387315
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 2,
+            "resta": 1,
+            "total": 28
+          },
+          "paredCliente": 37.55979500000012,
+          "cpuWorkerd": 49.02906
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 2,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 36.45539999999983,
+          "cpuWorkerd": 49.219322
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 2,
+            "resta": 1,
+            "total": 24
+          },
+          "paredCliente": 29.629219000000376,
+          "cpuWorkerd": 34.920808
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 2,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 34.58191799999986,
+          "cpuWorkerd": 74.266997
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 1,
+            "resta": 2,
+            "total": 24
+          },
+          "paredCliente": 28.478366999999707,
+          "cpuWorkerd": 41.63465
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 49,
+            "build": 3,
+            "resta": 4,
+            "total": 56
+          },
+          "paredCliente": 63.412906999999905,
+          "cpuWorkerd": 126.1446
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 2,
+            "resta": 2,
+            "total": 43
+          },
+          "paredCliente": 51.121907999999166,
+          "cpuWorkerd": 82.549361
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 2,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 47.86082499999975,
+          "cpuWorkerd": 88.523059
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 2,
+            "resta": 3,
+            "total": 30
+          },
+          "paredCliente": 36.69247399999949,
+          "cpuWorkerd": 78.802171
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 2,
+            "resta": 1,
+            "total": 27
+          },
+          "paredCliente": 35.789238999999725,
+          "cpuWorkerd": 50.400533
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 1,
+            "resta": 2,
+            "total": 26
+          },
+          "paredCliente": 32.21858000000066,
+          "cpuWorkerd": 45.395001
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 2,
+            "resta": 3,
+            "total": 44
+          },
+          "paredCliente": 52.21217599999909,
+          "cpuWorkerd": 54.261834
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 2,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 39.16630599999917,
+          "cpuWorkerd": 70.914161
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 1,
+            "resta": 5,
+            "total": 28
+          },
+          "paredCliente": 34.29997699999876,
+          "cpuWorkerd": 49.988344
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 4,
+            "resta": 2,
+            "total": 30
+          },
+          "paredCliente": 35.462610000000495,
+          "cpuWorkerd": 45.712221
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 44,
+            "build": 1,
+            "resta": 3,
+            "total": 48
+          },
+          "paredCliente": 56.31453899999906,
+          "cpuWorkerd": 121.553429
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 38,
+            "build": 3,
+            "resta": 2,
+            "total": 43
+          },
+          "paredCliente": 51.37391900000148,
+          "cpuWorkerd": 85.235937
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 3,
+            "resta": 4,
+            "total": 46
+          },
+          "paredCliente": 54.691696999998385,
+          "cpuWorkerd": 88.967542
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 1,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 38.13849299999856,
+          "cpuWorkerd": 60.99428
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 2,
+            "resta": 2,
+            "total": 30
+          },
+          "paredCliente": 36.39250600000014,
+          "cpuWorkerd": 87.996243
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 2,
+            "resta": 2,
+            "total": 33
+          },
+          "paredCliente": 41.09292900000219,
+          "cpuWorkerd": 50.637446
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 2,
+            "resta": 5,
+            "total": 34
+          },
+          "paredCliente": 40.25214700000288,
+          "cpuWorkerd": 54.83062
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 1,
+            "total": 35
+          },
+          "paredCliente": 42.84993799999938,
+          "cpuWorkerd": 41.764817
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 1,
+            "resta": 2,
+            "total": 43
+          },
+          "paredCliente": 48.83886999999959,
+          "cpuWorkerd": 73.018973
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 1,
+            "resta": 1,
+            "total": 24
+          },
+          "paredCliente": 30.599308000000747,
+          "cpuWorkerd": 42.525798
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 3,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 52.85395000000062,
+          "cpuWorkerd": 114.871879
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 46,
+            "build": 3,
+            "resta": 3,
+            "total": 52
+          },
+          "paredCliente": 60.239746999999625,
+          "cpuWorkerd": 99.552009
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 2,
+            "resta": 3,
+            "total": 33
+          },
+          "paredCliente": 40.85336399999869,
+          "cpuWorkerd": 69.696922
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 1,
+            "resta": 2,
+            "total": 35
+          },
+          "paredCliente": 40.57019799999762,
+          "cpuWorkerd": 81.617863
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 2,
+            "resta": 2,
+            "total": 27
+          },
+          "paredCliente": 32.86208099999931,
+          "cpuWorkerd": 50.469473
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 2,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 42.57996099999946,
+          "cpuWorkerd": 58.766243
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 2,
+            "resta": 5,
+            "total": 36
+          },
+          "paredCliente": 43.203254000000015,
+          "cpuWorkerd": 56.135759
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 5,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 43.090642999999545,
+          "cpuWorkerd": 49.486173
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 2,
+            "resta": 1,
+            "total": 35
+          },
+          "paredCliente": 42.88141899999755,
+          "cpuWorkerd": 87.978103
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 1,
+            "resta": 1,
+            "total": 23
+          },
+          "paredCliente": 28.685629000003246,
+          "cpuWorkerd": 41.765427
+        }
+      ]
+    },
+    {
+      "n": 100,
+      "frios": [
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 10,
+            "compile": 87,
+            "build": 16,
+            "resta": 6,
+            "total": 109
+          },
+          "paredCliente": 126.10418600000048,
+          "cpuWorkerd": 213.51213
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 12,
+            "compile": 110,
+            "build": 16,
+            "resta": 6,
+            "total": 132
+          },
+          "paredCliente": 155.5557080000035,
+          "cpuWorkerd": 273.346522
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 10,
+            "compile": 77,
+            "build": 14,
+            "resta": 8,
+            "total": 99
+          },
+          "paredCliente": 116.49303299999883,
+          "cpuWorkerd": 212.902547
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 9,
+            "compile": 85,
+            "build": 12,
+            "resta": 5,
+            "total": 102
+          },
+          "paredCliente": 119.78237999999692,
+          "cpuWorkerd": 223.596517
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 10,
+            "compile": 83,
+            "build": 14,
+            "resta": 4,
+            "total": 101
+          },
+          "paredCliente": 119.11699699999735,
+          "cpuWorkerd": 219.38506
+        }
+      ],
+      "calientes": [
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 46,
+            "build": 6,
+            "resta": 4,
+            "total": 56
+          },
+          "paredCliente": 63.32343899999978,
+          "cpuWorkerd": 130.825972
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 1,
+            "total": 39
+          },
+          "paredCliente": 48.057858000000124,
+          "cpuWorkerd": 86.637785
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 4,
+            "resta": 2,
+            "total": 33
+          },
+          "paredCliente": 41.804221999998845,
+          "cpuWorkerd": 82.668165
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 6,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 50.22756700000173,
+          "cpuWorkerd": 149.212802
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 4,
+            "total": 36
+          },
+          "paredCliente": 44.35779899999761,
+          "cpuWorkerd": 64.624946
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
+            "resta": 5,
+            "total": 41
+          },
+          "paredCliente": 47.30139799999961,
+          "cpuWorkerd": 59.87926
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 43.740780000000086,
+          "cpuWorkerd": 56.995398
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 20,
+            "build": 3,
+            "resta": 1,
+            "total": 24
+          },
+          "paredCliente": 35.53295600000274,
+          "cpuWorkerd": 42.816435
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 4,
+            "resta": 2,
+            "total": 29
+          },
+          "paredCliente": 35.60231599999679,
+          "cpuWorkerd": 78.316999
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 48.884493000001385,
+          "cpuWorkerd": 90.90697
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 34,
+            "build": 4,
+            "resta": 4,
+            "total": 42
+          },
+          "paredCliente": 49.88231000000087,
+          "cpuWorkerd": 120.161592
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 4,
+            "resta": 2,
+            "total": 39
+          },
+          "paredCliente": 45.83221499999854,
+          "cpuWorkerd": 81.659449
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 2,
+            "total": 34
+          },
+          "paredCliente": 41.67166500000167,
+          "cpuWorkerd": 80.021218
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 8,
+            "resta": 3,
+            "total": 40
+          },
+          "paredCliente": 46.017001000000164,
+          "cpuWorkerd": 129.710938
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 4,
+            "resta": 4,
+            "total": 30
+          },
+          "paredCliente": 38.74807399999918,
+          "cpuWorkerd": 49.440699
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 5,
+            "resta": 4,
+            "total": 37
+          },
+          "paredCliente": 42.927136000002065,
+          "cpuWorkerd": 57.050291
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 5,
+            "resta": 2,
+            "total": 39
+          },
+          "paredCliente": 47.08127799999784,
+          "cpuWorkerd": 54.059298
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 4,
+            "resta": 3,
+            "total": 36
+          },
+          "paredCliente": 42.93428099999801,
+          "cpuWorkerd": 52.988165
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 4,
+            "resta": 2,
+            "total": 35
+          },
+          "paredCliente": 40.93228900000031,
+          "cpuWorkerd": 79.653063
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 5,
+            "resta": 4,
+            "total": 34
+          },
+          "paredCliente": 46.15399699999762,
+          "cpuWorkerd": 77.544808
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 3,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 41.3910020000003,
+          "cpuWorkerd": 109.541973
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 5,
+            "resta": 2,
+            "total": 47
+          },
+          "paredCliente": 53.42946900000243,
+          "cpuWorkerd": 92.175004
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 4,
+            "resta": 2,
+            "total": 37
+          },
+          "paredCliente": 45.92399300000034,
+          "cpuWorkerd": 82.646528
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 6,
+            "resta": 2,
+            "total": 34
+          },
+          "paredCliente": 40.55277600000045,
+          "cpuWorkerd": 65.892769
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 3,
+            "total": 41
+          },
+          "paredCliente": 49.59644399999888,
+          "cpuWorkerd": 115.536907
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 4,
+            "resta": 5,
+            "total": 34
+          },
+          "paredCliente": 40.45232099999703,
+          "cpuWorkerd": 57.254867
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
+            "resta": 3,
+            "total": 39
+          },
+          "paredCliente": 45.33831400000054,
+          "cpuWorkerd": 56.650336
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 43.73033700000087,
+          "cpuWorkerd": 54.080024
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 44.13380000000325,
+          "cpuWorkerd": 86.80071
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 3,
+            "resta": 2,
+            "total": 26
+          },
+          "paredCliente": 36.42444399999658,
+          "cpuWorkerd": 70.544281
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 4,
+            "resta": 5,
+            "total": 44
+          },
+          "paredCliente": 51.295837999998184,
+          "cpuWorkerd": 119.43533
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 6,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 51.82801800000016,
+          "cpuWorkerd": 90.942548
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 3,
+            "resta": 2,
+            "total": 33
+          },
+          "paredCliente": 42.204226000001654,
+          "cpuWorkerd": 77.564271
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 6,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 46.52236700000503,
+          "cpuWorkerd": 80.4459
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 5,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 42.341959999997925,
+          "cpuWorkerd": 64.635148
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 6,
+            "resta": 5,
+            "total": 38
+          },
+          "paredCliente": 44.309033999998064,
+          "cpuWorkerd": 87.570737
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 2,
+            "total": 34
+          },
+          "paredCliente": 40.688460999997915,
+          "cpuWorkerd": 51.775396
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 4,
+            "resta": 2,
+            "total": 37
+          },
+          "paredCliente": 42.62464999999793,
+          "cpuWorkerd": 53.002497
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 4,
+            "resta": 3,
+            "total": 36
+          },
+          "paredCliente": 41.078871000005165,
+          "cpuWorkerd": 86.991776
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 42.74387299999944,
+          "cpuWorkerd": 75.166253
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 3,
+            "total": 41
+          },
+          "paredCliente": 47.06617700000061,
+          "cpuWorkerd": 107.687758
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 4,
+            "resta": 2,
+            "total": 39
+          },
+          "paredCliente": 45.37674100000004,
+          "cpuWorkerd": 86.150034
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 6,
+            "resta": 2,
+            "total": 44
+          },
+          "paredCliente": 52.346456999999646,
+          "cpuWorkerd": 90.101471
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 8,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 52.03059899999789,
+          "cpuWorkerd": 81.966316
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 6,
+            "resta": 4,
+            "total": 45
+          },
+          "paredCliente": 52.966244000002916,
+          "cpuWorkerd": 124.720352
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 4,
+            "resta": 4,
+            "total": 41
+          },
+          "paredCliente": 47.84712999999465,
+          "cpuWorkerd": 69.747392
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 4,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 37.14914499999577,
+          "cpuWorkerd": 47.510246
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 5,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 42.86156100000517,
+          "cpuWorkerd": 53.668957
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 42.75187300000107,
+          "cpuWorkerd": 79.829364
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 3,
+            "resta": 2,
+            "total": 29
+          },
+          "paredCliente": 36.65685200000007,
+          "cpuWorkerd": 67.985274
+        }
+      ]
+    },
+    {
+      "n": 500,
+      "frios": [
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 10,
+            "compile": 74,
+            "build": 27,
+            "resta": 9,
+            "total": 110
+          },
+          "paredCliente": 128.54421400000138,
+          "cpuWorkerd": 241.574556
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 10,
+            "compile": 77,
+            "build": 19,
+            "resta": 9,
+            "total": 105
+          },
+          "paredCliente": 123.95860700000048,
+          "cpuWorkerd": 230.722378
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 11,
+            "compile": 79,
+            "build": 19,
+            "resta": 6,
+            "total": 104
+          },
+          "paredCliente": 123.52541600000404,
+          "cpuWorkerd": 243.713637
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 14,
+            "compile": 100,
+            "build": 27,
+            "resta": 8,
+            "total": 135
+          },
+          "paredCliente": 158.13971800000581,
+          "cpuWorkerd": 291.477229
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 13,
+            "compile": 106,
+            "build": 29,
+            "resta": 8,
+            "total": 143
+          },
+          "paredCliente": 165.64039200000116,
+          "cpuWorkerd": 301.158135
+        }
+      ],
+      "calientes": [
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 11,
+            "resta": 5,
+            "total": 55
+          },
+          "paredCliente": 62.09833300000173,
+          "cpuWorkerd": 155.077746
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 10,
+            "resta": 4,
+            "total": 50
+          },
+          "paredCliente": 57.414888999999675,
+          "cpuWorkerd": 104.136704
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 9,
+            "resta": 5,
+            "total": 54
+          },
+          "paredCliente": 62.764102999994066,
+          "cpuWorkerd": 113.124356
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 8,
+            "resta": 6,
+            "total": 40
+          },
+          "paredCliente": 47.848683999996865,
+          "cpuWorkerd": 114.552601
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 6,
+            "resta": 3,
+            "total": 30
+          },
+          "paredCliente": 35.7754219999988,
+          "cpuWorkerd": 63.260509
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 8,
+            "resta": 4,
+            "total": 44
+          },
+          "paredCliente": 53.11331599999539,
+          "cpuWorkerd": 144.675329
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 10,
+            "resta": 3,
+            "total": 41
+          },
+          "paredCliente": 48.65932900000189,
+          "cpuWorkerd": 60.87516
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 5,
+            "resta": 3,
+            "total": 32
+          },
+          "paredCliente": 37.980146000001696,
+          "cpuWorkerd": 61.506918
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 5,
+            "resta": 4,
+            "total": 32
+          },
+          "paredCliente": 37.79952799999592,
+          "cpuWorkerd": 102.164013
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 6,
+            "resta": 3,
+            "total": 38
+          },
+          "paredCliente": 43.51463299999887,
+          "cpuWorkerd": 59.628261
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 48,
+            "build": 14,
+            "resta": 6,
+            "total": 68
+          },
+          "paredCliente": 78.88217599999916,
+          "cpuWorkerd": 171.708169
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 17,
+            "resta": 5,
+            "total": 63
+          },
+          "paredCliente": 70.06346800000028,
+          "cpuWorkerd": 115.641424
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 8,
+            "resta": 5,
+            "total": 40
+          },
+          "paredCliente": 47.53334700000414,
+          "cpuWorkerd": 87.803497
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 10,
+            "resta": 7,
+            "total": 53
+          },
+          "paredCliente": 61.75297000000137,
+          "cpuWorkerd": 171.009769
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 9,
+            "resta": 4,
+            "total": 46
+          },
+          "paredCliente": 52.79012800000055,
+          "cpuWorkerd": 85.007958
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 11,
+            "resta": 5,
+            "total": 53
+          },
+          "paredCliente": 61.30920200000401,
+          "cpuWorkerd": 79.83568
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 12,
+            "resta": 5,
+            "total": 53
+          },
+          "paredCliente": 60.42044799999712,
+          "cpuWorkerd": 75.747827
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 38,
+            "build": 9,
+            "resta": 6,
+            "total": 53
+          },
+          "paredCliente": 62.190575000000536,
+          "cpuWorkerd": 93.629723
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 5,
+            "resta": 5,
+            "total": 33
+          },
+          "paredCliente": 41.263772999998764,
+          "cpuWorkerd": 83.695162
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 6,
+            "resta": 3,
+            "total": 39
+          },
+          "paredCliente": 46.24862199999916,
+          "cpuWorkerd": 63.469166
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 11,
+            "resta": 8,
+            "total": 55
+          },
+          "paredCliente": 62.011979999995674,
+          "cpuWorkerd": 141.65578
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 12,
+            "resta": 4,
+            "total": 56
+          },
+          "paredCliente": 63.36257900000055,
+          "cpuWorkerd": 110.549963
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 11,
+            "resta": 6,
+            "total": 58
+          },
+          "paredCliente": 65.40799800000241,
+          "cpuWorkerd": 111.100618
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 8,
+            "resta": 8,
+            "total": 45
+          },
+          "paredCliente": 52.11079500000051,
+          "cpuWorkerd": 93.166176
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 7,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 42.64133300000685,
+          "cpuWorkerd": 117.697138
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 7,
+            "resta": 3,
+            "total": 40
+          },
+          "paredCliente": 48.17505799999344,
+          "cpuWorkerd": 58.075282
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 20,
+            "build": 9,
+            "resta": 3,
+            "total": 32
+          },
+          "paredCliente": 39.54869599999802,
+          "cpuWorkerd": 53.050069
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 7,
+            "resta": 5,
+            "total": 37
+          },
+          "paredCliente": 43.011483000002045,
+          "cpuWorkerd": 69.574826
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 5,
+            "resta": 4,
+            "total": 31
+          },
+          "paredCliente": 37.49350499999855,
+          "cpuWorkerd": 79.729439
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 7,
+            "resta": 3,
+            "total": 46
+          },
+          "paredCliente": 50.3579979999995,
+          "cpuWorkerd": 66.235848
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 52,
+            "build": 15,
+            "resta": 5,
+            "total": 72
+          },
+          "paredCliente": 80.40175499999896,
+          "cpuWorkerd": 179.69111
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 14,
+            "resta": 3,
+            "total": 54
+          },
+          "paredCliente": 60.517729999999574,
+          "cpuWorkerd": 104.814113
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 11,
+            "resta": 6,
+            "total": 52
+          },
+          "paredCliente": 59.45063500000106,
+          "cpuWorkerd": 98.176083
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 14,
+            "resta": 8,
+            "total": 63
+          },
+          "paredCliente": 71.09961900000053,
+          "cpuWorkerd": 121.180177
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 6,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 40.307292999998026,
+          "cpuWorkerd": 98.326588
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 6,
+            "resta": 3,
+            "total": 33
+          },
+          "paredCliente": 43.00342200000159,
+          "cpuWorkerd": 60.235856
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 9,
+            "resta": 2,
+            "total": 32
+          },
+          "paredCliente": 39.333669999999984,
+          "cpuWorkerd": 55.324255
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 5,
+            "resta": 3,
+            "total": 32
+          },
+          "paredCliente": 39.81490800000029,
+          "cpuWorkerd": 67.137412
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 5,
+            "resta": 5,
+            "total": 35
+          },
+          "paredCliente": 42.08236300000135,
+          "cpuWorkerd": 86.648634
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 10,
+            "resta": 5,
+            "total": 42
+          },
+          "paredCliente": 47.85999399999855,
+          "cpuWorkerd": 67.218564
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 49,
+            "build": 16,
+            "resta": 5,
+            "total": 70
+          },
+          "paredCliente": 78.61157700000331,
+          "cpuWorkerd": 159.29738
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 10,
+            "resta": 5,
+            "total": 46
+          },
+          "paredCliente": 53.48057499999413,
+          "cpuWorkerd": 110.693247
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 10,
+            "resta": 4,
+            "total": 44
+          },
+          "paredCliente": 50.96000500000082,
+          "cpuWorkerd": 86.002226
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 8,
+            "resta": 9,
+            "total": 45
+          },
+          "paredCliente": 55.262062000001606,
+          "cpuWorkerd": 145.749016
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 10,
+            "resta": 4,
+            "total": 40
+          },
+          "paredCliente": 49.04043900000397,
+          "cpuWorkerd": 74.890963
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 7,
+            "resta": 3,
+            "total": 34
+          },
+          "paredCliente": 41.52154600000358,
+          "cpuWorkerd": 58.684818
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 9,
+            "resta": 4,
+            "total": 44
+          },
+          "paredCliente": 50.81069999999454,
+          "cpuWorkerd": 68.472981
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 7,
+            "resta": 4,
+            "total": 39
+          },
+          "paredCliente": 47.88725500000146,
+          "cpuWorkerd": 74.535348
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 5,
+            "resta": 4,
+            "total": 33
+          },
+          "paredCliente": 39.25983299999643,
+          "cpuWorkerd": 82.272739
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 12,
+            "resta": 4,
+            "total": 51
+          },
+          "paredCliente": 57.66603700000269,
+          "cpuWorkerd": 77.797138
+        }
+      ]
+    }
+  ]
+}

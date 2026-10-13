@@ -1,0 +1,13 @@
+@layer theme {
+  :root, :host {
+    --color-sky-100: oklch(95.1% 0.026 236.824);
+  }
+}
+@layer utilities {
+  .bg-sky-100 {
+    background-color: var(--color-sky-100);
+  }
+  .p-\[18px\] {
+    padding: 18px;
+  }
+}

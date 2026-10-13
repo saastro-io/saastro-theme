@@ -1,0 +1,10 @@
+@layer utilities {
+  .leading-\[1\.15\] {
+    --tw-leading: 1.15;
+    line-height: 1.15;
+  }
+  .tracking-\[0\.02em\] {
+    --tw-tracking: 0.02em;
+    letter-spacing: 0.02em;
+  }
+}

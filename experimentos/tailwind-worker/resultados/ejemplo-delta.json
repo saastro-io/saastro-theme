@@ -1,0 +1,30 @@
+{
+  "frio": true,
+  "candidatos": 6,
+  "yaEnBase": 3,
+  "faltan": [
+    "bg-[#ff6600]",
+    "md:grid-cols-3",
+    "dark:bg-black"
+  ],
+  "rechazados": [],
+  "msDentroDelWorker": {
+    "compile": 83,
+    "build": 6,
+    "resta": 3,
+    "total": 92,
+    "totalConExtraccion": 106
+  },
+  "cargas": {
+    "hojas": [
+      "tailwindcss",
+      "tw-animate-css",
+      "shadcn/tailwind.css",
+      "@fontsource-variable/geist"
+    ],
+    "modulos": [
+      "@tailwindcss/typography"
+    ]
+  },
+  "delta": "@layer utilities {\n  .bg-\\[\\#ff6600\\] {\n    background-color: #ff6600;\n  }\n  @media (width >= 48rem) {\n    .md\\:grid-cols-3 {\n      grid-template-columns: repeat(3, minmax(0, 1fr));\n    }\n  }\n  .dark\\:bg-black:is(.dark *) {\n    background-color: var(--color-black);\n  }\n}\n"
+}

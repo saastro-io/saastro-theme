@@ -1,0 +1,3 @@
+Total Upload: 835.68 KiB / gzip: 157.08 KiB
+worker.js bytes: 855735
+gzip -9 bytes: 159640

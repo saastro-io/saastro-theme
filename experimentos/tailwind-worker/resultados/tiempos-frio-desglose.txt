@@ -1,0 +1,3 @@
+{"n":10,"friosMarcadosFrio":"5/5","calientesMarcadosFrio":0,"frioMediana":{"parseBaseMs":12,"restaMs":3,"totalSinParseMs":96}}
+{"n":100,"friosMarcadosFrio":"5/5","calientesMarcadosFrio":0,"frioMediana":{"parseBaseMs":10,"restaMs":6,"totalSinParseMs":102}}
+{"n":500,"friosMarcadosFrio":"5/5","calientesMarcadosFrio":0,"frioMediana":{"parseBaseMs":11,"restaMs":8,"totalSinParseMs":110}}
