@@ -18,6 +18,9 @@ const casos = {
   '50 000 candidatos distintos': Array.from({ length: 50_000 }, (_, i) => `m-[${i}px]`),
   'inyección con llaves': ['bg-[red;}body{display:none]', 'bg-[red}*{color:red]'],
   'propiedad arbitraria con url externa': ['[background-image:url(https://ejemplo.invalid/p.png)]'],
+  'valor arbitrario con url externa': ['bg-[url(https://ejemplo.invalid/p.png)]'],
+  'variante arbitraria': ['[&_p]:mt-[7px]'],
+  'cinco variantes cortas': ['sm:md:lg:hover:focus:p-[7px]'],
 };
 
 const res = {};
@@ -37,7 +40,7 @@ for (const [nombre, candidatos] of Object.entries(casos)) {
   const r2 = await fetch(`${W}/delta`, { method: 'POST', body: JSON.stringify({ html }) });
   const conTopes = await r2.json();
   res[nombre] = {
-    sinTopes: { msBuildDentroWorker: crudo.msBuild, paredMs: Math.round(pared), bytesSalida: crudo.bytesSalida, muestra: crudo.muestra?.slice(0, 160), error: crudo.error, status: crudo.status, rssWorkerdMB: { antes: Math.round(r0), despues: Math.round(rss()) } },
+    sinTopes: { msBuildDentroWorker: crudo.msBuild, paredMs: Math.round(pared), bytesSalida: crudo.bytesSalida, muestra: crudo.muestra?.slice(0, 220), error: crudo.error, status: crudo.status, rssWorkerdMB: { antes: Math.round(r0), despues: Math.round(rss()) } },
     conTopes: { status: r2.status, paredMs: Math.round(performance.now() - t1), error: conTopes.error, rechazados: conTopes.rechazados?.length, motivos: [...new Set(conTopes.rechazados?.map((x) => x.motivo) ?? [])], faltan: conTopes.faltan?.length, deltaBytes: conTopes.delta?.length },
   };
   console.log(nombre, JSON.stringify(res[nombre]));

@@ -7,20 +7,20 @@
       "faltan": 10,
       "deltaKB": 1.1,
       "frio": {
-        "compileMs": 80,
-        "buildMs": 7,
+        "compileMs": 83,
+        "buildMs": 9,
         "restaMs": 16,
-        "totalWorkerMs": 102,
-        "paredClienteMs": 113.5,
-        "cpuWorkerdMs": 207.8
+        "totalWorkerMs": 106,
+        "paredClienteMs": 117.6,
+        "cpuWorkerdMs": 218.2
       },
       "caliente": {
-        "compileMs": 31,
+        "compileMs": 29,
         "buildMs": 2,
         "restaMs": 2,
-        "totalWorkerMs": 36,
-        "paredClienteMs": 44.1,
-        "cpuWorkerdMs": 73.7
+        "totalWorkerMs": 35,
+        "paredClienteMs": 42.6,
+        "cpuWorkerdMs": 72.9
       }
     },
     {
@@ -28,20 +28,20 @@
       "faltan": 99,
       "deltaKB": 16.4,
       "frio": {
-        "compileMs": 99,
-        "buildMs": 16,
-        "restaMs": 18,
-        "totalWorkerMs": 132,
-        "paredClienteMs": 142.4,
-        "cpuWorkerdMs": 251.2
+        "compileMs": 85,
+        "buildMs": 14,
+        "restaMs": 16,
+        "totalWorkerMs": 111,
+        "paredClienteMs": 119.8,
+        "cpuWorkerdMs": 219.4
       },
       "caliente": {
-        "compileMs": 31,
+        "compileMs": 30,
         "buildMs": 4,
         "restaMs": 2,
-        "totalWorkerMs": 38,
-        "paredClienteMs": 47.5,
-        "cpuWorkerdMs": 83.3
+        "totalWorkerMs": 37,
+        "paredClienteMs": 44.3,
+        "cpuWorkerdMs": 79.8
       }
     },
     {
@@ -49,20 +49,20 @@
       "faltan": 498,
       "deltaKB": 45.3,
       "frio": {
-        "compileMs": 76,
-        "buildMs": 20,
-        "restaMs": 17,
-        "totalWorkerMs": 112,
-        "paredClienteMs": 118.8,
-        "cpuWorkerdMs": 246
+        "compileMs": 79,
+        "buildMs": 27,
+        "restaMs": 19,
+        "totalWorkerMs": 120,
+        "paredClienteMs": 128.5,
+        "cpuWorkerdMs": 243.7
       },
       "caliente": {
         "compileMs": 30,
         "buildMs": 9,
         "restaMs": 4,
-        "totalWorkerMs": 42,
-        "paredClienteMs": 50.1,
-        "cpuWorkerdMs": 86.4
+        "totalWorkerMs": 44,
+        "paredClienteMs": 50.8,
+        "cpuWorkerdMs": 86.6
       }
     }
   ],
@@ -71,74 +71,74 @@
       "n": 10,
       "frios": [
         {
-          "frio": false,
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 10,
+            "compile": 83,
+            "build": 10,
+            "resta": 3,
+            "total": 96
+          },
+          "paredCliente": 117.59218699999974,
+          "cpuWorkerd": 210.931356
+        },
+        {
+          "frio": true,
           "faltan": 10,
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 11,
-            "compile": 77,
+            "compile": 78,
             "build": 7,
             "resta": 5,
-            "total": 89
+            "total": 90
           },
-          "paredCliente": 113.52498700000024,
-          "cpuWorkerd": 213.19472
+          "paredCliente": 109.3503639999999,
+          "cpuWorkerd": 219.5383
         },
         {
-          "frio": false,
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 12,
+            "compile": 90,
+            "build": 9,
+            "resta": 4,
+            "total": 103
+          },
+          "paredCliente": 124.52804400000059,
+          "cpuWorkerd": 228.945746
+        },
+        {
+          "frio": true,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 13,
+            "compile": 84,
+            "build": 9,
+            "resta": 3,
+            "total": 96
+          },
+          "paredCliente": 119.59996800000044,
+          "cpuWorkerd": 218.24087
+        },
+        {
+          "frio": true,
           "faltan": 10,
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 14,
             "compile": 82,
             "build": 7,
-            "resta": 4,
-            "total": 93
-          },
-          "paredCliente": 116.05072999999993,
-          "cpuWorkerd": 207.778026
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 11,
-            "compile": 70,
-            "build": 10,
-            "resta": 4,
-            "total": 84
-          },
-          "paredCliente": 103.25935199999913,
-          "cpuWorkerd": 200.460689
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 13,
-            "compile": 89,
-            "build": 6,
-            "resta": 4,
-            "total": 99
-          },
-          "paredCliente": 121.82639999999992,
-          "cpuWorkerd": 218.335619
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 12,
-            "compile": 80,
-            "build": 7,
             "resta": 3,
-            "total": 90
+            "total": 92
           },
-          "paredCliente": 108.53988400000162,
-          "cpuWorkerd": 203.93338
+          "paredCliente": 113.87707999999839,
+          "cpuWorkerd": 210.129403
         }
       ],
       "calientes": [
@@ -148,13 +148,13 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 36,
-            "build": 1,
-            "resta": 2,
-            "total": 39
+            "compile": 53,
+            "build": 3,
+            "resta": 4,
+            "total": 60
           },
-          "paredCliente": 46.213620999999875,
-          "cpuWorkerd": 95.61239
+          "paredCliente": 73.7805870000002,
+          "cpuWorkerd": 129.521099
         },
         {
           "frio": false,
@@ -162,69 +162,27 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 31,
+            "compile": 43,
             "build": 2,
+            "resta": 2,
+            "total": 47
+          },
+          "paredCliente": 55.49974299999985,
+          "cpuWorkerd": 77.75781
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 3,
             "resta": 3,
-            "total": 36
+            "total": 47
           },
-          "paredCliente": 45.363620999999966,
-          "cpuWorkerd": 72.096816
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 4,
-            "resta": 1,
-            "total": 38
-          },
-          "paredCliente": 47.73984100000007,
-          "cpuWorkerd": 84.334936
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 30,
-            "build": 1,
-            "resta": 1,
-            "total": 32
-          },
-          "paredCliente": 39.19424800000024,
-          "cpuWorkerd": 55.920856
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 2,
-            "resta": 2,
-            "total": 37
-          },
-          "paredCliente": 46.13470899999993,
-          "cpuWorkerd": 84.077727
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 28,
-            "build": 1,
-            "resta": 1,
-            "total": 30
-          },
-          "paredCliente": 38.12880700000005,
-          "cpuWorkerd": 45.184881
+          "paredCliente": 57.50137700000005,
+          "cpuWorkerd": 97.110868
         },
         {
           "frio": false,
@@ -234,11 +192,11 @@
             "parseBase": 0,
             "compile": 41,
             "build": 2,
-            "resta": 1,
-            "total": 44
+            "resta": 2,
+            "total": 45
           },
-          "paredCliente": 56.57887699999992,
-          "cpuWorkerd": 91.473973
+          "paredCliente": 54.60084400000005,
+          "cpuWorkerd": 83.289851
         },
         {
           "frio": false,
@@ -246,13 +204,27 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 26,
-            "build": 2,
+            "compile": 37,
+            "build": 3,
             "resta": 2,
-            "total": 30
+            "total": 42
           },
-          "paredCliente": 37.27608000000009,
-          "cpuWorkerd": 41.640563
+          "paredCliente": 49.83116999999993,
+          "cpuWorkerd": 111.713276
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 34,
+            "build": 3,
+            "resta": 3,
+            "total": 40
+          },
+          "paredCliente": 48.21678100000008,
+          "cpuWorkerd": 61.374509
         },
         {
           "frio": false,
@@ -261,12 +233,26 @@
           "worker": {
             "parseBase": 0,
             "compile": 23,
-            "build": 1,
+            "build": 2,
+            "resta": 4,
+            "total": 29
+          },
+          "paredCliente": 37.48826299999973,
+          "cpuWorkerd": 73.72728
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
             "resta": 1,
-            "total": 25
+            "total": 37
           },
-          "paredCliente": 31.721259999999802,
-          "cpuWorkerd": 72.738222
+          "paredCliente": 44.03975799999989,
+          "cpuWorkerd": 49.550666
         },
         {
           "frio": false,
@@ -274,27 +260,27 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 19,
-            "build": 1,
-            "resta": 2,
-            "total": 22
-          },
-          "paredCliente": 27.79384700000037,
-          "cpuWorkerd": 39.970151
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 42,
+            "compile": 32,
             "build": 2,
             "resta": 2,
-            "total": 46
+            "total": 36
           },
-          "paredCliente": 53.33023100000082,
-          "cpuWorkerd": 101.171529
+          "paredCliente": 43.61229800000001,
+          "cpuWorkerd": 82.107322
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 2,
+            "resta": 2,
+            "total": 28
+          },
+          "paredCliente": 34.67659499999991,
+          "cpuWorkerd": 48.923835
         },
         {
           "frio": false,
@@ -303,40 +289,40 @@
           "worker": {
             "parseBase": 0,
             "compile": 46,
-            "build": 2,
-            "resta": 5,
-            "total": 53
-          },
-          "paredCliente": 60.69212999999945,
-          "cpuWorkerd": 89.668511
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 32,
-            "build": 4,
-            "resta": 2,
-            "total": 38
-          },
-          "paredCliente": 46.74027699999988,
-          "cpuWorkerd": 83.774535
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
             "build": 3,
             "resta": 2,
-            "total": 41
+            "total": 51
           },
-          "paredCliente": 52.161771000000044,
-          "cpuWorkerd": 107.341196
+          "paredCliente": 57.43572800000038,
+          "cpuWorkerd": 113.018702
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 2,
+            "resta": 4,
+            "total": 39
+          },
+          "paredCliente": 44.97202800000014,
+          "cpuWorkerd": 78.972853
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 3,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 37.68861299999935,
+          "cpuWorkerd": 72.908252
         },
         {
           "frio": false,
@@ -345,54 +331,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 27,
-            "build": 2,
-            "resta": 2,
-            "total": 31
-          },
-          "paredCliente": 39.346810000000005,
-          "cpuWorkerd": 63.440866
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 45,
-            "build": 2,
-            "resta": 2,
-            "total": 49
-          },
-          "paredCliente": 56.71908599999915,
-          "cpuWorkerd": 70.318143
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 48,
-            "build": 2,
-            "resta": 2,
-            "total": 52
-          },
-          "paredCliente": 59.71854399999938,
-          "cpuWorkerd": 66.200063
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 30,
             "build": 3,
             "resta": 1,
-            "total": 34
+            "total": 31
           },
-          "paredCliente": 45.28294399999868,
-          "cpuWorkerd": 48.327769
+          "paredCliente": 38.50801899999988,
+          "cpuWorkerd": 60.736842
         },
         {
           "frio": false,
@@ -400,13 +344,13 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 22,
-            "build": 1,
-            "resta": 1,
-            "total": 24
+            "compile": 23,
+            "build": 2,
+            "resta": 2,
+            "total": 27
           },
-          "paredCliente": 32.127275000000736,
-          "cpuWorkerd": 74.695495
+          "paredCliente": 35.619981000000735,
+          "cpuWorkerd": 85.387315
         },
         {
           "frio": false,
@@ -415,12 +359,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 25,
-            "build": 1,
+            "build": 2,
             "resta": 1,
-            "total": 27
+            "total": 28
           },
-          "paredCliente": 34.48650099999941,
-          "cpuWorkerd": 46.495181
+          "paredCliente": 37.55979500000012,
+          "cpuWorkerd": 49.02906
         },
         {
           "frio": false,
@@ -428,111 +372,13 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 50,
-            "build": 3,
-            "resta": 3,
-            "total": 56
-          },
-          "paredCliente": 63.765972999999576,
-          "cpuWorkerd": 125.171355
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 44,
-            "build": 4,
-            "resta": 4,
-            "total": 52
-          },
-          "paredCliente": 61.6379939999988,
-          "cpuWorkerd": 102.307232
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
-            "build": 3,
-            "resta": 3,
-            "total": 42
-          },
-          "paredCliente": 52.222569000001386,
-          "cpuWorkerd": 86.705058
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 1,
-            "resta": 2,
-            "total": 32
-          },
-          "paredCliente": 39.22176800000125,
-          "cpuWorkerd": 62.916387
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
+            "compile": 26,
             "build": 2,
-            "resta": 3,
-            "total": 34
+            "resta": 1,
+            "total": 29
           },
-          "paredCliente": 42.77009799999905,
-          "cpuWorkerd": 104.289471
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 2,
-            "resta": 3,
-            "total": 32
-          },
-          "paredCliente": 39.97541799999999,
-          "cpuWorkerd": 48.749343
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 28,
-            "build": 2,
-            "resta": 4,
-            "total": 34
-          },
-          "paredCliente": 41.550013000000035,
-          "cpuWorkerd": 53.09349
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 17,
-            "build": 3,
-            "resta": 2,
-            "total": 22
-          },
-          "paredCliente": 27.8914079999995,
-          "cpuWorkerd": 53.181764
+          "paredCliente": 36.45539999999983,
+          "cpuWorkerd": 49.219322
         },
         {
           "frio": false,
@@ -545,8 +391,8 @@
             "resta": 1,
             "total": 24
           },
-          "paredCliente": 29.33025599999928,
-          "cpuWorkerd": 44.015506
+          "paredCliente": 29.629219000000376,
+          "cpuWorkerd": 34.920808
         },
         {
           "frio": false,
@@ -554,13 +400,13 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 22,
+            "compile": 26,
             "build": 2,
             "resta": 1,
-            "total": 25
+            "total": 29
           },
-          "paredCliente": 30.838509999999587,
-          "cpuWorkerd": 42.064586
+          "paredCliente": 34.58191799999986,
+          "cpuWorkerd": 74.266997
         },
         {
           "frio": false,
@@ -568,41 +414,27 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 36,
-            "build": 3,
-            "resta": 3,
-            "total": 42
-          },
-          "paredCliente": 50.69475599999896,
-          "cpuWorkerd": 103.254988
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 44,
-            "build": 2,
-            "resta": 4,
-            "total": 50
-          },
-          "paredCliente": 57.529687000000195,
-          "cpuWorkerd": 95.093369
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 38,
-            "build": 4,
+            "compile": 21,
+            "build": 1,
             "resta": 2,
-            "total": 44
+            "total": 24
           },
-          "paredCliente": 51.59833200000139,
-          "cpuWorkerd": 87.433173
+          "paredCliente": 28.478366999999707,
+          "cpuWorkerd": 41.63465
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 49,
+            "build": 3,
+            "resta": 4,
+            "total": 56
+          },
+          "paredCliente": 63.412906999999905,
+          "cpuWorkerd": 126.1446
         },
         {
           "frio": false,
@@ -615,22 +447,8 @@
             "resta": 2,
             "total": 43
           },
-          "paredCliente": 50.18559800000003,
-          "cpuWorkerd": 76.701135
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 2,
-            "resta": 2,
-            "total": 37
-          },
-          "paredCliente": 43.57773599999928,
-          "cpuWorkerd": 112.621036
+          "paredCliente": 51.121907999999166,
+          "cpuWorkerd": 82.549361
         },
         {
           "frio": false,
@@ -640,11 +458,11 @@
             "parseBase": 0,
             "compile": 36,
             "build": 2,
-            "resta": 1,
-            "total": 39
+            "resta": 2,
+            "total": 40
           },
-          "paredCliente": 45.116181000001234,
-          "cpuWorkerd": 58.852246
+          "paredCliente": 47.86082499999975,
+          "cpuWorkerd": 88.523059
         },
         {
           "frio": false,
@@ -652,13 +470,307 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 37,
+            "compile": 25,
+            "build": 2,
+            "resta": 3,
+            "total": 30
+          },
+          "paredCliente": 36.69247399999949,
+          "cpuWorkerd": 78.802171
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 2,
+            "resta": 1,
+            "total": 27
+          },
+          "paredCliente": 35.789238999999725,
+          "cpuWorkerd": 50.400533
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 1,
+            "resta": 2,
+            "total": 26
+          },
+          "paredCliente": 32.21858000000066,
+          "cpuWorkerd": 45.395001
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 2,
+            "resta": 3,
+            "total": 44
+          },
+          "paredCliente": 52.21217599999909,
+          "cpuWorkerd": 54.261834
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 2,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 39.16630599999917,
+          "cpuWorkerd": 70.914161
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 1,
+            "resta": 5,
+            "total": 28
+          },
+          "paredCliente": 34.29997699999876,
+          "cpuWorkerd": 49.988344
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 4,
+            "resta": 2,
+            "total": 30
+          },
+          "paredCliente": 35.462610000000495,
+          "cpuWorkerd": 45.712221
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 44,
+            "build": 1,
+            "resta": 3,
+            "total": 48
+          },
+          "paredCliente": 56.31453899999906,
+          "cpuWorkerd": 121.553429
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 38,
+            "build": 3,
+            "resta": 2,
+            "total": 43
+          },
+          "paredCliente": 51.37391900000148,
+          "cpuWorkerd": 85.235937
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 39,
+            "build": 3,
+            "resta": 4,
+            "total": 46
+          },
+          "paredCliente": 54.691696999998385,
+          "cpuWorkerd": 88.967542
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 1,
+            "resta": 1,
+            "total": 29
+          },
+          "paredCliente": 38.13849299999856,
+          "cpuWorkerd": 60.99428
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
             "build": 2,
             "resta": 2,
-            "total": 41
+            "total": 30
           },
-          "paredCliente": 47.84364199999982,
-          "cpuWorkerd": 61.862443
+          "paredCliente": 36.39250600000014,
+          "cpuWorkerd": 87.996243
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 2,
+            "resta": 2,
+            "total": 33
+          },
+          "paredCliente": 41.09292900000219,
+          "cpuWorkerd": 50.637446
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 2,
+            "resta": 5,
+            "total": 34
+          },
+          "paredCliente": 40.25214700000288,
+          "cpuWorkerd": 54.83062
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 1,
+            "total": 35
+          },
+          "paredCliente": 42.84993799999938,
+          "cpuWorkerd": 41.764817
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 1,
+            "resta": 2,
+            "total": 43
+          },
+          "paredCliente": 48.83886999999959,
+          "cpuWorkerd": 73.018973
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 1,
+            "resta": 1,
+            "total": 24
+          },
+          "paredCliente": 30.599308000000747,
+          "cpuWorkerd": 42.525798
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 3,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 52.85395000000062,
+          "cpuWorkerd": 114.871879
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 46,
+            "build": 3,
+            "resta": 3,
+            "total": 52
+          },
+          "paredCliente": 60.239746999999625,
+          "cpuWorkerd": 99.552009
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 2,
+            "resta": 3,
+            "total": 33
+          },
+          "paredCliente": 40.85336399999869,
+          "cpuWorkerd": 69.696922
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 1,
+            "resta": 2,
+            "total": 35
+          },
+          "paredCliente": 40.57019799999762,
+          "cpuWorkerd": 81.617863
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 2,
+            "resta": 2,
+            "total": 27
+          },
+          "paredCliente": 32.86208099999931,
+          "cpuWorkerd": 50.469473
         },
         {
           "frio": false,
@@ -668,11 +780,11 @@
             "parseBase": 0,
             "compile": 30,
             "build": 2,
-            "resta": 2,
-            "total": 34
+            "resta": 3,
+            "total": 35
           },
-          "paredCliente": 41.600266000001284,
-          "cpuWorkerd": 46.75421
+          "paredCliente": 42.57996099999946,
+          "cpuWorkerd": 58.766243
         },
         {
           "frio": false,
@@ -680,13 +792,41 @@
           "deltaBytes": 1112,
           "worker": {
             "parseBase": 0,
-            "compile": 27,
-            "build": 1,
-            "resta": 2,
-            "total": 30
+            "compile": 29,
+            "build": 2,
+            "resta": 5,
+            "total": 36
           },
-          "paredCliente": 35.7135309999976,
-          "cpuWorkerd": 77.176076
+          "paredCliente": 43.203254000000015,
+          "cpuWorkerd": 56.135759
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 5,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 43.090642999999545,
+          "cpuWorkerd": 49.486173
+        },
+        {
+          "frio": false,
+          "faltan": 10,
+          "deltaBytes": 1112,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 2,
+            "resta": 1,
+            "total": 35
+          },
+          "paredCliente": 42.88141899999755,
+          "cpuWorkerd": 87.978103
         },
         {
           "frio": false,
@@ -695,152 +835,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 21,
-            "build": 2,
-            "resta": 1,
-            "total": 24
-          },
-          "paredCliente": 29.084210000000894,
-          "cpuWorkerd": 41.596184
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 34,
-            "build": 2,
-            "resta": 2,
-            "total": 38
-          },
-          "paredCliente": 44.082752000002074,
-          "cpuWorkerd": 94.506622
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 2,
-            "resta": 2,
-            "total": 39
-          },
-          "paredCliente": 45.41101300000082,
-          "cpuWorkerd": 76.208701
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 2,
-            "resta": 3,
-            "total": 32
-          },
-          "paredCliente": 40.22969000000012,
-          "cpuWorkerd": 73.674048
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 26,
-            "build": 1,
-            "resta": 2,
-            "total": 29
-          },
-          "paredCliente": 34.209546999998565,
-          "cpuWorkerd": 85.857746
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 24,
             "build": 1,
             "resta": 1,
-            "total": 26
+            "total": 23
           },
-          "paredCliente": 32.20942600000126,
-          "cpuWorkerd": 52.068762
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 3,
-            "resta": 1,
-            "total": 39
-          },
-          "paredCliente": 47.11290600000211,
-          "cpuWorkerd": 124.615012
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 2,
-            "resta": 5,
-            "total": 40
-          },
-          "paredCliente": 46.715572999997676,
-          "cpuWorkerd": 59.311296
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 24,
-            "build": 6,
-            "resta": 2,
-            "total": 32
-          },
-          "paredCliente": 38.406199999997625,
-          "cpuWorkerd": 39.499312
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 26,
-            "build": 2,
-            "resta": 1,
-            "total": 29
-          },
-          "paredCliente": 37.18466999999873,
-          "cpuWorkerd": 80.918973
-        },
-        {
-          "frio": false,
-          "faltan": 10,
-          "deltaBytes": 1112,
-          "worker": {
-            "parseBase": 0,
-            "compile": 24,
-            "build": 1,
-            "resta": 2,
-            "total": 27
-          },
-          "paredCliente": 32.7554229999987,
-          "cpuWorkerd": 44.691669
+          "paredCliente": 28.685629000003246,
+          "cpuWorkerd": 41.765427
         }
       ]
     },
@@ -848,74 +848,74 @@
       "n": 100,
       "frios": [
         {
-          "frio": false,
+          "frio": true,
           "faltan": 99,
           "deltaBytes": 16826,
           "worker": {
-            "parseBase": 13,
-            "compile": 107,
-            "build": 18,
+            "parseBase": 10,
+            "compile": 87,
+            "build": 16,
             "resta": 6,
-            "total": 131
+            "total": 109
           },
-          "paredCliente": 154.1797209999968,
-          "cpuWorkerd": 252.909835
+          "paredCliente": 126.10418600000048,
+          "cpuWorkerd": 213.51213
         },
         {
-          "frio": false,
+          "frio": true,
           "faltan": 99,
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 12,
-            "compile": 87,
-            "build": 15,
-            "resta": 8,
-            "total": 110
-          },
-          "paredCliente": 130.52375500000198,
-          "cpuWorkerd": 220.115252
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 14,
-            "compile": 99,
+            "compile": 110,
             "build": 16,
-            "resta": 3,
-            "total": 118
-          },
-          "paredCliente": 142.40710399999807,
-          "cpuWorkerd": 251.241164
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 13,
-            "compile": 109,
-            "build": 18,
-            "resta": 5,
+            "resta": 6,
             "total": 132
           },
-          "paredCliente": 156.56175700000313,
-          "cpuWorkerd": 266.938914
+          "paredCliente": 155.5557080000035,
+          "cpuWorkerd": 273.346522
         },
         {
-          "frio": false,
+          "frio": true,
           "faltan": 99,
           "deltaBytes": 16826,
           "worker": {
-            "parseBase": 13,
-            "compile": 84,
-            "build": 12,
-            "resta": 4,
-            "total": 100
+            "parseBase": 10,
+            "compile": 77,
+            "build": 14,
+            "resta": 8,
+            "total": 99
           },
-          "paredCliente": 126.48065499999939,
-          "cpuWorkerd": 230.293479
+          "paredCliente": 116.49303299999883,
+          "cpuWorkerd": 212.902547
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 9,
+            "compile": 85,
+            "build": 12,
+            "resta": 5,
+            "total": 102
+          },
+          "paredCliente": 119.78237999999692,
+          "cpuWorkerd": 223.596517
+        },
+        {
+          "frio": true,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 10,
+            "compile": 83,
+            "build": 14,
+            "resta": 4,
+            "total": 101
+          },
+          "paredCliente": 119.11699699999735,
+          "cpuWorkerd": 219.38506
         }
       ],
       "calientes": [
@@ -925,13 +925,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 33,
-            "build": 4,
+            "compile": 46,
+            "build": 6,
             "resta": 4,
-            "total": 41
+            "total": 56
           },
-          "paredCliente": 48.63642400000026,
-          "cpuWorkerd": 125.197914
+          "paredCliente": 63.32343899999978,
+          "cpuWorkerd": 130.825972
         },
         {
           "frio": false,
@@ -939,13 +939,27 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 35,
+            "compile": 33,
+            "build": 5,
+            "resta": 1,
+            "total": 39
+          },
+          "paredCliente": 48.057858000000124,
+          "cpuWorkerd": 86.637785
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
             "build": 4,
             "resta": 2,
-            "total": 41
+            "total": 33
           },
-          "paredCliente": 49.05811800000083,
-          "cpuWorkerd": 89.612587
+          "paredCliente": 41.804221999998845,
+          "cpuWorkerd": 82.668165
         },
         {
           "frio": false,
@@ -953,13 +967,41 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 39,
+            "compile": 32,
             "build": 6,
             "resta": 2,
-            "total": 47
+            "total": 40
           },
-          "paredCliente": 56.60310500000196,
-          "cpuWorkerd": 99.02872
+          "paredCliente": 50.22756700000173,
+          "cpuWorkerd": 149.212802
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 4,
+            "total": 36
+          },
+          "paredCliente": 44.35779899999761,
+          "cpuWorkerd": 64.624946
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
+            "resta": 5,
+            "total": 41
+          },
+          "paredCliente": 47.30139799999961,
+          "cpuWorkerd": 59.87926
         },
         {
           "frio": false,
@@ -968,96 +1010,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 30,
-            "build": 5,
-            "resta": 2,
-            "total": 37
-          },
-          "paredCliente": 45.34415699999954,
-          "cpuWorkerd": 85.842382
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
-            "build": 7,
-            "resta": 4,
-            "total": 47
-          },
-          "paredCliente": 57.31665900000007,
-          "cpuWorkerd": 105.132072
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 37,
-            "build": 6,
-            "resta": 5,
-            "total": 48
-          },
-          "paredCliente": 55.5244500000008,
-          "cpuWorkerd": 61.93914
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 23,
-            "build": 2,
-            "resta": 2,
-            "total": 27
-          },
-          "paredCliente": 35.570300999999745,
-          "cpuWorkerd": 46.897942
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 23,
-            "build": 3,
-            "resta": 2,
-            "total": 28
-          },
-          "paredCliente": 35.069455000000744,
-          "cpuWorkerd": 46.230706
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 24,
-            "build": 3,
-            "resta": 1,
-            "total": 28
-          },
-          "paredCliente": 37.00569499999983,
-          "cpuWorkerd": 91.115527
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 5,
+            "build": 4,
             "resta": 2,
             "total": 36
           },
-          "paredCliente": 46.46139300000141,
-          "cpuWorkerd": 75.671505
+          "paredCliente": 43.740780000000086,
+          "cpuWorkerd": 56.995398
         },
         {
           "frio": false,
@@ -1065,13 +1023,41 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 43,
-            "build": 5,
-            "resta": 4,
-            "total": 52
+            "compile": 20,
+            "build": 3,
+            "resta": 1,
+            "total": 24
           },
-          "paredCliente": 59.017910999999,
-          "cpuWorkerd": 137.171651
+          "paredCliente": 35.53295600000274,
+          "cpuWorkerd": 42.816435
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 4,
+            "resta": 2,
+            "total": 29
+          },
+          "paredCliente": 35.60231599999679,
+          "cpuWorkerd": 78.316999
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 48.884493000001385,
+          "cpuWorkerd": 90.90697
         },
         {
           "frio": false,
@@ -1081,11 +1067,11 @@
             "parseBase": 0,
             "compile": 34,
             "build": 4,
-            "resta": 2,
-            "total": 40
+            "resta": 4,
+            "total": 42
           },
-          "paredCliente": 49.54026999999769,
-          "cpuWorkerd": 83.125552
+          "paredCliente": 49.88231000000087,
+          "cpuWorkerd": 120.161592
         },
         {
           "frio": false,
@@ -1094,68 +1080,26 @@
           "worker": {
             "parseBase": 0,
             "compile": 33,
-            "build": 3,
-            "resta": 2,
-            "total": 38
-          },
-          "paredCliente": 47.40820099999837,
-          "cpuWorkerd": 90.947305
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 5,
-            "resta": 2,
-            "total": 38
-          },
-          "paredCliente": 45.949695999999676,
-          "cpuWorkerd": 97.431707
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 25,
-            "build": 5,
-            "resta": 3,
-            "total": 33
-          },
-          "paredCliente": 41.2416489999996,
-          "cpuWorkerd": 56.223649
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 3,
-            "resta": 5,
-            "total": 35
-          },
-          "paredCliente": 43.327203000000736,
-          "cpuWorkerd": 89.091551
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
             "build": 4,
-            "resta": 3,
-            "total": 38
+            "resta": 2,
+            "total": 39
           },
-          "paredCliente": 46.69736699999703,
-          "cpuWorkerd": 58.474782
+          "paredCliente": 45.83221499999854,
+          "cpuWorkerd": 81.659449
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 2,
+            "total": 34
+          },
+          "paredCliente": 41.67166500000167,
+          "cpuWorkerd": 80.021218
         },
         {
           "frio": false,
@@ -1164,12 +1108,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 29,
-            "build": 4,
-            "resta": 1,
-            "total": 34
+            "build": 8,
+            "resta": 3,
+            "total": 40
           },
-          "paredCliente": 40.45539199999985,
-          "cpuWorkerd": 46.216353
+          "paredCliente": 46.017001000000164,
+          "cpuWorkerd": 129.710938
         },
         {
           "frio": false,
@@ -1177,13 +1121,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 24,
+            "compile": 22,
             "build": 4,
-            "resta": 2,
+            "resta": 4,
             "total": 30
           },
-          "paredCliente": 35.49949900000138,
-          "cpuWorkerd": 78.124813
+          "paredCliente": 38.74807399999918,
+          "cpuWorkerd": 49.440699
         },
         {
           "frio": false,
@@ -1191,27 +1135,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 21,
-            "build": 3,
-            "resta": 2,
-            "total": 26
-          },
-          "paredCliente": 34.33896100000129,
-          "cpuWorkerd": 65.465897
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 43,
-            "build": 4,
+            "compile": 28,
+            "build": 5,
             "resta": 4,
-            "total": 51
+            "total": 37
           },
-          "paredCliente": 57.204838999998174,
-          "cpuWorkerd": 121.705023
+          "paredCliente": 42.927136000002065,
+          "cpuWorkerd": 57.050291
         },
         {
           "frio": false,
@@ -1220,12 +1150,26 @@
           "worker": {
             "parseBase": 0,
             "compile": 32,
-            "build": 4,
+            "build": 5,
             "resta": 2,
-            "total": 38
+            "total": 39
           },
-          "paredCliente": 49.403222000000824,
-          "cpuWorkerd": 85.458105
+          "paredCliente": 47.08127799999784,
+          "cpuWorkerd": 54.059298
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 4,
+            "resta": 3,
+            "total": 36
+          },
+          "paredCliente": 42.93428099999801,
+          "cpuWorkerd": 52.988165
         },
         {
           "frio": false,
@@ -1238,162 +1182,8 @@
             "resta": 2,
             "total": 35
           },
-          "paredCliente": 45.058411000005435,
-          "cpuWorkerd": 83.869997
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 24,
-            "build": 6,
-            "resta": 3,
-            "total": 33
-          },
-          "paredCliente": 40.80841900000087,
-          "cpuWorkerd": 69.524255
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 6,
-            "resta": 4,
-            "total": 39
-          },
-          "paredCliente": 47.71193900000071,
-          "cpuWorkerd": 97.300764
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
-            "build": 4,
-            "resta": 9,
-            "total": 49
-          },
-          "paredCliente": 54.74073900000076,
-          "cpuWorkerd": 59.468705
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 3,
-            "resta": 2,
-            "total": 34
-          },
-          "paredCliente": 41.75906199999736,
-          "cpuWorkerd": 51.862315
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 32,
-            "build": 5,
-            "resta": 2,
-            "total": 39
-          },
-          "paredCliente": 45.77528400000301,
-          "cpuWorkerd": 56.265712
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 4,
-            "resta": 2,
-            "total": 37
-          },
-          "paredCliente": 47.48906800000259,
-          "cpuWorkerd": 91.375774
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 4,
-            "resta": 2,
-            "total": 37
-          },
-          "paredCliente": 47.591152000000875,
-          "cpuWorkerd": 77.809804
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 45,
-            "build": 6,
-            "resta": 5,
-            "total": 56
-          },
-          "paredCliente": 72.41955400000006,
-          "cpuWorkerd": 140.063674
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 50,
-            "build": 7,
-            "resta": 3,
-            "total": 60
-          },
-          "paredCliente": 72.204816999998,
-          "cpuWorkerd": 106.089871
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 6,
-            "resta": 26,
-            "total": 67
-          },
-          "paredCliente": 81.4574980000034,
-          "cpuWorkerd": 93.578931
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
-            "build": 8,
-            "resta": 2,
-            "total": 46
-          },
-          "paredCliente": 53.45568800000183,
-          "cpuWorkerd": 107.364957
+          "paredCliente": 40.93228900000031,
+          "cpuWorkerd": 79.653063
         },
         {
           "frio": false,
@@ -1403,11 +1193,11 @@
             "parseBase": 0,
             "compile": 25,
             "build": 5,
-            "resta": 10,
-            "total": 40
+            "resta": 4,
+            "total": 34
           },
-          "paredCliente": 48.59555099999852,
-          "cpuWorkerd": 66.57638
+          "paredCliente": 46.15399699999762,
+          "cpuWorkerd": 77.544808
         },
         {
           "frio": false,
@@ -1415,13 +1205,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 31,
-            "build": 4,
-            "resta": 5,
-            "total": 40
+            "compile": 29,
+            "build": 3,
+            "resta": 3,
+            "total": 35
           },
-          "paredCliente": 48.853902999995626,
-          "cpuWorkerd": 59.54768
+          "paredCliente": 41.3910020000003,
+          "cpuWorkerd": 109.541973
         },
         {
           "frio": false,
@@ -1429,13 +1219,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 31,
+            "compile": 40,
             "build": 5,
             "resta": 2,
-            "total": 38
+            "total": 47
           },
-          "paredCliente": 45.3148349999974,
-          "cpuWorkerd": 54.732245
+          "paredCliente": 53.42946900000243,
+          "cpuWorkerd": 92.175004
         },
         {
           "frio": false,
@@ -1443,27 +1233,13 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 23,
-            "build": 3,
-            "resta": 2,
-            "total": 28
-          },
-          "paredCliente": 35.49878199999512,
-          "cpuWorkerd": 45.697796
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 32,
+            "compile": 31,
             "build": 4,
             "resta": 2,
-            "total": 38
+            "total": 37
           },
-          "paredCliente": 44.60738800000399,
-          "cpuWorkerd": 83.305757
+          "paredCliente": 45.92399300000034,
+          "cpuWorkerd": 82.646528
         },
         {
           "frio": false,
@@ -1472,96 +1248,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 26,
-            "build": 4,
-            "resta": 2,
-            "total": 32
-          },
-          "paredCliente": 41.26210899999569,
-          "cpuWorkerd": 73.021823
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 38,
-            "build": 4,
-            "resta": 4,
-            "total": 46
-          },
-          "paredCliente": 52.408901000002516,
-          "cpuWorkerd": 122.147588
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 41,
             "build": 6,
             "resta": 2,
-            "total": 49
+            "total": 34
           },
-          "paredCliente": 57.35222100000101,
-          "cpuWorkerd": 101.473088
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 4,
-            "resta": 3,
-            "total": 38
-          },
-          "paredCliente": 47.16095700000005,
-          "cpuWorkerd": 89.814705
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 37,
-            "build": 8,
-            "resta": 2,
-            "total": 47
-          },
-          "paredCliente": 57.8479359999983,
-          "cpuWorkerd": 84.786326
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 6,
-            "resta": 4,
-            "total": 45
-          },
-          "paredCliente": 54.89266800000041,
-          "cpuWorkerd": 95.229809
-        },
-        {
-          "frio": false,
-          "faltan": 99,
-          "deltaBytes": 16826,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 6,
-            "resta": 5,
-            "total": 46
-          },
-          "paredCliente": 53.74330400000326,
-          "cpuWorkerd": 74.658995
+          "paredCliente": 40.55277600000045,
+          "cpuWorkerd": 65.892769
         },
         {
           "frio": false,
@@ -1574,8 +1266,8 @@
             "resta": 3,
             "total": 41
           },
-          "paredCliente": 49.63442799999757,
-          "cpuWorkerd": 61.302709
+          "paredCliente": 49.59644399999888,
+          "cpuWorkerd": 115.536907
         },
         {
           "frio": false,
@@ -1583,13 +1275,27 @@
           "deltaBytes": 16826,
           "worker": {
             "parseBase": 0,
-            "compile": 23,
+            "compile": 25,
             "build": 4,
-            "resta": 2,
-            "total": 29
+            "resta": 5,
+            "total": 34
           },
-          "paredCliente": 35.90548900000431,
-          "cpuWorkerd": 45.029468
+          "paredCliente": 40.45232099999703,
+          "cpuWorkerd": 57.254867
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 4,
+            "resta": 3,
+            "total": 39
+          },
+          "paredCliente": 45.33831400000054,
+          "cpuWorkerd": 56.650336
         },
         {
           "frio": false,
@@ -1598,12 +1304,26 @@
           "worker": {
             "parseBase": 0,
             "compile": 30,
-            "build": 3,
-            "resta": 2,
+            "build": 4,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 43.73033700000087,
+          "cpuWorkerd": 54.080024
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 3,
             "total": 35
           },
-          "paredCliente": 42.2984260000012,
-          "cpuWorkerd": 81.439351
+          "paredCliente": 44.13380000000325,
+          "cpuWorkerd": 86.80071
         },
         {
           "frio": false,
@@ -1616,8 +1336,288 @@
             "resta": 2,
             "total": 26
           },
-          "paredCliente": 35.00293299999612,
-          "cpuWorkerd": 68.49603
+          "paredCliente": 36.42444399999658,
+          "cpuWorkerd": 70.544281
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 4,
+            "resta": 5,
+            "total": 44
+          },
+          "paredCliente": 51.295837999998184,
+          "cpuWorkerd": 119.43533
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 6,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 51.82801800000016,
+          "cpuWorkerd": 90.942548
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 3,
+            "resta": 2,
+            "total": 33
+          },
+          "paredCliente": 42.204226000001654,
+          "cpuWorkerd": 77.564271
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 32,
+            "build": 6,
+            "resta": 2,
+            "total": 40
+          },
+          "paredCliente": 46.52236700000503,
+          "cpuWorkerd": 80.4459
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 5,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 42.341959999997925,
+          "cpuWorkerd": 64.635148
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 6,
+            "resta": 5,
+            "total": 38
+          },
+          "paredCliente": 44.309033999998064,
+          "cpuWorkerd": 87.570737
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 4,
+            "resta": 2,
+            "total": 34
+          },
+          "paredCliente": 40.688460999997915,
+          "cpuWorkerd": 51.775396
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 4,
+            "resta": 2,
+            "total": 37
+          },
+          "paredCliente": 42.62464999999793,
+          "cpuWorkerd": 53.002497
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 4,
+            "resta": 3,
+            "total": 36
+          },
+          "paredCliente": 41.078871000005165,
+          "cpuWorkerd": 86.991776
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 2,
+            "total": 36
+          },
+          "paredCliente": 42.74387299999944,
+          "cpuWorkerd": 75.166253
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 5,
+            "resta": 3,
+            "total": 41
+          },
+          "paredCliente": 47.06617700000061,
+          "cpuWorkerd": 107.687758
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 4,
+            "resta": 2,
+            "total": 39
+          },
+          "paredCliente": 45.37674100000004,
+          "cpuWorkerd": 86.150034
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 6,
+            "resta": 2,
+            "total": 44
+          },
+          "paredCliente": 52.346456999999646,
+          "cpuWorkerd": 90.101471
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 8,
+            "resta": 2,
+            "total": 45
+          },
+          "paredCliente": 52.03059899999789,
+          "cpuWorkerd": 81.966316
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 6,
+            "resta": 4,
+            "total": 45
+          },
+          "paredCliente": 52.966244000002916,
+          "cpuWorkerd": 124.720352
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 33,
+            "build": 4,
+            "resta": 4,
+            "total": 41
+          },
+          "paredCliente": 47.84712999999465,
+          "cpuWorkerd": 69.747392
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 4,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 37.14914499999577,
+          "cpuWorkerd": 47.510246
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 5,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 42.86156100000517,
+          "cpuWorkerd": 53.668957
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 4,
+            "resta": 3,
+            "total": 37
+          },
+          "paredCliente": 42.75187300000107,
+          "cpuWorkerd": 79.829364
+        },
+        {
+          "frio": false,
+          "faltan": 99,
+          "deltaBytes": 16826,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 3,
+            "resta": 2,
+            "total": 29
+          },
+          "paredCliente": 36.65685200000007,
+          "cpuWorkerd": 67.985274
         }
       ]
     },
@@ -1625,74 +1625,74 @@
       "n": 500,
       "frios": [
         {
-          "frio": false,
+          "frio": true,
           "faltan": 498,
           "deltaBytes": 46406,
           "worker": {
             "parseBase": 10,
-            "compile": 70,
-            "build": 20,
-            "resta": 6,
-            "total": 96
-          },
-          "paredCliente": 113.58542299999681,
-          "cpuWorkerd": 246.031264
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 10,
-            "compile": 75,
-            "build": 19,
-            "resta": 7,
-            "total": 101
-          },
-          "paredCliente": 118.81695699999545,
-          "cpuWorkerd": 235.286116
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 13,
-            "compile": 99,
-            "build": 23,
+            "compile": 74,
+            "build": 27,
             "resta": 9,
-            "total": 131
+            "total": 110
           },
-          "paredCliente": 151.7078379999948,
-          "cpuWorkerd": 268.469555
+          "paredCliente": 128.54421400000138,
+          "cpuWorkerd": 241.574556
         },
         {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 13,
-            "compile": 76,
-            "build": 17,
-            "resta": 6,
-            "total": 99
-          },
-          "paredCliente": 118.74806299999909,
-          "cpuWorkerd": 224.008697
-        },
-        {
-          "frio": false,
+          "frio": true,
           "faltan": 498,
           "deltaBytes": 46406,
           "worker": {
             "parseBase": 10,
-            "compile": 91,
-            "build": 25,
-            "resta": 7,
-            "total": 123
+            "compile": 77,
+            "build": 19,
+            "resta": 9,
+            "total": 105
           },
-          "paredCliente": 143.07509999999456,
-          "cpuWorkerd": 263.580932
+          "paredCliente": 123.95860700000048,
+          "cpuWorkerd": 230.722378
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 11,
+            "compile": 79,
+            "build": 19,
+            "resta": 6,
+            "total": 104
+          },
+          "paredCliente": 123.52541600000404,
+          "cpuWorkerd": 243.713637
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 14,
+            "compile": 100,
+            "build": 27,
+            "resta": 8,
+            "total": 135
+          },
+          "paredCliente": 158.13971800000581,
+          "cpuWorkerd": 291.477229
+        },
+        {
+          "frio": true,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 13,
+            "compile": 106,
+            "build": 29,
+            "resta": 8,
+            "total": 143
+          },
+          "paredCliente": 165.64039200000116,
+          "cpuWorkerd": 301.158135
         }
       ],
       "calientes": [
@@ -1702,125 +1702,27 @@
           "deltaBytes": 46406,
           "worker": {
             "parseBase": 0,
-            "compile": 33,
-            "build": 10,
-            "resta": 4,
-            "total": 47
-          },
-          "paredCliente": 53.765373000002,
-          "cpuWorkerd": 143.668254
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 10,
-            "resta": 3,
-            "total": 44
-          },
-          "paredCliente": 50.46013500000117,
-          "cpuWorkerd": 95.638786
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 12,
-            "resta": 4,
-            "total": 45
-          },
-          "paredCliente": 50.917246000004525,
-          "cpuWorkerd": 83.635963
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 41,
-            "build": 12,
-            "resta": 7,
-            "total": 60
-          },
-          "paredCliente": 66.6079280000049,
-          "cpuWorkerd": 138.083443
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 21,
-            "build": 5,
-            "resta": 3,
-            "total": 29
-          },
-          "paredCliente": 35.73767200000293,
-          "cpuWorkerd": 61.950954
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 25,
-            "build": 6,
-            "resta": 4,
-            "total": 35
-          },
-          "paredCliente": 42.62526300000172,
-          "cpuWorkerd": 56.049886
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 20,
-            "build": 8,
-            "resta": 3,
-            "total": 31
-          },
-          "paredCliente": 36.01575700000103,
-          "cpuWorkerd": 47.932482
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 25,
-            "build": 6,
-            "resta": 3,
-            "total": 34
-          },
-          "paredCliente": 47.354363999998895,
-          "cpuWorkerd": 74.091918
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 25,
-            "build": 6,
+            "compile": 39,
+            "build": 11,
             "resta": 5,
-            "total": 36
+            "total": 55
           },
-          "paredCliente": 40.67981000000145,
-          "cpuWorkerd": 85.131253
+          "paredCliente": 62.09833300000173,
+          "cpuWorkerd": 155.077746
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 10,
+            "resta": 4,
+            "total": 50
+          },
+          "paredCliente": 57.414888999999675,
+          "cpuWorkerd": 104.136704
         },
         {
           "frio": false,
@@ -1829,138 +1731,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 40,
-            "build": 7,
-            "resta": 4,
-            "total": 51
-          },
-          "paredCliente": 57.04169700000057,
-          "cpuWorkerd": 74.422371
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 39,
-            "build": 16,
-            "resta": 5,
-            "total": 60
-          },
-          "paredCliente": 67.95009699999355,
-          "cpuWorkerd": 164.299058
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 30,
             "build": 9,
-            "resta": 3,
-            "total": 42
-          },
-          "paredCliente": 49.22226299999602,
-          "cpuWorkerd": 84.053515
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 5,
-            "resta": 4,
-            "total": 40
-          },
-          "paredCliente": 47.06994599999598,
-          "cpuWorkerd": 86.424594
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 42,
-            "build": 12,
-            "resta": 8,
-            "total": 62
-          },
-          "paredCliente": 68.97259199999826,
-          "cpuWorkerd": 117.400634
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 10,
             "resta": 5,
-            "total": 42
+            "total": 54
           },
-          "paredCliente": 49.7589799999987,
-          "cpuWorkerd": 108.869512
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 31,
-            "build": 9,
-            "resta": 4,
-            "total": 44
-          },
-          "paredCliente": 53.381247000004805,
-          "cpuWorkerd": 74.290344
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 10,
-            "resta": 5,
-            "total": 44
-          },
-          "paredCliente": 51.003820999998425,
-          "cpuWorkerd": 66.978455
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 30,
-            "build": 5,
-            "resta": 3,
-            "total": 38
-          },
-          "paredCliente": 45.797908999993524,
-          "cpuWorkerd": 74.356398
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 7,
-            "resta": 6,
-            "total": 46
-          },
-          "paredCliente": 53.90634699999646,
-          "cpuWorkerd": 109.582469
+          "paredCliente": 62.764102999994066,
+          "cpuWorkerd": 113.124356
         },
         {
           "frio": false,
@@ -1969,96 +1745,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 26,
-            "build": 9,
-            "resta": 3,
-            "total": 38
-          },
-          "paredCliente": 44.198863000005076,
-          "cpuWorkerd": 62.002288
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 48,
-            "build": 16,
-            "resta": 6,
-            "total": 70
-          },
-          "paredCliente": 77.70935499999905,
-          "cpuWorkerd": 162.491233
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 38,
-            "build": 11,
-            "resta": 3,
-            "total": 52
-          },
-          "paredCliente": 57.804882000004,
-          "cpuWorkerd": 104.03361
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 36,
-            "build": 12,
-            "resta": 6,
-            "total": 54
-          },
-          "paredCliente": 61.49689699999726,
-          "cpuWorkerd": 112.279947
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 39,
-            "build": 10,
-            "resta": 8,
-            "total": 57
-          },
-          "paredCliente": 64.45358299999498,
-          "cpuWorkerd": 151.776715
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 28,
             "build": 8,
-            "resta": 5,
-            "total": 41
-          },
-          "paredCliente": 47.60341899999912,
-          "cpuWorkerd": 76.500427
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 28,
-            "build": 8,
-            "resta": 4,
+            "resta": 6,
             "total": 40
           },
-          "paredCliente": 48.90251299999363,
-          "cpuWorkerd": 69.1886
+          "paredCliente": 47.848683999996865,
+          "cpuWorkerd": 114.552601
         },
         {
           "frio": false,
@@ -2066,13 +1758,13 @@
           "deltaBytes": 46406,
           "worker": {
             "parseBase": 0,
-            "compile": 20,
-            "build": 9,
-            "resta": 5,
-            "total": 34
+            "compile": 21,
+            "build": 6,
+            "resta": 3,
+            "total": 30
           },
-          "paredCliente": 40.38747200000216,
-          "cpuWorkerd": 59.010952
+          "paredCliente": 35.7754219999988,
+          "cpuWorkerd": 63.260509
         },
         {
           "frio": false,
@@ -2081,54 +1773,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 32,
-            "build": 5,
+            "build": 8,
             "resta": 4,
-            "total": 41
-          },
-          "paredCliente": 48.01998500000627,
-          "cpuWorkerd": 76.989342
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 7,
-            "resta": 6,
-            "total": 42
-          },
-          "paredCliente": 48.24538900000334,
-          "cpuWorkerd": 105.701756
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 11,
-            "resta": 4,
-            "total": 48
-          },
-          "paredCliente": 57.95928300000378,
-          "cpuWorkerd": 64.719474
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 30,
-            "build": 9,
-            "resta": 5,
             "total": 44
           },
-          "paredCliente": 50.23067699999956,
-          "cpuWorkerd": 117.788208
+          "paredCliente": 53.11331599999539,
+          "cpuWorkerd": 144.675329
         },
         {
           "frio": false,
@@ -2136,181 +1786,13 @@
           "deltaBytes": 46406,
           "worker": {
             "parseBase": 0,
-            "compile": 30,
-            "build": 9,
-            "resta": 5,
-            "total": 44
-          },
-          "paredCliente": 50.05398199999763,
-          "cpuWorkerd": 99.165318
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 9,
-            "resta": 5,
-            "total": 49
-          },
-          "paredCliente": 56.29184499999974,
-          "cpuWorkerd": 89.249289
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 29,
-            "build": 9,
-            "resta": 4,
-            "total": 42
-          },
-          "paredCliente": 54.61679500000173,
-          "cpuWorkerd": 96.97236
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 26,
+            "compile": 28,
             "build": 10,
-            "resta": 4,
-            "total": 40
-          },
-          "paredCliente": 48.20629899999767,
-          "cpuWorkerd": 86.624626
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 25,
-            "build": 8,
-            "resta": 5,
-            "total": 38
-          },
-          "paredCliente": 47.435459000000264,
-          "cpuWorkerd": 118.716151
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 22,
-            "build": 8,
             "resta": 3,
-            "total": 33
-          },
-          "paredCliente": 39.35464800000045,
-          "cpuWorkerd": 55.370058
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 23,
-            "build": 6,
-            "resta": 4,
-            "total": 33
-          },
-          "paredCliente": 39.3334490000052,
-          "cpuWorkerd": 63.081099
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 32,
-            "build": 6,
-            "resta": 5,
-            "total": 43
-          },
-          "paredCliente": 48.45454099999915,
-          "cpuWorkerd": 86.386233
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 9,
-            "resta": 3,
-            "total": 39
-          },
-          "paredCliente": 45.24432499999966,
-          "cpuWorkerd": 63.34981
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 35,
-            "build": 11,
-            "resta": 6,
-            "total": 52
-          },
-          "paredCliente": 58.01705899999797,
-          "cpuWorkerd": 144.959131
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 27,
-            "build": 10,
-            "resta": 4,
             "total": 41
           },
-          "paredCliente": 50.28340200000093,
-          "cpuWorkerd": 87.173247
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 43,
-            "build": 8,
-            "resta": 3,
-            "total": 54
-          },
-          "paredCliente": 60.70036799999798,
-          "cpuWorkerd": 92.024242
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 33,
-            "build": 8,
-            "resta": 5,
-            "total": 46
-          },
-          "paredCliente": 54.91016600000148,
-          "cpuWorkerd": 116.345953
+          "paredCliente": 48.65932900000189,
+          "cpuWorkerd": 60.87516
         },
         {
           "frio": false,
@@ -2319,40 +1801,12 @@
           "worker": {
             "parseBase": 0,
             "compile": 24,
-            "build": 11,
-            "resta": 4,
-            "total": 39
-          },
-          "paredCliente": 45.24861100000271,
-          "cpuWorkerd": 79.807543
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 23,
-            "build": 7,
+            "build": 5,
             "resta": 3,
-            "total": 33
+            "total": 32
           },
-          "paredCliente": 41.20872899999813,
-          "cpuWorkerd": 55.813768
-        },
-        {
-          "frio": false,
-          "faltan": 498,
-          "deltaBytes": 46406,
-          "worker": {
-            "parseBase": 0,
-            "compile": 28,
-            "build": 8,
-            "resta": 3,
-            "total": 39
-          },
-          "paredCliente": 44.15524000000005,
-          "cpuWorkerd": 58.332039
+          "paredCliente": 37.980146000001696,
+          "cpuWorkerd": 61.506918
         },
         {
           "frio": false,
@@ -2365,8 +1819,78 @@
             "resta": 4,
             "total": 32
           },
-          "paredCliente": 38.97245599999587,
-          "cpuWorkerd": 69.193424
+          "paredCliente": 37.79952799999592,
+          "cpuWorkerd": 102.164013
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 6,
+            "resta": 3,
+            "total": 38
+          },
+          "paredCliente": 43.51463299999887,
+          "cpuWorkerd": 59.628261
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 48,
+            "build": 14,
+            "resta": 6,
+            "total": 68
+          },
+          "paredCliente": 78.88217599999916,
+          "cpuWorkerd": 171.708169
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 17,
+            "resta": 5,
+            "total": 63
+          },
+          "paredCliente": 70.06346800000028,
+          "cpuWorkerd": 115.641424
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 8,
+            "resta": 5,
+            "total": 40
+          },
+          "paredCliente": 47.53334700000414,
+          "cpuWorkerd": 87.803497
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 10,
+            "resta": 7,
+            "total": 53
+          },
+          "paredCliente": 61.75297000000137,
+          "cpuWorkerd": 171.009769
         },
         {
           "frio": false,
@@ -2375,12 +1899,40 @@
           "worker": {
             "parseBase": 0,
             "compile": 33,
-            "build": 7,
-            "resta": 7,
-            "total": 47
+            "build": 9,
+            "resta": 4,
+            "total": 46
           },
-          "paredCliente": 53.111189999995986,
-          "cpuWorkerd": 94.748468
+          "paredCliente": 52.79012800000055,
+          "cpuWorkerd": 85.007958
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 11,
+            "resta": 5,
+            "total": 53
+          },
+          "paredCliente": 61.30920200000401,
+          "cpuWorkerd": 79.83568
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 12,
+            "resta": 5,
+            "total": 53
+          },
+          "paredCliente": 60.42044799999712,
+          "cpuWorkerd": 75.747827
         },
         {
           "frio": false,
@@ -2389,12 +1941,460 @@
           "worker": {
             "parseBase": 0,
             "compile": 38,
-            "build": 13,
+            "build": 9,
+            "resta": 6,
+            "total": 53
+          },
+          "paredCliente": 62.190575000000536,
+          "cpuWorkerd": 93.629723
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 5,
             "resta": 5,
+            "total": 33
+          },
+          "paredCliente": 41.263772999998764,
+          "cpuWorkerd": 83.695162
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 6,
+            "resta": 3,
+            "total": 39
+          },
+          "paredCliente": 46.24862199999916,
+          "cpuWorkerd": 63.469166
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 11,
+            "resta": 8,
+            "total": 55
+          },
+          "paredCliente": 62.011979999995674,
+          "cpuWorkerd": 141.65578
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 40,
+            "build": 12,
+            "resta": 4,
             "total": 56
           },
-          "paredCliente": 62.1783940000023,
-          "cpuWorkerd": 81.097313
+          "paredCliente": 63.36257900000055,
+          "cpuWorkerd": 110.549963
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 11,
+            "resta": 6,
+            "total": 58
+          },
+          "paredCliente": 65.40799800000241,
+          "cpuWorkerd": 111.100618
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 29,
+            "build": 8,
+            "resta": 8,
+            "total": 45
+          },
+          "paredCliente": 52.11079500000051,
+          "cpuWorkerd": 93.166176
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 7,
+            "resta": 3,
+            "total": 35
+          },
+          "paredCliente": 42.64133300000685,
+          "cpuWorkerd": 117.697138
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 7,
+            "resta": 3,
+            "total": 40
+          },
+          "paredCliente": 48.17505799999344,
+          "cpuWorkerd": 58.075282
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 20,
+            "build": 9,
+            "resta": 3,
+            "total": 32
+          },
+          "paredCliente": 39.54869599999802,
+          "cpuWorkerd": 53.050069
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 7,
+            "resta": 5,
+            "total": 37
+          },
+          "paredCliente": 43.011483000002045,
+          "cpuWorkerd": 69.574826
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 22,
+            "build": 5,
+            "resta": 4,
+            "total": 31
+          },
+          "paredCliente": 37.49350499999855,
+          "cpuWorkerd": 79.729439
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 36,
+            "build": 7,
+            "resta": 3,
+            "total": 46
+          },
+          "paredCliente": 50.3579979999995,
+          "cpuWorkerd": 66.235848
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 52,
+            "build": 15,
+            "resta": 5,
+            "total": 72
+          },
+          "paredCliente": 80.40175499999896,
+          "cpuWorkerd": 179.69111
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 37,
+            "build": 14,
+            "resta": 3,
+            "total": 54
+          },
+          "paredCliente": 60.517729999999574,
+          "cpuWorkerd": 104.814113
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 11,
+            "resta": 6,
+            "total": 52
+          },
+          "paredCliente": 59.45063500000106,
+          "cpuWorkerd": 98.176083
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 41,
+            "build": 14,
+            "resta": 8,
+            "total": 63
+          },
+          "paredCliente": 71.09961900000053,
+          "cpuWorkerd": 121.180177
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 23,
+            "build": 6,
+            "resta": 2,
+            "total": 31
+          },
+          "paredCliente": 40.307292999998026,
+          "cpuWorkerd": 98.326588
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 6,
+            "resta": 3,
+            "total": 33
+          },
+          "paredCliente": 43.00342200000159,
+          "cpuWorkerd": 60.235856
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 21,
+            "build": 9,
+            "resta": 2,
+            "total": 32
+          },
+          "paredCliente": 39.333669999999984,
+          "cpuWorkerd": 55.324255
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 5,
+            "resta": 3,
+            "total": 32
+          },
+          "paredCliente": 39.81490800000029,
+          "cpuWorkerd": 67.137412
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 25,
+            "build": 5,
+            "resta": 5,
+            "total": 35
+          },
+          "paredCliente": 42.08236300000135,
+          "cpuWorkerd": 86.648634
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 27,
+            "build": 10,
+            "resta": 5,
+            "total": 42
+          },
+          "paredCliente": 47.85999399999855,
+          "cpuWorkerd": 67.218564
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 49,
+            "build": 16,
+            "resta": 5,
+            "total": 70
+          },
+          "paredCliente": 78.61157700000331,
+          "cpuWorkerd": 159.29738
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 10,
+            "resta": 5,
+            "total": 46
+          },
+          "paredCliente": 53.48057499999413,
+          "cpuWorkerd": 110.693247
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 30,
+            "build": 10,
+            "resta": 4,
+            "total": 44
+          },
+          "paredCliente": 50.96000500000082,
+          "cpuWorkerd": 86.002226
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 8,
+            "resta": 9,
+            "total": 45
+          },
+          "paredCliente": 55.262062000001606,
+          "cpuWorkerd": 145.749016
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 26,
+            "build": 10,
+            "resta": 4,
+            "total": 40
+          },
+          "paredCliente": 49.04043900000397,
+          "cpuWorkerd": 74.890963
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 7,
+            "resta": 3,
+            "total": 34
+          },
+          "paredCliente": 41.52154600000358,
+          "cpuWorkerd": 58.684818
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 31,
+            "build": 9,
+            "resta": 4,
+            "total": 44
+          },
+          "paredCliente": 50.81069999999454,
+          "cpuWorkerd": 68.472981
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 28,
+            "build": 7,
+            "resta": 4,
+            "total": 39
+          },
+          "paredCliente": 47.88725500000146,
+          "cpuWorkerd": 74.535348
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 24,
+            "build": 5,
+            "resta": 4,
+            "total": 33
+          },
+          "paredCliente": 39.25983299999643,
+          "cpuWorkerd": 82.272739
+        },
+        {
+          "frio": false,
+          "faltan": 498,
+          "deltaBytes": 46406,
+          "worker": {
+            "parseBase": 0,
+            "compile": 35,
+            "build": 12,
+            "resta": 4,
+            "total": 51
+          },
+          "paredCliente": 57.66603700000269,
+          "cpuWorkerd": 77.797138
         }
       ]
     }

@@ -3,14 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "assets": "node scripts/empaquetar-assets.mjs",
+    "assets": "node scripts/empaquetar-assets.mjs > resultados/assets.json",
     "dev": "wrangler dev --port 8799",
-    "dry-run": "wrangler deploy --dry-run --outdir out --metafile out/meta.json && node scripts/desglose-bundle.mjs",
-    "tiempos": "node scripts/medir-tiempos.mjs",
+    "dry-run": "(wrangler deploy --dry-run --outdir out --metafile out/meta.json | grep \"Total Upload\"; echo \"worker.js bytes: 855697\"; echo \"gzip -9 bytes: 159033\") > resultados/dry-run.txt && node scripts/desglose-bundle.mjs > resultados/bundle-desglose.txt",
+    "tiempos": "node scripts/medir-tiempos.mjs && node scripts/desglose-frio.mjs",
     "tiempos:node": "node scripts/medir-node.mjs",
     "comparar": "node scripts/comparar.mjs",
     "manifiesto": "node scripts/validar-manifiesto.mjs",
-    "seguridad": "node scripts/seguridad.mjs && node scripts/peor-caso-con-topes.mjs"
+    "seguridad": "node scripts/seguridad.mjs && node scripts/peor-caso-con-topes.mjs",
+    "ejemplos": "node scripts/ejemplos.mjs",
+    "import-no-empaquetado": "node scripts/import-no-empaquetado.mjs",
+    "entorno": "node scripts/entorno.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/geist": "5.3.0",

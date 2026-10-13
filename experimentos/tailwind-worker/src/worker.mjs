@@ -7,7 +7,7 @@
 //   POST /crudo            {candidatos} → build() SIN topes (solo para medir (7))
 import { BASE_CSS, MANIFIESTO } from './assets.generated.mjs';
 import { cargas, compilar } from './compilador.mjs';
-import { calcularDelta, extraerCandidatos, filtrarCandidatos, parseCss, TOPES } from './delta.mjs';
+import { calcularDelta, extraerCandidatos, filtrarCandidatos, parseCss, restarArbol, serializar, TOPES } from './delta.mjs';
 import { candidatosSinteticos } from './sinteticos.mjs';
 
 const manifiesto = new Set(MANIFIESTO);
@@ -22,7 +22,10 @@ const json = (o, status = 200) =>
 export default {
   async fetch(req) {
     const url = new URL(req.url);
-    const frio = peticiones++ === 0;
+    peticiones++;
+    // «frío» = el CSS base aún no se ha parseado en este isolate, es decir,
+    // ninguna petición ha compilado todavía (las 404 no cuentan).
+    const frio = arbolBase === undefined;
     try {
       if (url.pathname === '/delta') return await delta(req, url, frio);
       if (url.pathname === '/bench') return await bench(url, frio);
@@ -39,7 +42,8 @@ export default {
 
 async function delta(req, url, frio) {
   const cuerpo = await req.text();
-  if (cuerpo.length > TOPES.maxBytesEntrada) return json({ error: 'entrada demasiado grande', bytes: cuerpo.length }, 413);
+  const bytes = new TextEncoder().encode(cuerpo).length; // bytes UTF-8, no unidades UTF-16
+  if (bytes > TOPES.maxBytesEntrada) return json({ error: 'entrada demasiado grande', bytes }, 413);
   const { html = '' } = JSON.parse(cuerpo);
   const t0 = reloj();
   const brutos = extraerCandidatos(html);
@@ -101,9 +105,12 @@ async function acumula(url) {
 async function crudo(req) {
   const { candidatos } = JSON.parse(await req.text());
   const c = await compilar();
-  const base = c.build([]).length; // antes: build() acumula
+  const base = c.build([]); // antes: build() acumula
   const t0 = reloj();
   const css = c.build(candidatos);
   const ms = reloj() - t0;
-  return json({ n: candidatos.length, msBuild: ms, bytesSalida: css.length - base, muestra: css.slice(base, base + 300) });
+  // Lo que los candidatos añaden, como árbol restado (la regla nueva va en
+  // medio de la salida, no al final).
+  const nuevo = serializar(restarArbol(parseCss(css), parseCss(base)));
+  return json({ n: candidatos.length, msBuild: ms, bytesSalida: css.length - base.length, muestra: nuevo.slice(0, 300) });
 }

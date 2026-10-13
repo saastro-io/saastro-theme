@@ -1,3 +1,16 @@
-{"n":10,"faltan":10,"deltaKB":1.1,"frio":{"compileMs":80,"buildMs":7,"restaMs":16,"totalWorkerMs":102,"paredClienteMs":113.5,"cpuWorkerdMs":207.8},"caliente":{"compileMs":31,"buildMs":2,"restaMs":2,"totalWorkerMs":36,"paredClienteMs":44.1,"cpuWorkerdMs":73.7}}
-{"n":100,"faltan":99,"deltaKB":16.4,"frio":{"compileMs":99,"buildMs":16,"restaMs":18,"totalWorkerMs":132,"paredClienteMs":142.4,"cpuWorkerdMs":251.2},"caliente":{"compileMs":31,"buildMs":4,"restaMs":2,"totalWorkerMs":38,"paredClienteMs":47.5,"cpuWorkerdMs":83.3}}
-{"n":500,"faltan":498,"deltaKB":45.3,"frio":{"compileMs":76,"buildMs":20,"restaMs":17,"totalWorkerMs":112,"paredClienteMs":118.8,"cpuWorkerdMs":246},"caliente":{"compileMs":30,"buildMs":9,"restaMs":4,"totalWorkerMs":42,"paredClienteMs":50.1,"cpuWorkerdMs":86.4}}
+{"n":10,"faltan":10,"deltaKB":1.1,"frio":{"compileMs":83,"buildMs":9,"restaMs":16,"totalWorkerMs":106,"paredClienteMs":117.6,"cpuWorkerdMs":218.2},"caliente":{"compileMs":29,"buildMs":2,"restaMs":2,"totalWorkerMs":35,"paredClienteMs":42.6,"cpuWorkerdMs":72.9}}
+{"n":100,"faltan":99,"deltaKB":16.4,"frio":{"compileMs":85,"buildMs":14,"restaMs":16,"totalWorkerMs":111,"paredClienteMs":119.8,"cpuWorkerdMs":219.4},"caliente":{"compileMs":30,"buildMs":4,"restaMs":2,"totalWorkerMs":37,"paredClienteMs":44.3,"cpuWorkerdMs":79.8}}
+{"n":500,"faltan":498,"deltaKB":45.3,"frio":{"compileMs":79,"buildMs":27,"restaMs":19,"totalWorkerMs":120,"paredClienteMs":128.5,"cpuWorkerdMs":243.7},"caliente":{"compileMs":30,"buildMs":9,"restaMs":4,"totalWorkerMs":44,"paredClienteMs":50.8,"cpuWorkerdMs":86.6}}
+      remoteAddress: '127.0.0.1',
+      remotePort: 8799,
+      remoteFamily: 'IPv4',
+      timeout: undefined,
+      bytesWritten: 1252,
+      bytesRead: 1438
+    },
+    [Symbol(undici.error.UND_ERR)]: true,
+    [Symbol(undici.error.UND_ERR_SOCKET)]: true
+  }
+}
+
+Node.js v22.22.0

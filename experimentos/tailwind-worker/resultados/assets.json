@@ -1,0 +1,12 @@
+{
+  "hojasKB": {
+    "tailwindcss": "29.1",
+    "tw-animate-css": "14.5",
+    "shadcn/tailwind.css": "16.0",
+    "@fontsource-variable/geist": "1.8"
+  },
+  "themeKB": "6.7",
+  "baseKB": "145.0",
+  "clasesEnManifiesto": 927,
+  "manifiestoKB": "21.4"
+}

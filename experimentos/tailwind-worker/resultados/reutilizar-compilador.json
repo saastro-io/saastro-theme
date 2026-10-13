@@ -1,0 +1,46 @@
+[
+  {
+    "clase": "bg-[#111111]",
+    "ms": {
+      "compile": 114,
+      "build": 8,
+      "resta": 5,
+      "total": 127,
+      "totalConExtraccion": 141
+    },
+    "reglasBgEnDelta": 1
+  },
+  {
+    "clase": "bg-[#222222]",
+    "ms": {
+      "compile": 0,
+      "build": 2,
+      "resta": 2,
+      "total": 4,
+      "totalConExtraccion": 4
+    },
+    "reglasBgEnDelta": 2
+  },
+  {
+    "clase": "bg-[#333333]",
+    "ms": {
+      "compile": 0,
+      "build": 2,
+      "resta": 2,
+      "total": 4,
+      "totalConExtraccion": 4
+    },
+    "reglasBgEnDelta": 3
+  },
+  {
+    "clase": "bg-[#333333]",
+    "ms": {
+      "compile": 0,
+      "build": 0,
+      "resta": 2,
+      "total": 2,
+      "totalConExtraccion": 2
+    },
+    "reglasBgEnDelta": 3
+  }
+]

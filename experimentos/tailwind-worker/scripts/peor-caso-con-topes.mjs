@@ -1,5 +1,5 @@
 // (7) Peor caso DENTRO de los topes: 500 candidatos distintos de ~120 chars,
-// con variantes (4) y calc anidado, por /delta. 5 repeticiones en caliente.
+// con variantes (4) y calc anidado, por /delta. 6 peticiones seguidas en el mismo isolate.
 import { writeFileSync } from 'node:fs';
 const W = process.env.WORKER ?? 'http://localhost:8799';
 const cand = (i) => {
