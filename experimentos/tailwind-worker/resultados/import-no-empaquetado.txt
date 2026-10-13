@@ -1,0 +1,2 @@
+ERROR: loadStylesheet: hoja no empaquetada: no-empaquetado.css
+ERROR: loadModule: módulo no empaquetado: @tailwindcss/forms (plugin)

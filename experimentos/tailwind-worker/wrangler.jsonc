@@ -1,0 +1,9 @@
+// Solo para `wrangler dev` y `wrangler deploy --dry-run`. NO se despliega.
+{
+  "name": "experimento-tailwind-worker",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-04-15",
+  // Sin nodejs_compat a propósito: la pregunta es si compile() corre en
+  // workerd puro, sin polyfills de Node.
+  "compatibility_flags": []
+}

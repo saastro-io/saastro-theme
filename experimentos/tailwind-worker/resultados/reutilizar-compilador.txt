@@ -1,0 +1,5 @@
+# curl -X POST 'localhost:8799/delta?reuse=1' con 4 contenidos seguidos en el mismo isolate
+bg-[#111111] {"compile":79,"build":5,"resta":3,"total":87,"totalConExtraccion":98} reglas en delta: 1
+bg-[#222222] {"compile":0,"build":2,"resta":1,"total":3,"totalConExtraccion":3} reglas en delta: 2
+bg-[#333333] {"compile":0,"build":1,"resta":2,"total":3,"totalConExtraccion":3} reglas en delta: 3
+bg-[#333333] {"compile":0,"build":0,"resta":2,"total":2,"totalConExtraccion":3} reglas en delta: 3

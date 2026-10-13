@@ -1,0 +1,41 @@
+[
+ {
+  "n": 10,
+  "primeraDelProceso": {
+   "totalMs": 93.5,
+   "cpuMs": 197.3
+  },
+  "calienteMediana": {
+   "compileMs": 30.3,
+   "buildMs": 2,
+   "totalMs": 33.9,
+   "cpuMs": 67.2
+  }
+ },
+ {
+  "n": 100,
+  "primeraDelProceso": {
+   "totalMs": 37.3,
+   "cpuMs": 77.5
+  },
+  "calienteMediana": {
+   "compileMs": 22.3,
+   "buildMs": 3.1,
+   "totalMs": 27.1,
+   "cpuMs": 47.1
+  }
+ },
+ {
+  "n": 500,
+  "primeraDelProceso": {
+   "totalMs": 38,
+   "cpuMs": 64.9
+  },
+  "calienteMediana": {
+   "compileMs": 24.3,
+   "buildMs": 6.8,
+   "totalMs": 35.1,
+   "cpuMs": 57.8
+  }
+ }
+]

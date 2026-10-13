@@ -1,0 +1,12 @@
+tailwindcss                            387.8 KiB
+src/assets.generated.mjs               239.4 KiB
+postcss-selector-parser                132.0 KiB
+@tailwindcss/typography                 57.9 KiB
+src/delta.mjs                            4.9 KiB
+src/worker.mjs                           3.6 KiB
+cssesc                                   3.2 KiB
+util-deprecate                           1.0 KiB
+src/sinteticos.mjs                       0.9 KiB
+src/compilador.mjs                       0.7 KiB
+TOTAL worker.js                        835.5 KiB
+assets: STYLESHEETS 63.3 KiB · THEME_CSS 6.7 KiB · BASE_CSS 145.0 KiB · MANIFIESTO 21.4 KiB
