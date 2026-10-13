@@ -66,6 +66,8 @@ if (isPreview) {
   // Ni índice ni caché: la URL lleva un token, y la respuesta es un borrador.
   Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   Astro.response.headers.set('Cache-Control', 'private, no-store');
+  // La URL lleva el token: ni Referer ni analítica (GA/GTM mandan la query).
+  Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 }
 
 const rendered = await render(entry);
@@ -81,7 +83,8 @@ const seoTitle = landing.metaTitle ?? `${landing.title} · ${siteName}`;
 const seoDescription = landing.metaDescription ?? landing.subtitle;
 ---
 
-<SiteLayout title={seoTitle} description={seoDescription} noindex={isPreview}>
+<SiteLayout title={seoTitle} description={seoDescription} noindex={isPreview}
+  analytics={isPreview ? { googleAnalyticsId: '', googleTagManagerId: '' } : undefined}>
   {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
       landings son `prerender = false`, y el contador del HTML depende de un
       nonce por petición que una página estática no puede tener. Apagado salvo
