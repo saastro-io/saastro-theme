@@ -6,7 +6,7 @@
     "ogImage": "/og-image.png",
     "pages": {
       "home": {
-        "description": "The base we build client sites on: Astro, React islands, and Tailwind 4 on Cloudflare Workers. Your team edits text and images from the Hub. "
+        "description": "The base we build client sites on: Astro, React islands, and Tailwind 4 on Cloudflare Workers. Your team edits text and images from the Hub. (prueba)"
       },
       "about": {
         "title": "About · Saastro Theme",
