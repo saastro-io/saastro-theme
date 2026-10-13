@@ -30,6 +30,8 @@ export interface Props {
   canonicalUrl?: string;
   lang?: string;
   ogType?: string;
+  /** Vista previa de un borrador: `noindex, nofollow` y fuera del índice. */
+  noindex?: boolean;
   googleSiteVerificationId?: string;
   analytics?: {
     googleAnalyticsId?: string;
@@ -47,6 +49,7 @@ const {
   canonicalUrl,
   lang = localsLang ?? 'en',
   ogType = 'website',
+  noindex = false,
   googleSiteVerificationId,
   analytics = {},
 } = Astro.props;
@@ -84,6 +87,7 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
 
     <meta property="og:title" content={title} />

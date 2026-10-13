@@ -97,6 +97,13 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+      // Firma de la vista previa de landings en borrador (`src/lib/lp-preview.ts`).
+      // Opcional por la misma razón: sin ella, un borrador sigue redirigiendo a home.
+      LP_PREVIEW_SECRET: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
     },
   },
 
