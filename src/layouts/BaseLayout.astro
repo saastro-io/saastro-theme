@@ -57,15 +57,17 @@ const {
 const resolvedGoogleSiteVerificationId =
   googleSiteVerificationId ?? settings.site.googleSiteVerificationId;
 const resolvedAnalytics = {
-  googleAnalyticsId: analytics.googleAnalyticsId ?? settings.analytics.googleAnalytics.id,
-  googleTagManagerId: analytics.googleTagManagerId ?? settings.analytics.googleTagManager.id,
+  googleAnalyticsId: noindex ? '' : (analytics.googleAnalyticsId ?? settings.analytics.googleAnalytics.id),
+  googleTagManagerId: noindex ? '' : (analytics.googleTagManagerId ?? settings.analytics.googleTagManager.id),
 };
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
-const cfWebAnalyticsToken = settings.analytics.cloudflareWebAnalytics?.token ?? '';
+// `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
+// y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga.
+const cfWebAnalyticsToken = noindex ? '' : (settings.analytics.cloudflareWebAnalytics?.token ?? '');
 // SAASTRO Gen attribution beacon — renders only when the Hub (or the operator)
 // wired a Gen workspace into settings.gen. GenTracking itself host-blocks the
 // Studio preview + local dev, mirroring the CF Web Analytics guard below.
-const genWorkspaceId = settings.gen?.workspaceId ?? '';
+const genWorkspaceId = noindex ? '' : (settings.gen?.workspaceId ?? '');
 const genVertical = settings.gen?.vertical || 'default';
 const genConsent = settings.gen?.consent === 'required' ? 'required' : 'none';
 // Brand name for og:site_name — from i18n `meta.siteName` (Hub-editable),
