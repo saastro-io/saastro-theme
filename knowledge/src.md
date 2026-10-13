@@ -233,6 +233,18 @@ tranquilizador o alarmante, y que no dice lo que parece decir.
 - **Fuera del sitemap y sin índice `/lp/`**: `@astrojs/sitemap` no enumera
   páginas SSR, y a una landing de pago se llega por el anuncio. Que no sean
   enumerables es deliberado.
+- **Vista previa de un borrador** (`/lp/<slug>?preview=<token>`): el borrador se
+  pinta, con `noindex, nofollow` (meta + `X-Robots-Tag`) y `Cache-Control:
+  private, no-store`, solo si el token lo firmó el Hub para ESE slug y no ha
+  caducado. Token = `${exp}.${base64url(HMAC-SHA256(LP_PREVIEW_SECRET,
+  "lp-preview:<slug>:<exp>"))}`, `exp` en segundos Unix y como mucho 24 h por
+  delante (`src/lib/lp-preview.ts`). `LP_PREVIEW_SECRET` es un secreto de Worker
+  OPCIONAL (`astro:env`): sin él, o con token malo/caducado/de otro slug, el
+  borrador redirige a home como siempre, que es el estado de toda la flota. Lo
+  que falta fuera de este repo: que el Hub firme (botón «Vista previa») y que
+  JC ponga el mismo secreto en el Hub y en el Worker del site; al ponerlo,
+  declararlo en `scripts/secretos.ts` (si no, `sync-secrets --check` lo
+  marcará «sin declarar»). Ojo: el formulario de la vista previa es el real.
 - **Merge aguas abajo**: un descendiente que ya tenga colecciones propias
   resuelve UNA línea en `git merge upstream/main` —fusionar las dos listas del
   `export const collections` de `src/content.config.ts`— y añadir bloques al mapa
