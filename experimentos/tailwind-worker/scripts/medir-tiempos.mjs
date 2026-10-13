@@ -86,7 +86,7 @@ for (const n of NS) {
     frio: {
       compileMs: fila(frios, (x) => x.worker.compile),
       buildMs: fila(frios, (x) => x.worker.build),
-      restaMs: fila(frios, (x) => x.worker.resta + x.worker.parseBase),
+      parseoMasRestaMs: fila(frios, (x) => x.worker.resta + x.worker.parseBase),
       totalWorkerMs: fila(frios, (x) => x.worker.total + x.worker.parseBase),
       paredClienteMs: fila(frios, (x) => x.paredCliente),
       cpuWorkerdMs: fila(frios, (x) => x.cpuWorkerd),
@@ -94,7 +94,7 @@ for (const n of NS) {
     caliente: {
       compileMs: fila(calientes, (x) => x.worker.compile),
       buildMs: fila(calientes, (x) => x.worker.build),
-      restaMs: fila(calientes, (x) => x.worker.resta + x.worker.parseBase),
+      parseoMasRestaMs: fila(calientes, (x) => x.worker.resta + x.worker.parseBase),
       totalWorkerMs: fila(calientes, (x) => x.worker.total + x.worker.parseBase),
       paredClienteMs: fila(calientes, (x) => x.paredCliente),
       cpuWorkerdMs: fila(calientes, (x) => x.cpuWorkerd),
@@ -104,3 +104,6 @@ for (const n of NS) {
 }
 execSync('pkill -x workerd || true; pkill -f "[w]rangler dev" || true');
 writeFileSync(join(aqui, 'resultados/tiempos-workerd.json'), JSON.stringify({ REPS, CALIENTES, resumen, crudo }, null, 2));
+// Salida explícita: al matar wrangler puede quedar un socket keep-alive de
+// undici abierto, que reventaba con UND_ERR_SOCKET DESPUÉS de escribir el JSON.
+process.exit(0);

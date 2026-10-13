@@ -18,6 +18,10 @@
     ],
     "deltaBytes": 1483,
     "workerIgualQueNodeByteAByte": true,
+    "completitud": {
+      "reglasEnRef": 14,
+      "faltanEnDelta": []
+    },
     "reglas": {
       "total": 15,
       "identicas": 14,
@@ -76,6 +80,10 @@
     ],
     "deltaBytes": 8190,
     "workerIgualQueNodeByteAByte": true,
+    "completitud": {
+      "reglasEnRef": 54,
+      "faltanEnDelta": []
+    },
     "reglas": {
       "total": 55,
       "identicas": 54,
@@ -128,6 +136,10 @@
     ],
     "deltaBytes": 180,
     "workerIgualQueNodeByteAByte": true,
+    "completitud": {
+      "reglasEnRef": 2,
+      "faltanEnDelta": []
+    },
     "reglas": {
       "total": 2,
       "identicas": 2,
@@ -178,6 +190,10 @@
     ],
     "deltaBytes": 211,
     "workerIgualQueNodeByteAByte": true,
+    "completitud": {
+      "reglasEnRef": 2,
+      "faltanEnDelta": []
+    },
     "reglas": {
       "total": 3,
       "identicas": 2,

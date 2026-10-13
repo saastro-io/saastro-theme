@@ -1,5 +1,5 @@
 {
-  "frio": false,
+  "frio": true,
   "candidatos": 6,
   "yaEnBase": 3,
   "faltan": [
@@ -9,11 +9,11 @@
   ],
   "rechazados": [],
   "msDentroDelWorker": {
-    "compile": 55,
-    "build": 3,
-    "resta": 2,
-    "total": 60,
-    "totalConExtraccion": 60
+    "compile": 83,
+    "build": 6,
+    "resta": 3,
+    "total": 92,
+    "totalConExtraccion": 106
   },
   "cargas": {
     "hojas": [

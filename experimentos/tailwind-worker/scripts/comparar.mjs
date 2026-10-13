@@ -72,6 +72,14 @@ for (const [nombre, html] of Object.entries(contenidos)) {
     return { ruta: h.ruta, estado, ...(estado === 'DISTINTA' ? { delta: h.texto, ref: enRef[0] } : {}) };
   });
 
+  // A'. Completitud (ref ⊆ delta): toda regla de la referencia cuyo selector
+  // nombra una clase que falta debe estar en el delta.
+  const escapar = (c) => '.' + c.replace(/[^A-Za-z0-9_-]/g, (ch) => '\\' + ch);
+  const selectores = w.faltan.map(escapar);
+  const deltaHojas = new Map(hojas(parseCss(w.delta)).map((h) => [h.ruta, h.texto]));
+  const enRefDeFaltan = hojas(parseCss(ref)).filter((h) => selectores.some((s) => h.ruta.includes(s)));
+  const completitud = { reglasEnRef: enRefDeFaltan.length, faltanEnDelta: enRefDeFaltan.filter((h) => deltaHojas.get(h.ruta) !== h.texto).map((h) => h.ruta) };
+
   // C. comportamiento en Chromium
   const estilos = async (css, ancho, oscuro) => {
     const page = await navegador.newPage({ viewport: { width: ancho, height: 900 } });
@@ -119,11 +127,12 @@ for (const [nombre, html] of Object.entries(contenidos)) {
     faltan: w.faltan,
     deltaBytes: w.delta.length,
     workerIgualQueNodeByteAByte: w.delta === n.delta,
+    completitud,
     reglas: { total: comparacion.length, identicas: comparacion.filter((c) => c.estado === 'IDENTICA').length, subconjuntoIdentico: comparacion.filter((c) => c.estado === 'SUBCONJUNTO_IDENTICO').map((c) => c.ruta), distintas: comparacion.filter((c) => c.estado === 'DISTINTA'), ausentesEnRef: comparacion.filter((c) => c.estado === 'AUSENTE_EN_REF') },
     navegador: navegadorRes,
   };
   writeFileSync(join(aqui, `resultados/delta-${nombre}.css`), w.delta);
-  console.log(nombre, JSON.stringify({ ...informe[nombre], reglas: { ...informe[nombre].reglas, distintas: informe[nombre].reglas.distintas.length, ausentesEnRef: informe[nombre].reglas.ausentesEnRef.length }, navegador: Object.fromEntries(Object.entries(navegadorRes).map(([k, v]) => [k, [v.difsBaseMasDelta, v.difsSoloBase_control]])) }));
+  console.log(nombre, JSON.stringify({ ...informe[nombre], completitud: `${completitud.reglasEnRef - completitud.faltanEnDelta.length}/${completitud.reglasEnRef}`, reglas: { ...informe[nombre].reglas, distintas: informe[nombre].reglas.distintas.length, ausentesEnRef: informe[nombre].reglas.ausentesEnRef.length }, navegador: Object.fromEntries(Object.entries(navegadorRes).map(([k, v]) => [k, [v.difsBaseMasDelta, v.difsSoloBase_control]])) }));
 }
 await navegador.close();
 writeFileSync(join(aqui, 'resultados/correctitud.json'), JSON.stringify(informe, null, 2));

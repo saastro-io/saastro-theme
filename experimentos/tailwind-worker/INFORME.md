@@ -9,7 +9,7 @@
 **Conclusión en tres líneas**
 
 1. `compile()` de tailwindcss 4.3.3 corre en workerd **sin `nodejs_compat`**: con el theme y sus plugins empaquetados, el bundle pesa 836 KiB (157 KiB en gzip). Con un compilador nuevo por petición, la petición tarda 35–44 ms en caliente y 106–120 ms en frío. Es tiempo medido con `performance.now()` en workerd local, no CPU de producción.
-2. El delta es correcto **regla a regla** (Worker = Node byte a byte, y coincide con el build de la CLI) y **en el navegador**: 0 diferencias en hero, Markdown y clase inventada. Falla en un caso que no se puede evitar: una utilidad nueva y otra que ya está en la base compiten por la misma propiedad, y gana la que va detrás en el CSS.
+2. El delta es correcto **regla a regla** (Worker = Node byte a byte, y coincide con el build de la CLI) y **en el navegador**: 0 diferencias en hero, Markdown y clase inventada. Falla en un caso propio de todo delta que se añade al final: una utilidad nueva y otra que ya está en la base compiten por la misma propiedad, y gana la que va detrás en el CSS. Un build conjunto, en cambio, las ordena.
 3. Lo veo viable **solo en el plan de pago**, con topes de entrada obligatorios: solo el `compile()` ronda los 30 ms y el plan gratuito da 10 ms de CPU, según la documentación de Cloudflare. El CPU de producción está SIN VERIFICAR. La alternativa de menor riesgo es generar el delta **en la publicación, desde un job**, con este mismo código.
 
 ## Montaje
@@ -43,13 +43,13 @@ porque `@tailwindcss/vite` también detecta fuentes por el grafo de módulos.
 
 | # | pregunta | medida | comando que la reproduce | conclusión |
 |---|---|---|---|---|
-| 1 | ¿`compile()` funciona en workerd? | `POST /delta` devuelve CSS en workerd sin `nodejs_compat`. Carga 4 hojas (`tailwindcss`, `tw-animate-css`, `shadcn/tailwind.css`, `@fontsource-variable/geist`) y 1 módulo (`@tailwindcss/typography`): campo `cargas` de `resultados/ejemplo-delta.json`. Ningún error de runtime. No hace falta oxide: los candidatos salen de una regex | `npm run ejemplos` (con un isolate recién arrancado) | **funciona** |
+| 1 | ¿`compile()` funciona en workerd? | `POST /delta` devuelve CSS en workerd sin `nodejs_compat`. En la 1.ª petición del isolate (`frio: true`) carga 4 hojas (`tailwindcss`, `tw-animate-css`, `shadcn/tailwind.css`, `@fontsource-variable/geist`) y 1 módulo (`@tailwindcss/typography`): campo `cargas` de `resultados/ejemplo-delta.json`, que se cuenta por petición. Ningún error de runtime. No hace falta oxide: los candidatos salen de una regex | `npm run ejemplos` con un `wrangler dev` recién arrancado (el ejemplo es su 1.ª petición) | **funciona** |
 | 2 | `@import`/`@plugin` sin sistema de ficheros | `loadStylesheet` sirve el texto empaquetado: **61,4 KiB** de hojas (tailwindcss 29,1 · tw-animate-css 14,5 · shadcn 16,0 · geist 1,8) + 6,7 KiB del `global.css` del theme. `loadModule` sirve typography, ya importado en el bundle (57,9 KiB + 132,0 KiB de `postcss-selector-parser`). Un id que no esté en el mapa falla con nombre: `loadStylesheet: hoja no empaquetada: no-empaquetado.css` · `loadModule: módulo no empaquetado: @tailwindcss/forms (plugin)` | `npm run assets` → `resultados/assets.json` · `npm run dry-run` → `resultados/bundle-desglose.txt` · `npm run import-no-empaquetado` → `resultados/import-no-empaquetado.txt` | **funciona con estas limitaciones**: cada `@import`/`@plugin` nuevo de `global.css` hay que añadirlo a mano al mapa; las `url()` relativas de `@font-face` no se resuelven (no importa, porque la resta las quita: ya están en la base) |
-| 3 | tamaño del bundle | wrangler: `Total Upload: 835.64 KiB / gzip: 157.08 KiB`. `worker.js` = 855 697 B; `gzip -9` = 159 033 B. Con los límites que da la documentación de Cloudflare (3 MB comprimido en el plan gratuito, 10 MB en el de pago) es el 5,1 % y el 1,5 %. Desglose: tailwindcss 387,8 KiB · assets 239,4 KiB · postcss-selector-parser 132,0 · typography 57,9 · código propio 10,2 · cssesc + util-deprecate 4,2 | `npm run dry-run` → `resultados/dry-run.txt` y `resultados/bundle-desglose.txt` | **funciona** |
-| 4 | tiempo en frío y en caliente | Mediana de 5 arranques en frío y 50 peticiones en caliente, con un compilador nuevo por petición (tabla de §4). Caliente: **35 / 37 / 44 ms** dentro del Worker para 10 / 100 / 500 candidatos, de los que **`compile()` solo son 29–30 ms**. Frío (primera compilación del isolate): **106 / 111 / 120 ms**. En workerd local el reloj **sí avanza** con CPU pura: un bucle sin E/S midió 1262 ms con `performance.now()` | `npm run tiempos` → `resultados/tiempos-workerd.json`, `resultados/tiempos-frio-desglose.txt` · `npm run tiempos:node` · `npm run ejemplos` → `resultados/reloj.json` | **funciona con estas limitaciones**: por lo medido en local, no cabría en los 10 ms de CPU del plan gratuito (límite según la documentación). El CPU time de producción está **SIN VERIFICAR** (no hay deploy) |
-| 5 | correctitud frente a un build conjunto | Worker = Node **byte a byte** en los 4 contenidos. Contra el build de la CLI, regla a regla: hero 15/15, Markdown 55/55, inventada 2/2. En cada uno, el bloque de variables del theme es un subconjunto con las declaraciones idénticas. Chromium (`getComputedStyle` de cada elemento, a 375 y 1280 px, en claro, en oscuro y con `:hover`): **0 diferencias** en base+delta frente a la referencia. El control con la base sola da 58–89 / 245 / 8 diferencias. El caso de control de cascada sale **4 propiedades distintas** | `npm run comparar` → `resultados/correctitud.json` | **funciona con estas limitaciones**: el delta va detrás de toda la base, así que si una utilidad nueva y otra de la base tocan la misma propiedad, no se respeta el orden que Tailwind daría en un build conjunto (§5) |
+| 3 | tamaño del bundle | wrangler: `Total Upload: 835.68 KiB / gzip: 157.08 KiB`. `worker.js` = 855 735 B; `gzip -9` (zlib de Node) = 159 640 B. Con los límites que da la documentación de Cloudflare (3 MB comprimido en el plan gratuito, 10 MB en el de pago) es el 5,1 % y el 1,5 %. Desglose: tailwindcss 387,8 KiB · assets 239,4 KiB · postcss-selector-parser 132,0 · typography 57,9 · código propio 10,3 · cssesc + util-deprecate 4,2 | `npm run dry-run` → `resultados/dry-run.txt` y `resultados/bundle-desglose.txt` | **funciona** |
+| 4 | tiempo en frío y en caliente | Mediana de 5 arranques en frío y 50 peticiones en caliente, con un compilador nuevo por petición (tabla de §4). Caliente: **35 / 37 / 44 ms** dentro del Worker para 10 / 100 / 500 candidatos, de los que **`compile()` solo son 29–30 ms**. Frío (primera compilación del isolate): **106 / 111 / 120 ms**. En workerd local el reloj **sí avanza** con CPU pura: un bucle sin E/S midió 1254 ms con `performance.now()` | `npm run tiempos` → `resultados/tiempos-workerd.json`, `resultados/tiempos-frio-desglose.txt` · `npm run tiempos:node` · `npm run ejemplos` → `resultados/reloj.json` | **funciona con estas limitaciones**: por lo medido en local, no cabría en los 10 ms de CPU del plan gratuito (límite según la documentación). El CPU time de producción está **SIN VERIFICAR** (no hay deploy) |
+| 5 | correctitud frente a un build conjunto | Worker = Node **byte a byte** en los 4 contenidos. Contra el build de la CLI, en las dos direcciones: cada regla del delta está en la referencia (hero 15/15, Markdown 55/55, inventada 2/2; el bloque de variables del theme es un subconjunto con las declaraciones idénticas), y cada regla de la referencia que nombra una clase nueva está en el delta (14/14, 54/54, 2/2). Chromium (`getComputedStyle` de cada elemento, a 375 y 1280 px, en claro, en oscuro y con `:hover`): **0 diferencias** en base+delta frente a la referencia. El control con la base sola da 58–89 / 245 / 8 diferencias. El caso de control de cascada sale **4 propiedades distintas** | `npm run comparar` → `resultados/correctitud.json` | **funciona con estas limitaciones**: el delta va detrás de toda la base, así que si una utilidad nueva y otra de la base tocan la misma propiedad, no se respeta el orden que Tailwind daría en un build conjunto (§5) |
 | 6 | cómo saber qué falta | El manifiesto saca las clases de los selectores del CSS base (927 clases, 21,4 KiB de JSON, solo `Set.has` en el Worker). Después, la **resta de árboles** quita lo que la base ya trae: variables del theme, `@property`, `@keyframes`, `@font-face`. Con 198 candidatos fuera del manifiesto hay **0 falsos negativos**. De las 927 clases del manifiesto, **3 son falsos positivos**: `animate-accordion-up`, `animate-accordion-down` y `shimmer` | `npm run manifiesto` → `resultados/manifiesto.json` | **funciona con estas limitaciones**: una clase que en la base solo sale en CSS escrito a mano (no como utilidad) se da por servida (§6) |
-| 7 | entradas hostiles | Sin topes, en workerd: 1000 variantes apiladas tardan **387 ms** y sacan 2 MB, con el RSS de workerd +164 MB (en una pasada anterior lanzaron `Maximum call stack size exceeded`). Un valor de 1 MB tarda 85 ms y saca 2 MB; 50 000 candidatos, 306 ms y 2,2 MB. `[…:url(…)]` y `bg-[url(…)]` emiten una `url()` externa. Las llaves **no** se inyectan (0 bytes). Con topes, las 11 entradas hostiles responden 413 o se filtran con su motivo. El peor caso dentro de los topes (500 candidatos de 116 caracteres) tarda **44–76 ms** y saca 157 KiB. Un `@apply` recursivo no se puede alcanzar desde el contenido; en el CSS del theme, `compile()` lanza `circular dependency` | `npm run seguridad` → `resultados/seguridad.json`, `resultados/seguridad-peor-caso.json` | **funciona con estas limitaciones**: los topes son obligatorios. La memoria del isolate está **SIN VERIFICAR**: solo se midió el RSS del proceso workerd |
+| 7 | entradas hostiles | Sin topes, en workerd: 1000 variantes apiladas tardan **387 ms** y sacan 2 MB, con el RSS de workerd +164 MB. Un valor de 1 MB tarda 85 ms y saca 2 MB; 50 000 candidatos, 306 ms y 2,2 MB. `[…:url(…)]` y `bg-[url(…)]` emiten una `url()` externa. Las llaves **no** se inyectan (0 bytes). Con topes, las 11 entradas hostiles responden 413 o se filtran con su motivo. El peor caso dentro de los topes (500 candidatos de 116 caracteres) tarda **44–76 ms** y saca 157 KiB. Un `@apply` recursivo no se puede alcanzar desde el contenido; en el CSS del theme, `compile()` lanza `circular dependency` | `npm run seguridad` → `resultados/seguridad.json`, `resultados/seguridad-peor-caso.json` | **funciona con estas limitaciones**: los topes son obligatorios. La memoria del isolate está **SIN VERIFICAR**: solo se midió el RSS del proceso workerd |
 
 ## Detalle por pregunta
 
@@ -91,13 +91,15 @@ Con un id que no está en el mapa, `compile()` rechaza con el mensaje de
 ### 3 · Tamaño
 
 `npm run dry-run` ejecuta `wrangler deploy --dry-run --outdir out --metafile out/meta.json`
-(no sube nada ni necesita credenciales). Guarda la línea `Total Upload` y el
-`gzip -9` en `resultados/dry-run.txt`, y el desglose por módulo (desde
-`meta.json`) en `resultados/bundle-desglose.txt`.
+(no sube nada ni necesita credenciales) a través de `scripts/dry-run.mjs`. El
+script guarda en `resultados/dry-run.txt` la línea `Total Upload` de wrangler
+y dos medidas propias de `out/worker.js`: los bytes y el `gzip` nivel 9 con
+zlib. El desglose por módulo (desde `meta.json`) va a
+`resultados/bundle-desglose.txt`.
 
 El CSS base (145,0 KiB) y el manifiesto (21,4 KiB) van **embebidos** por
 simplicidad. En un site real se leerían del binding `ASSETS`, y el bundle
-quedaría en unos 669 KiB sin comprimir (835,6 − 166,4). **SIN VERIFICAR**: es
+quedaría en unos 669 KiB sin comprimir (835,7 − 166,4). **SIN VERIFICAR**: es
 una resta, no una medida.
 
 ### 4 · Tiempo
@@ -115,13 +117,24 @@ De cada arranque toma la 1.ª petición que compila (frío; el JSON la marca
 | 500 | 45,3 KiB | 79 / 27 / 11 / 8 | **120 ms** | 128,5 ms | 243,7 ms | 30 / 9 / 4 | **44 ms** | 50,8 ms | 86,6 ms |
 
 Cada columna es una mediana por separado, así que las partes no suman
-exactamente el total.
+exactamente el total. El parseo y la resta en frío salen de
+`resultados/tiempos-frio-desglose.txt` (lo escribe `scripts/desglose-frio.mjs`
+desde `crudo[]`).
+
+Ojo con un nombre del JSON: en el `resumen` de
+`resultados/tiempos-workerd.json`, `restaMs` es **parseo + resta** (16/16/19
+en frío). En el script ya se llama `parseoMasRestaMs`, pero el JSON es de la
+pasada anterior al cambio de nombre.
+
+Esa pasada terminó con una traza `UND_ERR_SOCKET` **después** de escribir el
+JSON: al matar wrangler quedaba abierto un socket keep-alive de undici. No es
+un error del Worker. El script ahora sale con `process.exit(0)`.
 
 - **Parseo base**: parsear el CSS base de 145 KiB, solo en la 1.ª petición
   del isolate. El total en frío lo incluye.
 - **Total Worker**: `performance.now()` dentro del Worker. En workerd local el
   reloj avanza con CPU (`resultados/reloj.json`: un bucle de 3·10⁸
-  iteraciones sin E/S da `performanceNowMs: 1262`, `dateNowMs: 1262`). Por
+  iteraciones sin E/S da `performanceNowMs: 1254`, `dateNowMs: 1254`). Por
   eso en local este número ≈ CPU del hilo del isolate. **En producción el
   reloj está congelado entre E/S** (según la documentación de Cloudflare);
   allí esta medida daría casi 0. **SIN VERIFICAR**, porque no hay deploy.
@@ -139,7 +152,7 @@ exactamente el total.
 
 **Reutilizar el compilador** entre peticiones (`POST /delta?reuse=1`;
 `npm run ejemplos` → `resultados/reutilizar-compilador.json`): la 1.ª petición
-tarda 127 ms y las siguientes **2–4 ms**, porque se ahorran el `compile()`.
+tarda 37 ms y las siguientes **1–4 ms**, porque se ahorran el `compile()`.
 Pero `build()` **acumula** los candidatos de todas las llamadas anteriores:
 
 - En `/delta?reuse=1`, el delta de la 2.ª petición trajo 2 reglas `.bg-` y el
@@ -167,17 +180,19 @@ contenido de `contenidos/`:
   `<article class="prose prose-lg dark:prose-invert prose-a:text-[#ff6600] max-w-none">`).
   Cada regla se identifica por su ruta (`@layer › @media › selector`) y se
   compara con el mismo serializador en los dos lados.
+- **A′ · Completitud** (referencia ⊆ delta): toda regla de la referencia
+  cuya ruta nombra una clase que falta tiene que estar, idéntica, en el delta.
 - **B · Worker frente a Node**: los mismos bytes.
 - **C · Chromium**: `getComputedStyle` de todas las propiedades de cada
   elemento, a 375 y 1280 px, en claro y con `.dark`, más el `:hover` real con
   el ratón. Se compara la referencia, base+delta y la base sola (control).
 
-| contenido | faltan | delta | A: reglas idénticas | B | C: difs base+delta (control: base sola) |
-|---|---|---|---|---|---|
-| hero (`bg-[#ff6600]`, `md:grid-cols-3`, `dark:`, `hover:`) | 13 | 1483 B | 14 + 1 bloque de variables | = | **0** en los 4 modos (58–89); 1 elemento con hover (9–19 difs de hover en el control) |
-| Markdown con `prose` (`prose-lg`, `prose-a:text-[#ff6600]`, `not-prose`) | 8 | 8190 B | 54 + 1 bloque de variables | = | **0** (245) |
-| `text-[13px]` (+ `leading-[1.15]`, `tracking-[0.02em]`) | 2 | 180 B | 2 | = | **0** (8) |
-| control de cascada: `px-3 p-[18px]` | 2 | 211 B | 2 + 1 bloque de variables | = | **4** (10) |
+| contenido | faltan | delta | A: reglas idénticas | A′: completitud | B | C: difs base+delta (control: base sola) |
+|---|---|---|---|---|---|---|
+| hero (`bg-[#ff6600]`, `md:grid-cols-3`, `dark:`, `hover:`) | 13 | 1483 B | 14 + 1 bloque de variables | 14/14 | = | **0** en los 4 modos (58–89); 1 elemento con hover (9–19 difs de hover en el control) |
+| Markdown con `prose` (`prose-lg`, `prose-a:text-[#ff6600]`, `not-prose`) | 8 | 8190 B | 54 + 1 bloque de variables | 54/54 | = | **0** (245) |
+| `text-[13px]` (+ `leading-[1.15]`, `tracking-[0.02em]`) | 2 | 180 B | 2 | 2/2 | = | **0** (8) |
+| control de cascada: `px-3 p-[18px]` | 2 | 211 B | 2 + 1 bloque de variables | 2/2 | = | **4** (10) |
 
 Diferencias documentadas:
 
@@ -247,7 +262,7 @@ el principio de lo que añade el build):
 | valor arbitrario de 100 KB | 11 ms | 200 KB | |
 | valor arbitrario de 1 MB | 85 ms | 2 MB | RSS de workerd +74 MB |
 | `calc(` anidado 2000 niveles | 15 ms | 28 KB | no explota |
-| 1000 variantes `hover:` apiladas | 387 ms | 2 MB | 1000 `@media (hover: hover)` anidadas; RSS +164 MB. En una pasada anterior lanzó `Maximum call stack size exceeded` (salida no conservada): el resultado no es determinista |
+| 1000 variantes `hover:` apiladas | 387 ms | 2 MB | 1000 `@media (hover: hover)` anidadas; RSS +164 MB. En una pasada anterior lanzó `Maximum call stack size exceeded`; esa salida no se conservó, así que tanto ese error como que el resultado no sea determinista están **SIN VERIFICAR** |
 | 5 variantes cortas (`sm:md:lg:hover:focus:`) | 1 ms | 252 B | |
 | 10 000 candidatos | 63 ms | 428 KB | |
 | 50 000 candidatos | 306 ms | 2,2 MB | |
@@ -286,7 +301,7 @@ de pared y 157 KiB de delta (`resultados/seguridad-peor-caso.json`).
 `@apply` recursivo: el contenido aporta candidatos, nunca CSS, así que no
 puede meter un `@apply`. En el CSS del theme, `compile()` lo corta con
 `You cannot \`@apply\` the \`bar\` utility here because it creates a circular dependency.`
-(medido en Node con el mismo `compilar()`; última fila de `resultados/seguridad.log`).
+(medido en Node con el mismo `compilar()`; clave `@apply recursivo (theme)` de `resultados/seguridad.json`).
 
 ## Lo que queda SIN VERIFICAR
 
@@ -296,6 +311,9 @@ puede meter un `@apply`. En el CSS del theme, `compile()` lo corta con
 - **Los límites de Workers** (10 ms y 30 s de CPU, 128 MB, 3 y 10 MB de
   bundle): vienen de la documentación de Cloudflare, no de una medida.
 - **Memoria del isolate**: solo se midió el RSS del proceso workerd.
+- **Que 1000 variantes apiladas lancen `Maximum call stack size exceeded`**:
+  se vio en una pasada cuya salida no se conservó. En la pasada guardada
+  compilaron (387 ms).
 - **Arranque del isolate** (evaluar el bundle de 836 KiB): no se midió por
   separado. El «frío» de la tabla empieza con el módulo ya evaluado.
 - **El delta contra el CSS real de `astro build`**: se usó el de la CLI sobre
@@ -315,8 +333,9 @@ primera opción.** Para usarlo hacen falta:
 - **El plan de pago** de Workers. En local, cada petición cuesta 35–44 ms en
   caliente, 106–120 ms en frío y hasta 76 ms en el peor caso con topes, frente
   a los 10 ms de CPU del gratuito. El CPU de producción está SIN VERIFICAR.
-- **Topes de entrada obligatorios**, los de §7. Sin ellos, una sola clase hace
-  que la petición tarde cientos de ms, saque 2 MB y suba cientos de MB de RSS.
+- **Topes de entrada obligatorios**, los de §7. Sin ellos, una sola clase hizo
+  que la petición tardara 387 ms, sacara 2 MB y subiera el RSS de workerd en
+  164 MB.
 - **Un compilador nuevo por petición**, o uno reutilizado que se tire cada N
   usos y cuyo delta se filtre por las clases pedidas (no implementado).
 - **Caché del delta** por hash del conjunto de candidatos (en KV o Cache API),

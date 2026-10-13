@@ -45,6 +45,8 @@ async function delta(req, url, frio) {
   const bytes = new TextEncoder().encode(cuerpo).length; // bytes UTF-8, no unidades UTF-16
   if (bytes > TOPES.maxBytesEntrada) return json({ error: 'entrada demasiado grande', bytes }, 413);
   const { html = '' } = JSON.parse(cuerpo);
+  cargas.hojas.length = 0; // por petición, no acumuladas en el isolate
+  cargas.modulos.length = 0;
   const t0 = reloj();
   const brutos = extraerCandidatos(html);
   const { aceptados, rechazados } = filtrarCandidatos(brutos);
@@ -65,7 +67,7 @@ async function delta(req, url, frio) {
     faltan: r.faltan,
     rechazados,
     msDentroDelWorker: { ...r.ms, totalConExtraccion: reloj() - t0 },
-    cargas: { hojas: [...new Set(cargas.hojas)], modulos: [...new Set(cargas.modulos)] },
+    cargas: { hojas: [...cargas.hojas], modulos: [...cargas.modulos] },
     delta: r.delta,
   });
 }

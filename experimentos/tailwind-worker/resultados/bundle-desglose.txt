@@ -3,10 +3,10 @@ src/assets.generated.mjs               239.4 KiB
 postcss-selector-parser                132.0 KiB
 @tailwindcss/typography                 57.9 KiB
 src/delta.mjs                            4.9 KiB
-src/worker.mjs                           3.7 KiB
+src/worker.mjs                           3.8 KiB
 cssesc                                   3.2 KiB
 util-deprecate                           1.0 KiB
 src/sinteticos.mjs                       0.9 KiB
 src/compilador.mjs                       0.7 KiB
-TOTAL worker.js                        835.6 KiB
+TOTAL worker.js                        835.7 KiB
 assets (KiB de texto): hojas 61.4 = tailwindcss 29.1 · tw-animate-css 14.5 · shadcn/tailwind.css 16.0 · @fontsource-variable/geist 1.8 · THEME_CSS 6.7 · BASE_CSS 145.0 · MANIFIESTO (JSON) 21.4
