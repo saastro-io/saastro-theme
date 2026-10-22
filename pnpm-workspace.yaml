@@ -18,5 +18,12 @@ minimumReleaseAgeExclude:
   - '@saastro/forms'
 # Overrides acotados a una advisory (pnpm 11 los lee de aquí, no de package.json).
 # sharp: GHSA-wq5f-xc86-pv6w; miniflare (vía wrangler) fija 0.35.4 exacto.
+#
+# braces <=3.0.3 (GHSA-vfj7-8cjw-p6xm) no tiene override posible: 3.0.3 es la
+# última versión publicada (`npm view braces versions`, 22-oct-2026). Solo entra
+# por el CLI `shadcn` (fast-glob > micromatch), así que `shadcn` va en
+# devDependencies: en el site solo aporta `shadcn/tailwind.css` al build, como
+# tailwindcss. No lo devuelvas a dependencies; la alerta sigue en `pnpm audit`
+# sin --prod hasta que braces publique el parche.
 overrides:
   'sharp@>=0.35.0 <0.35.5': ^0.35.5
