@@ -11,11 +11,56 @@ allowBuilds:
   puppeteer: false
   sharp: true
   workerd: true
+# Cuarentena: pnpm no resuelve una versión publicada hace menos de 7 días
+# (10080 minutos). Frena el paquete secuestrado que se despublica en horas.
+# Los sites que descienden del theme la heredan al traer sus mejoras.
+#
+# Parche urgente (una advisory que no puede esperar 7 días): añade
+# `paquete@versión` EXACTA al exclude de abajo, con una línea encima que diga
+# fecha, motivo (GHSA o enlace) y cuándo quitarla (al cumplir 7 días).
+# De un tercero, nunca el nombre sin versión: eso le apaga la cuarentena para
+# siempre. Solo los nuestros van sin versión.
+minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
+  # Los nuestros: los publicamos nosotros, y esperar 7 días a un fix propio no
+  # protege de nada.
   - '@saastro/studio'
-  - '@astrojs/cloudflare@14.0.1'
-  - astro@7.0.3
   - '@saastro/forms'
+  - '@saastro-io/*'
+  # 24-oct-2026, al estrenar la cuarentena: versiones que YA estaban en el lock
+  # (y en producción) con menos de 7 días. pnpm 11.8.0 (medido) revalida el lock
+  # contra la cuarentena y sin esto `pnpm install --frozen-lockfile` (CI y
+  # Workers Builds) cae. Entraron todas en #94 (vite 8.3.5, «0 altas en pnpm
+  # audit --prod») con sus transitivas. La más nueva es del 21-oct 16:00 UTC: QUITAR este bloque
+  # entero a partir del 28-oct-2026 17:00 UTC (comprobar con frozen-lockfile).
+  - '@inquirer/confirm@6.3.4'
+  - '@inquirer/core@12.0.5'
+  - '@oxc-project/types@0.155.0'
+  - '@rolldown/binding-android-arm-eabi@1.2.15'
+  - '@rolldown/binding-android-arm64@1.2.15'
+  - '@rolldown/binding-darwin-arm64@1.2.15'
+  - '@rolldown/binding-darwin-x64@1.2.15'
+  - '@rolldown/binding-freebsd-x64@1.2.15'
+  - '@rolldown/binding-linux-arm-gnueabihf@1.2.15'
+  - '@rolldown/binding-linux-arm64-gnu@1.2.15'
+  - '@rolldown/binding-linux-arm64-musl@1.2.15'
+  - '@rolldown/binding-linux-ppc64-gnu@1.2.15'
+  - '@rolldown/binding-linux-s390x-gnu@1.2.15'
+  - '@rolldown/binding-linux-x64-gnu@1.2.15'
+  - '@rolldown/binding-linux-x64-musl@1.2.15'
+  - '@rolldown/binding-openharmony-arm64@1.2.15'
+  - '@rolldown/binding-win32-arm64-msvc@1.2.15'
+  - '@rolldown/binding-win32-x64-msvc@1.2.15'
+  - 'fast-uri@3.1.9'
+  - 'jose@6.2.13'
+  - 'postcss-selector-parser@7.1.7'
+  - 'postcss@8.5.31'
+  - 'rolldown@1.2.15'
+  - 'set-cookie-parser@3.2.1'
+  - 'systeminformation@5.33.16'
+  - 'tldts-core@7.4.19'
+  - 'tldts@7.4.19'
+  - 'vite@8.3.5'
 # Overrides acotados a una advisory (pnpm 11 los lee de aquí, no de package.json).
 # sharp: GHSA-wq5f-xc86-pv6w; miniflare (vía wrangler) fija 0.35.4 exacto.
 #
@@ -25,5 +70,17 @@ minimumReleaseAgeExclude:
 # devDependencies: en el site solo aporta `shadcn/tailwind.css` al build, como
 # tailwindcss. No lo devuelvas a dependencies; la alerta sigue en `pnpm audit`
 # sin --prod hasta que braces publique el parche.
+#
+# 24-oct-2026, `pnpm audit --prod` en rojo por advisories nuevas (parches de
+# más de 7 días, así que pasan la cuarentena):
+# zod (vía astro): GHSA-mrhx-c7xc-m3w5, parche 4.6.6 (11-oct).
+# undici 7 (vía miniflare) y 8 (vía astro>unifont): GHSA-xjj6-f33q-929c,
+# GHSA-4qv8-2p9j-2685 y GHSA-f72v-6w45-q472; parches 7.30.1 y 8.12.2 (15-oct).
+# Quitar cada uno cuando su padre ya traiga la versión parcheada.
 overrides:
   'sharp@>=0.35.0 <0.35.5': ^0.35.5
+  # Solo el de astro: uno global reescribe también el rango de peer de
+  # @modelcontextprotocol/sdk (vía shadcn) y deja un «unmet peer zod».
+  'astro>zod': ^4.6.6
+  'undici@>=7.0.0 <7.30.1': ^7.30.1
+  'undici@>=8.0.0 <8.12.2': ^8.12.2
