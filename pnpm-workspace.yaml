@@ -70,5 +70,17 @@ minimumReleaseAgeExclude:
 # devDependencies: en el site solo aporta `shadcn/tailwind.css` al build, como
 # tailwindcss. No lo devuelvas a dependencies; la alerta sigue en `pnpm audit`
 # sin --prod hasta que braces publique el parche.
+#
+# 24-oct-2026, `pnpm audit --prod` en rojo por advisories nuevas (parches de
+# más de 7 días, así que pasan la cuarentena):
+# zod (vía astro): GHSA-mrhx-c7xc-m3w5, parche 4.6.6 (11-oct).
+# undici 7 (vía miniflare) y 8 (vía astro>unifont): GHSA-xjj6-f33q-929c,
+# GHSA-4qv8-2p9j-2685 y GHSA-f72v-6w45-q472; parches 7.30.1 y 8.12.2 (15-oct).
+# Quitar cada uno cuando su padre ya traiga la versión parcheada.
 overrides:
   'sharp@>=0.35.0 <0.35.5': ^0.35.5
+  # Solo el de astro: uno global reescribe también el rango de peer de
+  # @modelcontextprotocol/sdk (vía shadcn) y deja un «unmet peer zod».
+  'astro>zod': ^4.6.6
+  'undici@>=7.0.0 <7.30.1': ^7.30.1
+  'undici@>=8.0.0 <8.12.2': ^8.12.2
