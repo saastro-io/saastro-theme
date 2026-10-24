@@ -18,11 +18,12 @@ allowBuilds:
 # Parche urgente (una advisory que no puede esperar 7 días): añade
 # `paquete@versión` EXACTA al exclude de abajo, con una línea encima que diga
 # fecha, motivo (GHSA o enlace) y cuándo quitarla (al cumplir 7 días).
-# Nunca el nombre sin versión: eso apaga la cuarentena del paquete para siempre.
+# De un tercero, nunca el nombre sin versión: eso le apaga la cuarentena para
+# siempre. Solo los nuestros van sin versión.
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  # Los nuestros: los publica JC con su YubiKey; esperar 7 días a un fix propio
-  # no protege de nada.
+  # Los nuestros: los publicamos nosotros, y esperar 7 días a un fix propio no
+  # protege de nada.
   - '@saastro/studio'
   - '@saastro/forms'
   - '@saastro-io/*'
