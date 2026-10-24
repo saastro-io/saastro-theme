@@ -1,0 +1,2 @@
+loadStylesheet: hoja no empaquetada: no-empaquetado.css
+loadModule: módulo no empaquetado: @tailwindcss/forms (plugin)
