@@ -28,7 +28,7 @@ minimumReleaseAgeExclude:
   - '@saastro/forms'
   - '@saastro-io/*'
   # 24-oct-2026, al estrenar la cuarentena: versiones que YA estaban en el lock
-  # (y en producción) con menos de 7 días. pnpm >= 11.1.3 revalida el lock
+  # (y en producción) con menos de 7 días. pnpm 11.8.0 (medido) revalida el lock
   # contra la cuarentena y sin esto `pnpm install --frozen-lockfile` (CI y
   # Workers Builds) cae. Entraron todas en #94 (vite 8.3.5, «0 altas en pnpm
   # audit --prod») con sus transitivas. La más nueva es del 21-oct 16:00 UTC: QUITAR este bloque
