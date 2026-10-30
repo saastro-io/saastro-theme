@@ -44,8 +44,10 @@ Además del bucle de arriba, el handoff produce dos cosas (detalle y ejemplos en
 1. **Cada sección NUEVA del diseño** es `src/blocks/<tipo>/Block.astro`
    (`<tipo>` = nombre de la carpeta = `type` del bloque). Sus `Props` **declaran
    `props`**, y dentro de `props` el contenido más las props de estilo comunes
-   (`tono`, `alineacion`, `espaciado`, y `columnas` si es rejilla; mismos nombres
-   y valores que `src/blocks/estilo.ts`). **Sin `schema.ts` a mano**: el
+   (`tono`, `alineacion`, `espaciado`; mismos nombres y valores que
+   `src/blocks/estilo.ts`; `columnas` solo en los tipos de `COLUMNAS_POR_TIPO`).
+   El tipo de `props` va **inline**: importado o en intersección, el extractor lo
+   deja «libre» (medido). **Sin `schema.ts` a mano**: el
    autoesquema de `@saastro/studio` (≥ 0.13) lo genera de esas `Props`. Un
    componente cuyas `Props` no declaran `props` no es un bloque y no se registra.
    Las props son datos: nunca una clase CSS; el aspecto es un enum que el

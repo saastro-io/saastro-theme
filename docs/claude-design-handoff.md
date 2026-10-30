@@ -80,14 +80,21 @@ Minimal example — `src/blocks/logos/Block.astro`:
 ---
 import { sec } from '@saastro/studio/pages';
 import { claseBloque } from '../estilo';
-import type { EstiloProps } from '../estilo';
 
 interface Props {
   id: string;
   variant?: string;
   tema?: string;
   locale?: string;
-  props: EstiloProps & { title: string; logos: { name: string; href?: string }[] };
+  // El tipo de `props` va INLINE (medido con el extractor de 0.13.0): una
+  // intersección con un tipo importado (`EstiloProps & {…}`) sale como «libre».
+  props: {
+    title: string;
+    logos: { name: string; href?: string }[];
+    tono?: 'claro' | 'oscuro' | 'marca';
+    alineacion?: 'inicio' | 'centro';
+    espaciado?: 's' | 'm' | 'l';
+  };
 }
 
 const { id, tema, props } = Astro.props;
@@ -102,19 +109,29 @@ const { tono, alineacion, espaciado, title, logos } = props;
 
 Run `pnpm studio:check` (it must stay green); the block shows up in the manifest
 `/__blocks.json`, which is inert (404) unless the Worker has `PAGES_RENDER_SECRET`
-and `PAGES_SITE_ID`. `src/blocks/blocks.test.ts` pins the list of block folders
-(`NUEVE`): add the new `type` there. If `props` has an imported type or alias the
-extractor can't resolve, the block is registered with **free content** — inline
-the object type to get a real schema. Existing blocks (the nine of the Home) are
-not touched unless the design really changes them.
+and `PAGES_SITE_ID`. Type the `props` object **inline**: with an imported type or
+alias the extractor can't resolve, the block is registered with **free content**
+(measured: `EstiloProps & {…}` → `json`, inline → `object` with `enum` fields).
+`columnas` only works for the types listed in `COLUMNAS_POR_TIPO`
+(`src/blocks/estilo.ts`: `proof`, `problem`, `steps`, `features`); for a new grid
+`claseBloque()` ignores it silently, so leave it out of a new block.
+
+**Known limit:** `src/blocks/blocks.test.ts` only reads blocks with `schema.ts` and
+pins the nine Home folders (`NUEVE`), so any new `src/blocks/<tipo>/` folder turns
+CI red. That test is out of reach of a handoff: stop, tell the owner, and have it
+extended to cover auto-schema blocks before merging. Existing blocks (the nine of
+the Home) are not touched unless the design really changes them.
 
 ## 1c. Pages as Hub drafts
 
 Each page of the design becomes a **draft** in the Hub with the MCP tool
 `hub_create_page_draft`, as a document
-`{ siteId, locale, slug, seo:{title,description}, blocks:[{ id, type, props }] }`
-(the `pageDocSchema` contract). Use `hub_list_blocks` first: only `type`s that
-exist, with props that validate. Example — a page "Home 2" in `es`:
+`{ v:1, siteId, locale, slug, rev, seo:{title,description}, blocks:[{ id, type, props }] }`
+(the `pageDocSchema` contract in `@saastro/studio/pages`). **Not verified:** which
+of `v`/`siteId`/`rev` the MCP tool fills in itself and which the agent passes —
+read the tool's schema in the session before calling it. Use `hub_list_blocks`
+first: only `type`s that exist, with props that validate. Example — the
+`locale`/`slug`/`seo`/`blocks` part of a page "Home 2" in `es`:
 
 ```json
 { "locale": "es", "slug": "home2",
