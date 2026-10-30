@@ -62,6 +62,92 @@ For each visual block in the design:
 8. **Register** — if the section is global (nav/footer) add it to `studio.config.json`;
    reflect any i18n-shape change in `saastrocms.config.ts`.
 
+## 1b. New sections as blocks (`src/blocks/<tipo>/Block.astro`)
+
+A section the design adds that the site doesn't have is a **block of "pages as
+data"**, not just an adapter. The folder name is the block `type`. Its `Props`
+**must declare `props`** (the renderer always passes `{ id, tema, variant, props,
+locale }`); a component without `props` is not a block and is not registered.
+`props` holds the content plus the common style props of `src/blocks/estilo.ts`
+(`tono`: claro|oscuro|marca · `alineacion`: inicio|centro · `espaciado`: s|m|l ·
+`columnas`: 2|3|4 only on grids). **No `schema.ts` by hand** — `@saastro/studio`
+≥ 0.13 derives the schema from the `Props`. Props are data: never a CSS class;
+the look is an enum that `claseBloque()` maps to literal classes.
+
+Minimal example — `src/blocks/logos/Block.astro`:
+
+```astro
+---
+import '@/styles/home-ds.css'; // define los tokens --ds-* que reescribe `tono`
+import { sec } from '@saastro/studio/pages';
+import { claseBloque } from '../estilo';
+
+interface Props {
+  id: string;
+  variant?: string;
+  tema?: string;
+  locale?: string;
+  // El tipo de `props` va INLINE (medido con el extractor de 0.13.0): una
+  // intersección con un tipo importado (`EstiloProps & {…}`) sale como «libre».
+  props: {
+    title: string;
+    logos: { name: string; href?: string }[];
+    tono?: 'claro' | 'oscuro' | 'marca';
+    alineacion?: 'inicio' | 'centro';
+    espaciado?: 's' | 'm' | 'l';
+  };
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, title, logos } = props;
+---
+
+<section {...sec(id, tema)} class={claseBloque('logos', { tono, alineacion, espaciado })}>
+  <h2>{title}</h2>
+  <ul>{logos.map((l) => <li>{l.name}</li>)}</ul>
+</section>
+```
+
+Run `pnpm studio:check` (it must stay green); the block shows up in the manifest
+`/__blocks.json`, which is inert (404) unless the Worker has `PAGES_RENDER_SECRET`
+and `PAGES_SITE_ID`. Type the `props` object **inline**: with an imported type or
+alias the extractor can't resolve, the block is registered with **free content**
+(measured: `EstiloProps & {…}` → `json`, inline → `object` with `enum` fields).
+`columnas` only works for the types listed in `COLUMNAS_POR_TIPO`
+(`src/blocks/estilo.ts`: `proof`, `problem`, `steps`, `features`); for a new grid
+`claseBloque()` ignores it silently, so leave it out of a new block.
+
+**Known limit:** `src/blocks/blocks.test.ts` only reads blocks with `schema.ts` and
+pins the nine Home folders (`NUEVE`), so any new `src/blocks/<tipo>/` folder turns
+CI red. That test is out of reach of a handoff: stop, tell the owner, and have it
+extended to cover auto-schema blocks before merging. Existing blocks (the nine of
+the Home) are not touched unless the design really changes them.
+
+## 1c. Pages as Hub drafts
+
+Each page of the design becomes a **draft** in the Hub with the MCP tool
+`hub_create_page_draft`, as a document
+`{ v:1, siteId, locale, slug, rev, seo:{title,description}, blocks:[{ id, type, props }] }`
+(the `pageDocSchema` contract in `@saastro/studio/pages`). **Not verified:** which
+of `v`/`siteId`/`rev` the MCP tool fills in itself and which the agent passes —
+read the tool's schema in the session before calling it. Use `hub_list_blocks`
+first: only `type`s that exist, with props that validate. Example — the
+`locale`/`slug`/`seo`/`blocks` part of a page "Home 2" in `es`:
+
+```json
+{ "locale": "es", "slug": "home2",
+  "seo": { "title": "Home 2", "description": "…" },
+  "blocks": [
+    { "id": "b1", "type": "logos",
+      "props": { "title": "Confían en nosotros", "logos": [{ "name": "ACME" }],
+                 "tono": "claro", "espaciado": "m" } }
+  ] }
+```
+
+**Never publish** — publishing is a human action in the Hub. Order: new blocks
+first (§1b) → build → then the draft. Read the draft back afterwards (not
+verified here how the Hub treats a block whose props fail validation).
+
 ## ⚠️ Nav / Footer — sections with behavior (do NOT regenerate)
 
 `Header`/`Footer` are **not** dumb layout — they carry logic. **Never regenerate them
