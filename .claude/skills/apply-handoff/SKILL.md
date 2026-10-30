@@ -58,6 +58,10 @@ Además del bucle de arriba, el handoff produce dos cosas (detalle y ejemplos en
    Si la página pide un bloque que no existe, primero el bloque (punto 1), build,
    y luego el borrador.
 
+**Aviso:** `src/blocks/blocks.test.ts` fija las nueve carpetas de la Home, así que
+una carpeta nueva en `src/blocks/` pone CI en rojo aunque `studio:check` esté verde.
+Ese test queda fuera de un handoff: para y avisa al dueño del theme (ver doc §1b).
+
 No cambia nada de lo demás: `pnpm studio:check` verde sigue siendo «terminado» y
 «portar, nunca pegar» sigue mandando. Los bloques existentes (9 de la Home) no se
 tocan desde un handoff salvo que el diseño los cambie de verdad.

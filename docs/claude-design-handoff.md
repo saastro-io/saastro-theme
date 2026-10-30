@@ -78,6 +78,7 @@ Minimal example — `src/blocks/logos/Block.astro`:
 
 ```astro
 ---
+import '@/styles/home-ds.css'; // define los tokens --ds-* que reescribe `tono`
 import { sec } from '@saastro/studio/pages';
 import { claseBloque } from '../estilo';
 
@@ -144,8 +145,8 @@ first: only `type`s that exist, with props that validate. Example — the
 ```
 
 **Never publish** — publishing is a human action in the Hub. Order: new blocks
-first (§1b) → build → then the draft. If a block's props fail validation the
-Hub omits that block rather than the page, so read the draft back.
+first (§1b) → build → then the draft. Read the draft back afterwards (not
+verified here how the Hub treats a block whose props fail validation).
 
 ## ⚠️ Nav / Footer — sections with behavior (do NOT regenerate)
 
