@@ -32,6 +32,7 @@ export type FeaturesProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'features',
+  component: 'FeatureGrid',
   category: 'content',
   propsSchema,
   demoProps: {

@@ -19,6 +19,7 @@ export type ProofProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'proof',
+  component: 'ProofStrip',
   category: 'content',
   propsSchema,
   demoProps: {

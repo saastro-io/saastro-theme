@@ -21,6 +21,7 @@ export type StepsProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'steps',
+  component: 'HomeSteps',
   category: 'content',
   propsSchema,
   demoProps: {

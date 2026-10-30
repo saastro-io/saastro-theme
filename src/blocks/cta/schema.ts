@@ -22,6 +22,7 @@ export type CtaProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'cta',
+  component: 'FinalCta',
   category: 'cta',
   propsSchema,
   demoProps: {

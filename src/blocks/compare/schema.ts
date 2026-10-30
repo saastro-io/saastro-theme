@@ -30,6 +30,7 @@ export type CompareProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'compare',
+  component: 'CompareRows',
   category: 'content',
   propsSchema,
   demoProps: {

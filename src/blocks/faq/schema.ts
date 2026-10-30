@@ -24,6 +24,7 @@ export type FaqProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'faq',
+  component: 'FaqList',
   category: 'faq',
   propsSchema,
   demoProps: {

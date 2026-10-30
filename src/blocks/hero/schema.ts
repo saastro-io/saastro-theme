@@ -56,6 +56,7 @@ export type HeroProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'hero',
+  component: 'HomeHero',
   category: 'hero',
   propsSchema,
   demoProps: {
