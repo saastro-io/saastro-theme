@@ -19,5 +19,5 @@ const lang = (locales as readonly string[]).includes(locale ?? '') ? (locale as 
 ---
 
 <Envoltura id={id} tema={tema} estilo={{ tono, alineacion, espaciado }}>
-  <RequestSite {...resto} locale={lang} />
+  <RequestSite {...resto} fieldPrefix="" locale={lang} />
 </Envoltura>

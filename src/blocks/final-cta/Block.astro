@@ -19,6 +19,7 @@ const { primaryCta, secondaryCta, tono, alineacion, espaciado, ...resto } = prop
 <Envoltura id={id} tema={tema} estilo={{ tono, alineacion, espaciado }}>
   <FinalCta
     {...resto}
+    fieldPrefix=""
     primaryCta={primaryCta.label}
     primaryHref={primaryCta.href}
     secondaryCta={secondaryCta?.label}

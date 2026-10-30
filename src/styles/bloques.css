@@ -29,11 +29,12 @@
   justify-content: center;
   margin-inline: auto;
 }
+/* Relleno de la sección: s=48px · m=el de la propia sección (96px en la Home) · l=144px. */
 .bloque[data-espaciado='s'] section {
-  padding-block: 40px !important;
+  padding-block: 48px !important;
 }
-.bloque[data-espaciado='l'] {
-  padding-block: 56px;
+.bloque[data-espaciado='l'] section {
+  padding-block: 144px !important;
 }
 @media (min-width: 821px) {
   .bloque[data-columnas='2'] :is(.prob, .feat) {
