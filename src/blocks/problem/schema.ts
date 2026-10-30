@@ -21,6 +21,7 @@ export type ProblemProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'problem',
+  component: 'ProblemGrid',
   category: 'content',
   propsSchema,
   demoProps: {

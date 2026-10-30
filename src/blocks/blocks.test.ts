@@ -26,6 +26,23 @@ describe('catálogo de la Home como bloques', () => {
     }
   });
 
+  it('cada bloque declara `component` (el que usa la Home) y llega al manifiesto', () => {
+    const ESPERADO: Record<string, string> = {
+      hero: 'HomeHero',
+      proof: 'ProofStrip',
+      problem: 'ProblemGrid',
+      steps: 'HomeSteps',
+      features: 'FeatureGrid',
+      compare: 'CompareRows',
+      faq: 'FaqList',
+      contact: 'RequestSite',
+      cta: 'FinalCta',
+    };
+    const manifest = registry.buildManifest() as unknown as Array<{ slug: string; component?: string }>;
+    const real = Object.fromEntries(manifest.map((m) => [m.slug, m.component]));
+    expect(real).toEqual(ESPERADO);
+  });
+
   it('cada demoProps valida con su propio esquema', () => {
     for (const def of registry.blocks) {
       const r = def.propsSchema.safeParse(def.demoProps);

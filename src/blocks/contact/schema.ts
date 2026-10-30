@@ -22,6 +22,7 @@ export type ContactProps = z.output<typeof propsSchema>;
 
 const def: BlockDef<typeof propsSchema> = {
   type: 'contact',
+  component: 'RequestSite',
   category: 'form',
   propsSchema,
   demoProps: {
