@@ -1,0 +1,23 @@
+---
+/** Bloque `request-site`: envuelve `components/home/RequestSite.astro` (formulario del site). */
+import Envoltura from '../Envoltura.astro';
+import RequestSite from '../../components/home/RequestSite.astro';
+import { defaultLocale, locales, type Locale } from '../../i18n/config';
+import type { RequestSiteProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: RequestSiteProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props, locale } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+const lang = (locales as readonly string[]).includes(locale ?? '') ? (locale as Locale) : defaultLocale;
+---
+
+<Envoltura id={id} tema={tema} estilo={{ tono, alineacion, espaciado }}>
+  <RequestSite {...resto} locale={lang} />
+</Envoltura>

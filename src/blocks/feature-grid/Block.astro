@@ -1,0 +1,21 @@
+---
+/** Bloque `feature-grid`: envuelve `components/home/FeatureGrid.astro`. */
+import Envoltura from '../Envoltura.astro';
+import FeatureGrid from '../../components/home/FeatureGrid.astro';
+import type { FeatureGridProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: FeatureGridProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, columnas, ...resto } = props;
+---
+
+<Envoltura id={id} tema={tema} estilo={{ tono, alineacion, espaciado, columnas }}>
+  <FeatureGrid {...resto} />
+</Envoltura>

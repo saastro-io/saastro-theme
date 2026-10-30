@@ -140,7 +140,15 @@ export default defineConfig({
       },
     }),
     icon(),
-    saastroStudio({ autoWrap: true, autoWrapPages: true }),
+    // `pages`: «páginas como datos» (rutas /<locale>/p/<slug>, /__render, /__purge,
+    // /__blocks.json). INERTE (404) sin PAGES_RENDER_SECRET + PAGES_SITE_ID + el
+    // binding HUB: un descendiente que sube de versión sirve lo mismo que antes.
+    // Los bloques viven en src/blocks (no en el src/components/blocks del registry).
+    saastroStudio({
+      autoWrap: true,
+      autoWrapPages: true,
+      pages: { locales: ['en', 'es'], blocksDir: 'src/blocks', layout: 'src/layouts/SiteLayout.astro' },
+    }),
   ],
   vite: {
     plugins: [tailwindcss()],

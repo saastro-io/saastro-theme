@@ -1,0 +1,29 @@
+---
+/**
+ * Raíz común de los bloques del theme: el marcador del bloque (clave = `id`
+ * del documento, no un namespace de i18n), el ámbito `.ds-home` que necesitan
+ * las secciones de la home y las props de estilo (paso 0) como `data-*`.
+ */
+import { sec } from '@saastro/studio/pages';
+import '../styles/home-ds.css';
+import '../styles/bloques.css';
+
+interface Props {
+  id: string;
+  tema?: string;
+  estilo: { tono: string; alineacion: string; espaciado: string; columnas?: number };
+}
+
+const { id, tema, estilo } = Astro.props;
+---
+
+<div
+  {...sec(id, tema)}
+  class="ds-home bloque"
+  data-tono={estilo.tono}
+  data-alineacion={estilo.alineacion}
+  data-espaciado={estilo.espaciado}
+  data-columnas={estilo.columnas}
+>
+  <slot />
+</div>

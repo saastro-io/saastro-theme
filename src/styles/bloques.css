@@ -1,0 +1,48 @@
+/*
+ * Props de estilo comunes de los bloques (paso 0). Todo CSS LITERAL: un enum
+ * del documento nunca construye una clase. `.bloque` lo pone Envoltura.astro.
+ */
+.bloque[data-tono='oscuro'] {
+  --ds-bg: oklch(0.16 0.01 270);
+  --ds-bg-elevated: oklch(0.21 0.01 270);
+  --ds-bg-sunken: oklch(0.13 0.01 270);
+  --ds-fg: oklch(0.97 0.003 270);
+  --ds-fg-muted: oklch(0.78 0.008 270);
+  --ds-border: oklch(0.3 0.01 270);
+  background: var(--ds-bg);
+  color: var(--ds-fg);
+}
+.bloque[data-tono='marca'] {
+  --ds-bg: var(--primary);
+  --ds-bg-elevated: color-mix(in oklch, var(--primary) 88%, black);
+  --ds-fg: var(--primary-foreground);
+  --ds-fg-muted: color-mix(in oklch, var(--primary-foreground) 80%, transparent);
+  --ds-border: color-mix(in oklch, var(--primary-foreground) 25%, transparent);
+  background: var(--ds-bg);
+  color: var(--ds-fg);
+}
+.bloque[data-alineacion='centro'] {
+  text-align: center;
+}
+.bloque[data-alineacion='centro'] :is(.sec-head, .ctas) {
+  justify-items: center;
+  justify-content: center;
+  margin-inline: auto;
+}
+.bloque[data-espaciado='s'] section {
+  padding-block: 40px !important;
+}
+.bloque[data-espaciado='l'] {
+  padding-block: 56px;
+}
+@media (min-width: 821px) {
+  .bloque[data-columnas='2'] :is(.prob, .feat) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bloque[data-columnas='3'] :is(.prob, .feat) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .bloque[data-columnas='4'] :is(.prob, .feat) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,21 @@
+---
+/** Bloque `home-steps`: envuelve `components/home/HomeSteps.astro`. */
+import Envoltura from '../Envoltura.astro';
+import HomeSteps from '../../components/home/HomeSteps.astro';
+import type { HomeStepsProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: HomeStepsProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+---
+
+<Envoltura id={id} tema={tema} estilo={{ tono, alineacion, espaciado }}>
+  <HomeSteps {...resto} />
+</Envoltura>
