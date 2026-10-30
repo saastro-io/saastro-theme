@@ -394,7 +394,7 @@ documentos pintan lo mismo. La Home `.astro` no se toca.
   las `Props`.
 - **Inerte por defecto**: sin `PAGES_RENDER_SECRET` y `PAGES_SITE_ID` en el
   Worker, `/__blocks.json`, `/__render`, `/__purge` y `?__pv` responden 404.
-  Solo `PAGES_HUB_ORIGIN` (no secreto) va en `wrangler.jsonc`.
+  `PAGES_HUB_ORIGIN` y `PAGES_ORIGIN` (ambos el Hub, no secretos) van en `wrangler.jsonc`.
 - **Límite conocido**: las secciones siguen instrumentadas por `autoWrap`
   (`fieldPrefix` → marcador i18n), así que dentro de un bloque queda un
   `data-saastro="sec:<ns>"` anidado en el `sec(id)` del documento.
