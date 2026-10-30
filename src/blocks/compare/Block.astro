@@ -1,0 +1,23 @@
+---
+/** Bloque `compare`: envuelve `CompareRows` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import CompareRows from '@/components/home/CompareRows.astro';
+import { claseBloque } from '../estilo';
+import type { CompareProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: CompareProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('compare', { tono, alineacion, espaciado })}>
+  <CompareRows {...resto} />
+</div>

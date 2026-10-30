@@ -1,0 +1,23 @@
+---
+/** Bloque `steps`: envuelve `HomeSteps` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import HomeSteps from '@/components/home/HomeSteps.astro';
+import { claseBloque } from '../estilo';
+import type { StepsProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: StepsProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, columnas, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('steps', { tono, alineacion, espaciado, columnas })}>
+  <HomeSteps {...resto} />
+</div>

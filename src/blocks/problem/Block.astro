@@ -1,0 +1,23 @@
+---
+/** Bloque `problem`: envuelve `ProblemGrid` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import ProblemGrid from '@/components/home/ProblemGrid.astro';
+import { claseBloque } from '../estilo';
+import type { ProblemProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: ProblemProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, columnas, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('problem', { tono, alineacion, espaciado, columnas })}>
+  <ProblemGrid {...resto} />
+</div>

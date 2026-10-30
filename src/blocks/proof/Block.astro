@@ -1,0 +1,23 @@
+---
+/** Bloque `proof`: envuelve `ProofStrip` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import ProofStrip from '@/components/home/ProofStrip.astro';
+import { claseBloque } from '../estilo';
+import type { ProofProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: ProofProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, columnas, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('proof', { tono, alineacion, espaciado, columnas })}>
+  <ProofStrip {...resto} />
+</div>

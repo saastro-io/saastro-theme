@@ -1,0 +1,28 @@
+---
+/**
+ * Bloque `contact`: envuelve `RequestSite`. El idioma es el de la ruta
+ * (`locale`), no una prop del documento.
+ */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import RequestSite from '@/components/home/RequestSite.astro';
+import { locales, defaultLocale, type Locale } from '@/i18n/config';
+import { claseBloque } from '../estilo';
+import type { ContactProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: ContactProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props, locale } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+const lang = (locales as readonly string[]).includes(locale ?? '') ? (locale as Locale) : defaultLocale;
+---
+
+<div {...sec(id, tema)} class={claseBloque('contact', { tono, alineacion, espaciado })}>
+  <RequestSite {...resto} locale={lang} />
+</div>

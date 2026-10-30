@@ -1,0 +1,23 @@
+---
+/** Bloque `faq`: envuelve `FaqList` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import FaqList from '@/components/home/FaqList.astro';
+import { claseBloque } from '../estilo';
+import type { FaqProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: FaqProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('faq', { tono, alineacion, espaciado })}>
+  <FaqList {...resto} />
+</div>

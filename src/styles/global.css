@@ -8,6 +8,9 @@
 @source "../layouts/**/*.astro";
 @source "../widgets/**/*.{astro,tsx,ts}";
 @source "../pages/**/*.astro";
+/* Bloques de «páginas como datos»: las clases de estilo (tono, columnas…) son
+   literales en `estilo.ts`; sin esta línea Tailwind no las ve y no se emiten. */
+@source "../blocks/**/*.{astro,ts}";
 
 @custom-variant dark (&:is(.dark *));
 

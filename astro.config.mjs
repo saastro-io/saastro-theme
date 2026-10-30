@@ -140,7 +140,20 @@ export default defineConfig({
       },
     }),
     icon(),
-    saastroStudio({ autoWrap: true, autoWrapPages: true }),
+    // `pages`: «páginas como datos» (`/<locale>/p/<slug>`, `/__render`,
+    // `/__purge`, `/__blocks.json`). Los bloques viven en `src/blocks/<tipo>/`
+    // (`schema.ts` + `Block.astro`) y el layout es el del site, que pone nav y
+    // footer. INERTE hasta que el Worker tenga `PAGES_RENDER_SECRET` y
+    // `PAGES_SITE_ID`: sin ellos todas esas rutas responden 404.
+    saastroStudio({
+      autoWrap: true,
+      autoWrapPages: true,
+      pages: {
+        locales: ['es', 'en'],
+        blocksDir: 'src/blocks',
+        layout: 'src/layouts/SiteLayout.astro',
+      },
+    }),
   ],
   vite: {
     plugins: [tailwindcss()],

@@ -24,7 +24,8 @@ interface Props {
   secondaryCta?: string;
   secondaryHref?: string;
   mockNote?: string;
-  mock: StudioMockCopy;
+  /** Sin ella (un hero de documento) no se pinta el marco de la maqueta. */
+  mock?: StudioMockCopy;
   fieldPrefix?: string;
 }
 
@@ -63,16 +64,18 @@ const {
         )}
       </div>
     </div>
-    <div class="frame-wrap">
-      <span class="rule-x" aria-hidden="true"></span>
-      <span class="rule-y l" aria-hidden="true"></span>
-      <span class="rule-y r" aria-hidden="true"></span>
-      <span class="ch tl" aria-hidden="true"></span>
-      <span class="ch tr" aria-hidden="true"></span>
-      <span class="ch bl" aria-hidden="true"></span>
-      <span class="ch br" aria-hidden="true"></span>
-      <StudioMock copy={mock} client:visible />
-    </div>
+    {mock && (
+      <div class="frame-wrap">
+        <span class="rule-x" aria-hidden="true"></span>
+        <span class="rule-y l" aria-hidden="true"></span>
+        <span class="rule-y r" aria-hidden="true"></span>
+        <span class="ch tl" aria-hidden="true"></span>
+        <span class="ch tr" aria-hidden="true"></span>
+        <span class="ch bl" aria-hidden="true"></span>
+        <span class="ch br" aria-hidden="true"></span>
+        <StudioMock copy={mock} client:visible />
+      </div>
+    )}
     {mockNote && <p class="mock-note">{mockNote}</p>}
   </div>
 </section>

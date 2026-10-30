@@ -371,3 +371,30 @@ Publicado ya, **la adopción no se hace**, y por dos razones:
 Queda disponible para cuando un rediseño lo quiera. La forma también difiere
 (`{q, a}` contra `{question, answer}`), pero eso es trivial: al no ser una
 sección de Studio, aquí sí se puede mapear sin romper nada.
+
+## Páginas como datos: las 9 secciones de la Home como bloques
+
+`astro.config.mjs` activa `pages: { locales: ['es','en'], blocksDir: 'src/blocks',
+layout: 'src/layouts/SiteLayout.astro' }` (`@saastro/studio` 0.11.0). Cada
+sección de la Home es un bloque `src/blocks/<tipo>/{schema.ts,Block.astro}`:
+`hero`→`HomeHero`, `proof`→`ProofStrip`, `problem`→`ProblemGrid`,
+`steps`→`HomeSteps`, `features`→`FeatureGrid`, `compare`→`CompareRows`,
+`faq`→`FaqList`, `contact`→`RequestSite`, `cta`→`FinalCta`. El `Block.astro`
+**envuelve** la sección existente (no la copia), así que la Home y los
+documentos pintan lo mismo. La Home `.astro` no se toca.
+
+- **Props de estilo comunes** (`src/blocks/estilo.ts`): `tono`
+  (claro|oscuro|marca), `alineacion` (inicio|centro), `espaciado` (s|m|l) y,
+  en las rejillas (`proof`, `problem`, `steps`, `features`), `columnas`
+  (2|3|4). Son enums; `claseBloque()` los traduce a clases LITERALES. Nunca una
+  clase en los datos: el esquema es `.strict()`.
+- **`global.css` lleva `@source "../blocks/**/*.{astro,ts}"`**: sin ella
+  Tailwind no ve las clases de `estilo.ts` y no se emiten (medido: 0 reglas).
+- **`schema.ts` a mano** en zod; se borrarán cuando el autoesquema (0.12) lea
+  las `Props`.
+- **Inerte por defecto**: sin `PAGES_RENDER_SECRET` y `PAGES_SITE_ID` en el
+  Worker, `/__blocks.json`, `/__render`, `/__purge` y `?__pv` responden 404.
+  Solo `PAGES_HUB_ORIGIN` (no secreto) va en `wrangler.jsonc`.
+- **Límite conocido**: las secciones siguen instrumentadas por `autoWrap`
+  (`fieldPrefix` → marcador i18n), así que dentro de un bloque queda un
+  `data-saastro="sec:<ns>"` anidado en el `sec(id)` del documento.

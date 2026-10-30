@@ -1,0 +1,23 @@
+---
+/** Bloque `cta`: envuelve `FinalCta` con las props de estilo comunes. */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import FinalCta from '@/components/home/FinalCta.astro';
+import { claseBloque } from '../estilo';
+import type { CtaProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: CtaProps;
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('cta', { tono, alineacion, espaciado })}>
+  <FinalCta {...resto} />
+</div>

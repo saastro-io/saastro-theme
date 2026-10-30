@@ -9,6 +9,15 @@
     "directory": "./dist"
   },
 
+  // «Páginas como datos» (`pages` en astro.config.mjs). Solo el origen del Hub,
+  // que no es secreto. `PAGES_RENDER_SECRET` (secreto) y `PAGES_SITE_ID` NO van
+  // aquí: se ponen en el Worker (`wrangler secret put` / Variables del
+  // dashboard). Sin ellos `/__render`, `/__purge`, `/__blocks.json` y `?__pv`
+  // responden 404: el theme sirve lo mismo que antes.
+  "vars": {
+    "PAGES_HUB_ORIGIN": "https://hub.saastro.io"
+  },
+
   // Apagada de serie: con los logs encendidos, Workers Observability guarda la
   // URL de cada petición, y un site cuyo HTML lleve URLs con token (p. ej.
   // /shared/<token>) los dejaría escritos en el dashboard de Cloudflare.
