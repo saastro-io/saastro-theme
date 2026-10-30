@@ -1,0 +1,92 @@
+{
+  "v": 1,
+  "siteId": "2b771188-8ef0-4d5f-be85-341aaece10ab",
+  "locale": "es",
+  "slug": "demo",
+  "rev": 8,
+  "seo": {
+    "title": "",
+    "description": ""
+  },
+  "blocks": [
+    {
+      "id": "b_1eevbw8hwy0vc",
+      "type": "hero",
+      "variant": "a",
+      "props": {
+        "eyebrow": "Nuevo",
+        "title": [
+          "Medida B 22",
+          "escriben como datos"
+        ],
+        "subtitle": "Cada bloque es un esquema: el Hub lo rellena, el site lo valida y lo pinta en el borde.",
+        "primaryCta": {
+          "label": "Empezar",
+          "href": "#form"
+        },
+        "secondaryCta": {
+          "label": "Ver bloques",
+          "href": "/__blocks.json"
+        },
+        "stats": [
+          {
+            "value": "5",
+            "label": "bloques"
+          },
+          {
+            "value": "2",
+            "label": "temas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_1obx6661iqst0j",
+      "type": "hero",
+      "variant": "a",
+      "props": {
+        "eyebrow": "Nuevo",
+        "title": [
+          "Páginas que se",
+          "escriben como datos"
+        ],
+        "subtitle": "Cada bloque es un esquema: el Hub lo rellena, el site lo valida y lo pinta en el borde.",
+        "primaryCta": {
+          "label": "Empezar",
+          "href": "#form"
+        },
+        "secondaryCta": {
+          "label": "Ver bloques",
+          "href": "/__blocks.json"
+        },
+        "stats": [
+          {
+            "value": "5",
+            "label": "bloques"
+          },
+          {
+            "value": "2",
+            "label": "temas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_16k2f5r5a95x3",
+      "type": "faq",
+      "props": {
+        "title": "Preguntas frecuentes",
+        "items": [
+          {
+            "q": "¿Necesito desplegar para publicar?",
+            "a": "No: el site lee el documento publicado del Hub en cada petición sin caché."
+          },
+          {
+            "q": "¿Qué pasa si el Hub cae?",
+            "a": "Se sirve la última copia buena con la cabecera x-saastro-stale."
+          }
+        ]
+      }
+    }
+  ]
+}
