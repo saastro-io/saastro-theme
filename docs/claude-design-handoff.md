@@ -62,6 +62,74 @@ For each visual block in the design:
 8. **Register** — if the section is global (nav/footer) add it to `studio.config.json`;
    reflect any i18n-shape change in `saastrocms.config.ts`.
 
+## 1b. New sections as blocks (`src/blocks/<tipo>/Block.astro`)
+
+A section the design adds that the site doesn't have is a **block of "pages as
+data"**, not just an adapter. The folder name is the block `type`. Its `Props`
+**must declare `props`** (the renderer always passes `{ id, tema, variant, props,
+locale }`); a component without `props` is not a block and is not registered.
+`props` holds the content plus the common style props of `src/blocks/estilo.ts`
+(`tono`: claro|oscuro|marca · `alineacion`: inicio|centro · `espaciado`: s|m|l ·
+`columnas`: 2|3|4 only on grids). **No `schema.ts` by hand** — `@saastro/studio`
+≥ 0.13 derives the schema from the `Props`. Props are data: never a CSS class;
+the look is an enum that `claseBloque()` maps to literal classes.
+
+Minimal example — `src/blocks/logos/Block.astro`:
+
+```astro
+---
+import { sec } from '@saastro/studio/pages';
+import { claseBloque } from '../estilo';
+import type { EstiloProps } from '../estilo';
+
+interface Props {
+  id: string;
+  variant?: string;
+  tema?: string;
+  locale?: string;
+  props: EstiloProps & { title: string; logos: { name: string; href?: string }[] };
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, title, logos } = props;
+---
+
+<section {...sec(id, tema)} class={claseBloque('logos', { tono, alineacion, espaciado })}>
+  <h2>{title}</h2>
+  <ul>{logos.map((l) => <li>{l.name}</li>)}</ul>
+</section>
+```
+
+Run `pnpm studio:check` (it must stay green); the block shows up in the manifest
+`/__blocks.json`, which is inert (404) unless the Worker has `PAGES_RENDER_SECRET`
+and `PAGES_SITE_ID`. `src/blocks/blocks.test.ts` pins the list of block folders
+(`NUEVE`): add the new `type` there. If `props` has an imported type or alias the
+extractor can't resolve, the block is registered with **free content** — inline
+the object type to get a real schema. Existing blocks (the nine of the Home) are
+not touched unless the design really changes them.
+
+## 1c. Pages as Hub drafts
+
+Each page of the design becomes a **draft** in the Hub with the MCP tool
+`hub_create_page_draft`, as a document
+`{ siteId, locale, slug, seo:{title,description}, blocks:[{ id, type, props }] }`
+(the `pageDocSchema` contract). Use `hub_list_blocks` first: only `type`s that
+exist, with props that validate. Example — a page "Home 2" in `es`:
+
+```json
+{ "locale": "es", "slug": "home2",
+  "seo": { "title": "Home 2", "description": "…" },
+  "blocks": [
+    { "id": "b1", "type": "logos",
+      "props": { "title": "Confían en nosotros", "logos": [{ "name": "ACME" }],
+                 "tono": "claro", "espaciado": "m" } }
+  ] }
+```
+
+**Never publish** — publishing is a human action in the Hub. Order: new blocks
+first (§1b) → build → then the draft. If a block's props fail validation the
+Hub omits that block rather than the page, so read the draft back.
+
 ## ⚠️ Nav / Footer — sections with behavior (do NOT regenerate)
 
 `Header`/`Footer` are **not** dumb layout — they carry logic. **Never regenerate them

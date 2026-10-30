@@ -36,6 +36,30 @@ Si el diseño pide una sección que no existe, **se construye aquí como bloque 
 5. **Verde = terminado**. Rama → PR. Si el site ya está conectado al Hub, `git pull`
    antes de re-portar: el copy vivo lo posee el cliente.
 
+## Secciones nuevas = bloques de «páginas como datos»; páginas = borradores del Hub
+
+Además del bucle de arriba, el handoff produce dos cosas (detalle y ejemplos en
+`docs/claude-design-handoff.md` §1b y §1c):
+
+1. **Cada sección NUEVA del diseño** es `src/blocks/<tipo>/Block.astro`
+   (`<tipo>` = nombre de la carpeta = `type` del bloque). Sus `Props` **declaran
+   `props`**, y dentro de `props` el contenido más las props de estilo comunes
+   (`tono`, `alineacion`, `espaciado`, y `columnas` si es rejilla; mismos nombres
+   y valores que `src/blocks/estilo.ts`). **Sin `schema.ts` a mano**: el
+   autoesquema de `@saastro/studio` (≥ 0.13) lo genera de esas `Props`. Un
+   componente cuyas `Props` no declaran `props` no es un bloque y no se registra.
+   Las props son datos: nunca una clase CSS; el aspecto es un enum que el
+   `Block.astro` traduce con `claseBloque()`.
+2. **Cada página del diseño** sale como **borrador** en el Hub con
+   `hub_create_page_draft`, componiendo bloques que existen (`hub_list_blocks`
+   dice cuáles y con qué props). **Nunca publicar**: publicar es humano, en el Hub.
+   Si la página pide un bloque que no existe, primero el bloque (punto 1), build,
+   y luego el borrador.
+
+No cambia nada de lo demás: `pnpm studio:check` verde sigue siendo «terminado» y
+«portar, nunca pegar» sigue mandando. Los bloques existentes (9 de la Home) no se
+tocan desde un handoff salvo que el diseño los cambie de verdad.
+
 ## Leer los fallos del gate
 
 | Fallo | Qué significa casi siempre |
@@ -54,6 +78,8 @@ Si el diseño pide una sección que no existe, **se construye aquí como bloque 
   conserva el cableado.
 - **Nunca hardcodees copy ni color**: van a i18n y a tokens, o el cliente no podrá
   editarlos y el gate lo cazará.
+- **Nunca escribas un `schema.ts` para un bloque nuevo** (lo genera el autoesquema)
+  **ni publiques una página** (`hub_create_page_draft` solo deja borradores).
 - **Nunca vuelvas a Claude Design a arreglar código**: los arreglos son aquí.
 - **`studio:contract:update` no es un botón de silenciar.** Solo tras un cambio
   estructural deliberado, y el diff se revisa.
