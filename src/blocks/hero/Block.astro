@@ -1,0 +1,28 @@
+---
+/**
+ * Bloque `hero`: envuelve `HomeHero` (la misma sección de la Home) y le pone
+ * encima las props de estilo comunes. Las props NO llevan clases: `claseBloque`
+ * las traduce a literales (`../estilo.ts`).
+ */
+import '@/styles/home-ds.css';
+import { sec } from '@saastro/studio/pages';
+import HomeHero from '@/components/home/HomeHero.astro';
+import { claseBloque } from '../estilo';
+import type { HeroProps } from './schema';
+
+interface Props {
+  id: string;
+  variant?: string;
+  props: HeroProps;
+  /** Solo en el fragmento suelto de `/__render`. */
+  tema?: string;
+  locale?: string;
+}
+
+const { id, tema, props } = Astro.props;
+const { tono, alineacion, espaciado, ...resto } = props;
+---
+
+<div {...sec(id, tema)} class={claseBloque('hero', { tono, alineacion, espaciado })}>
+  <HomeHero {...resto} />
+</div>
