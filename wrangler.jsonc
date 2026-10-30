@@ -15,16 +15,19 @@
   // dashboard). Sin ellos `/__render`, `/__purge`, `/__blocks.json` y `?__pv`
   // responden 404: el theme sirve lo mismo que antes.
   "vars": {
-    "PAGES_HUB_ORIGIN": "https://hub.saastro.io"
+    "PAGES_HUB_ORIGIN": "https://hub.saastro.io",
+    // Origen del Hub que lee `loadPage` (vista previa de borradores en Studio).
+    // Sin él cae a la fixture y un borrador como es/home2 da 404.
+    "PAGES_ORIGIN": "https://hub.saastro.io"
   },
 
-  // Apagada de serie: con los logs encendidos, Workers Observability guarda la
-  // URL de cada petición, y un site cuyo HTML lleve URLs con token (p. ej.
-  // /shared/<token>) los dejaría escritos en el dashboard de Cloudflare.
-  // Enciéndela (true) solo si el site la necesita y sus URLs no llevan nada
-  // secreto: la medición render-vs-JS con `sink: 'log'` (settings.measure.renderRatio)
-  // escribe en estos logs y `pnpm ratio` los lee; con false no registra nada.
+  // Encendida en ESTE worker (la plantilla): sin logs no se podía ver por qué
+  // la vista previa daba 404. OJO: Workers Observability guarda la URL de cada
+  // petición; un descendiente cuyo HTML lleve URLs con token (p. ej.
+  // /shared/<token>) debe ponerla en false. Aquí solo cae en logs el
+  // `?preview=<token>` de /lp/<slug> (firmado por el Hub, caduca): riesgo
+  // aceptado por el encargo 01M666MVB2.
   "observability": {
-    "enabled": false
+    "enabled": true
   }
 }
