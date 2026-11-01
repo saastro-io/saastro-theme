@@ -898,7 +898,7 @@
     "saastrocms.config.ts": "sha256:24b6495895d4c2ef8bac2895e6658857029196e5aa888d9225fe849650250e3a",
     "scripts/lib/default-locale.mjs": "sha256:0e83b15a49275027c725e45c7b5b0c10e36c3ea0a73b7f7c3d273dabfd236397",
     "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
-    "scripts/studio-contract-check.mjs": "sha256:3fec4b2e6960ec2eea50aaeb8955beb1da52311fd28a5ef771f7c74a2cc3bb3d",
+    "scripts/studio-contract-check.mjs": "sha256:12d0454c4818707d1ef00282cd5b140802193746bd49c3254b1c339a03ec3745",
     "src/content.config.ts": "sha256:79915538283a98fcbcc9fd6662a74ae7e033eb272fc7646459ffead7280796f9",
     "src/env.d.ts": "sha256:bb1e41a6a461c5abc2adc3c4dd8fa81fc9f39e4d18cc93220f76c476739fa169",
     "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
@@ -908,7 +908,7 @@
     "src/i18n/types.ts": "sha256:00efa5a466f772b9f60626d5599d1e15903c18e216bb09f80aa1831314cea10c",
     "src/i18n/utils.ts": "sha256:89ee3b4e2b0fe8d180132e6118a3dd3fe276b92129a10d7f666eb1320a55cdb8",
     "src/integrations/strip-studio-meta-middleware.ts": "sha256:012405e52443b3de3775cb9575eb0d9494c28b8a7202fab3b43246733c109abe",
-    "src/lib/settings.ts": "sha256:0e7116cc38b1e64c3d2f73aae4adc351608fe3e514e2d51f20274aa8858e3106",
+    "src/lib/settings.ts": "sha256:f0b3521652affbec7cab196c42fbe38f7d7d716f3d193ff3cfff59d0b4397e2b",
     "src/middleware.ts": "sha256:2dd7875cd686de5571f58d096600bab1a7a1800a9556c6ccc1f2e8f5a3be3b72"
   }
 }

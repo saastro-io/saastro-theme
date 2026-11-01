@@ -63,6 +63,9 @@
  *                         enlazada lo DECLARA (ancla <div data-legal="gen-tracking">)
  *   8d. medicion-legal  — si la medición render-vs-JS está encendida, la política de cookies
  *                         enlazada lo DECLARA (ancla <div data-legal="render-ratio">)
+ *   8e. tracking-legal  — por cada píxel encendido en settings (ga4, gtm, Google Ads, Meta, TikTok,
+ *                         LinkedIn, Clarity) la política enlazada lo NOMBRA (ancla
+ *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md)
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -200,6 +203,55 @@ function measureFlagOn() {
   } catch {
     return false // settings ilegible: 8d no opina (otros invariantes ya fallarán)
   }
+}
+
+// Invariante 8e (tracking-legal). Misma obligación que 8c/8d para los píxeles de
+// medición y anuncios (src/lib/tracking.ts): encender un proveedor en
+// `settings.tracking.*` (o el legado `analytics.googleAnalytics/googleTagManager`)
+// hace que el visitante envíe datos a un tercero, y la política de cookies tiene
+// que NOMBRARLO. Se pregunta a settings.yaml, no al DOM, por la misma razón que
+// 8d: las landings de pago son SSR y no entran en el contrato; un invariante que
+// mirase el DOM no vería nunca el píxel.
+//
+// A diferencia de 8c/8d hay UN marcador por proveedor (`data-legal="tracking-meta"`…):
+// «la política menciona cookies de terceros» no basta — tiene que decir CUÁLES.
+// El catálogo (clave, id válido, marcador) es src/lib/tracking-providers.json, la
+// MISMA fuente que usa el build: no hay dos listas que se desincronicen.
+//
+// LÍMITE CONOCIDO: este checker solo conoce settings.yaml. La prop `analytics` de
+// BaseLayout (googleAnalyticsId / googleTagManagerId) tiene prioridad en el build
+// (resolveTracking) pero un checker que corre fuera de Astro no la ve: un site
+// que pase un id por esa prop con settings vacíos carga GA4/GTM y 8e no exige su
+// declaración. Los ids van en settings.tracking; por esa prop, no.
+const TRACKING_LEGAL_SNIPPET = 'docs/legal-marketing.md'
+const TRACKING_CATALOG = JSON.parse(
+  readFileSync(new URL('../src/lib/tracking-providers.json', import.meta.url), 'utf8'),
+).providers
+
+/** Proveedores encendidos (con id de formato válido) según settings.yaml. */
+function trackingEnabled() {
+  const path = join(ROOT, 'src', 'data', 'settings.yaml')
+  if (!existsSync(path)) return []
+  let s
+  try {
+    s = parseYaml(readFileSync(path, 'utf8'))
+  } catch {
+    return [] // settings ilegible: 8e no opina (otros invariantes ya fallarán)
+  }
+  // Solo propiedades PROPIAS (nunca las del prototipo: __proto__, constructor…).
+  const propio = (o, k) =>
+    o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined
+  const leer = (ruta) => {
+    const cur = ruta.reduce((acc, k) => propio(acc, k), s)
+    return typeof cur === 'string' ? cur.trim() : ''
+  }
+  const on = []
+  for (const def of TRACKING_CATALOG) {
+    const id = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
+    // Un id con formato inválido NO carga (resolveTracking lo descarta): no hay tratamiento.
+    if (id && new RegExp(def.pattern).test(id)) on.push(def)
+  }
+  return on
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -1301,6 +1353,7 @@ async function main() {
         return null
       }
 
+      let trackingMeasured = false // ¿8e llegó a mirar ALGUNA política? (ver tras el bucle)
       for (const [href, rel] of firstPageByHref) {
         if (/^https?:\/\//.test(href)) continue // externo: fuera del alcance del checker
         let ok = false
@@ -1375,6 +1428,45 @@ async function main() {
           warn('medicion-legal', policyKey, `data-legal="${MEASURE_LEGAL_MARKER}"`,
             'la política DECLARA la medición render-vs-JS pero el site NO la tiene encendida',
             `declarar un tratamiento que no ocurre también es información falsa, pero no oculta nada al visitante y puede ser un paso intermedio legítimo (texto primero, flag después). Enciende settings.measure.renderRatio o retira la sección de ${MEASURE_LEGAL_SNIPPET} de la política`)
+        }
+
+        // 8e — tracking-legal: por cada píxel encendido, la política lo nombra.
+        // Un marcador por proveedor: «usamos cookies de terceros» no dice cuáles.
+        const trackingOn = trackingEnabled()
+        trackingMeasured = true
+        const onMarkers = new Set(trackingOn.map((d) => d.marker))
+        for (const def of trackingOn) {
+          if (!legalMarkers.has(def.marker)) {
+            fail('tracking-legal', policyKey, `data-legal="${def.marker}"`,
+              `el site tiene ENCENDIDO ${def.label} (settings.yaml) y esta política de cookies NO lo declara`,
+              `RGPD: ${def.label} manda datos del visitante a un tercero (y puede fijar cookies o identificadores) solo tras el consentimiento, pero la política debe NOMBRARLO. Copia la sección de ${def.label} de ${TRACKING_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${def.marker}"></div>) al markdown de la política, en TODOS los locales, con el texto que apruebe JC. Si no querías ${def.label}, vacía su id en settings.tracking`)
+          }
+        }
+        for (const def of TRACKING_CATALOG) {
+          if (legalMarkers.has(def.marker) && !onMarkers.has(def.marker)) {
+            // Inverso: aviso, no fallo (texto primero, flag después es el orden correcto).
+            warn('tracking-legal', policyKey, `data-legal="${def.marker}"`,
+              `la política DECLARA ${def.label} pero el site NO lo tiene encendido`,
+              `declarar un tratamiento que no ocurre también es información falsa, pero no oculta nada al visitante y puede ser un paso intermedio legítimo. Enciende su id en settings.tracking o retira la sección de ${TRACKING_LEGAL_SNIPPET} de la política`)
+          }
+        }
+      }
+
+      // 8e — un control que da verde SIN medir es una decoración. Si hay píxeles
+      // encendidos y no se pudo mirar ninguna política (el banner no enlaza a
+      // ninguna, el enlace es externo, o la ruta no está entre las páginas
+      // escaneadas), no se puede afirmar que estén declarados.
+      const trackingEncendidos = trackingEnabled()
+      if (trackingEncendidos.length > 0 && !trackingMeasured) {
+        const nombres = trackingEncendidos.map((d) => d.label).join(', ')
+        if (firstPageByHref.size === 0) {
+          fail('tracking-legal', '(site)', 'CookieBanner → política',
+            `hay píxeles encendidos (${nombres}) y NINGUNA página lleva el banner de cookies con enlace a una política: no hay dónde declararlos`,
+            `RGPD: sin banner no hay consentimiento y sin política no hay declaración. Monta el CookieBanner con cookiesPolicyHref (SiteLayout lo hace) o vacía los ids de settings.tracking`)
+        } else {
+          warn('tracking-legal', '(site)', 'política de cookies',
+            `NO SE MIDIÓ: hay píxeles encendidos (${nombres}) pero ninguna política enlazada pudo escanearse (enlace externo, ruta fuera del manifiesto o sin HTML)`,
+            `el checker solo lee políticas internas del mismo build. Comprueba a mano que la política nombra cada proveedor (anclas data-legal="tracking-…", ${TRACKING_LEGAL_SNIPPET}) o enlaza una política interna`)
         }
       }
     }

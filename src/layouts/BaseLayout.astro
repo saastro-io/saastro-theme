@@ -19,6 +19,7 @@ import { i18nConfig } from '../i18n/config';
 import { getHreflangEntries } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
+import { resolveTracking } from '../lib/tracking';
 
 const settings = getSettings();
 
@@ -55,10 +56,19 @@ const {
 
 const resolvedGoogleSiteVerificationId =
   googleSiteVerificationId ?? settings.site.googleSiteVerificationId;
-const resolvedAnalytics = {
-  googleAnalyticsId: noindex ? '' : (analytics.googleAnalyticsId ?? settings.analytics.googleAnalytics.id),
-  googleTagManagerId: noindex ? '' : (analytics.googleTagManagerId ?? settings.analytics.googleTagManager.id),
-};
+// Un solo resolvedor (src/lib/tracking.ts) para BaseLayout y SiteLayout: ids
+// validados por formato, `noindex` (vista previa de un borrador) lo apaga todo.
+const tracking = resolveTracking(settings, {
+  noindex,
+  overrides: { googleAnalyticsId: analytics.googleAnalyticsId, googleTagManagerId: analytics.googleTagManagerId },
+});
+for (const r of tracking.rejected) {
+  console.warn(
+    r.reason === 'no-cadena'
+      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`
+      : `[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`,
+  );
+}
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
 // y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga.
@@ -127,8 +137,8 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     )}
     <ApplyColorMode />
     <Analytics
-      googleAnalyticsId={resolvedAnalytics.googleAnalyticsId}
-      googleTagManagerId={resolvedAnalytics.googleTagManagerId}
+      providers={tracking.providers}
+      googleAdsConversionLabel={tracking.googleAdsConversionLabel}
     />
     <ClientRouter fallback="swap" />
 
