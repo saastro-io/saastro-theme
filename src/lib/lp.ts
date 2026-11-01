@@ -40,6 +40,10 @@ export interface LandingData {
   draft: boolean;
   /** ¿Se indexa? `false` por defecto (content.config.ts): `noindex, follow` sin apagar la medición. */
   indexable: boolean;
+  /** `minimo` = cabecera solo-logo + CTA fijo móvil (ver content.config.ts). */
+  chrome: 'completo' | 'minimo';
+  /** Texto del CTA fijo móvil. */
+  cta?: string;
 }
 
 /**

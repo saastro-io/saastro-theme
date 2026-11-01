@@ -4,6 +4,7 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
 import LandingLong from '../../../components/lp/LandingLong.astro';
 import RenderRatio from '../../../components/RenderRatio.astro';
+import StickyCta from '../../../components/lp/StickyCta.astro';
 import { getSettings } from '../../../lib/settings';
 import { fetchHubFormSchema } from '../../../lib/hub-form-schema';
 import { LP_PREVIEW_SECRET } from 'astro:env/server';
@@ -80,6 +81,10 @@ const Content = rendered.Content;
 const LAYOUTS = { 'hero-form': LandingHeroForm, largo: LandingLong };
 const Layout = LAYOUTS[landing.layout];
 
+const minimo = landing.chrome === 'minimo';
+const CTA_POR_DEFECTO: Record<string, string> = { es: 'Solicitar información', en: 'Get in touch' };
+const ctaLabel = landing.cta ?? CTA_POR_DEFECTO[locale] ?? CTA_POR_DEFECTO.en;
+
 const siteName = t.meta.siteName ?? getSettings().site.name;
 // SEO landings carry a SERP-tuned title/description in frontmatter; the H1 and
 // subtitle are the fallback when they don't. A provided metaTitle is used as-is
@@ -94,6 +99,7 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   noindex={isPreview}
   indexable={landing.indexable}
   alternates={false}
+  chrome={landing.chrome}
 >
   {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
       landings son `prerender = false`, y el contador del HTML depende de un
@@ -111,4 +117,5 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   >
     {Content && <Content />}
   </Layout>
+  {minimo && <StickyCta label={ctaLabel} />}
 </SiteLayout>
