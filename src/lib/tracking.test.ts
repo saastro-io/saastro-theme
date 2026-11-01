@@ -72,6 +72,13 @@ describe('resolveTracking', () => {
     expect(r.rejected).toContainEqual({ key: 'googleAdsConversionLabel', reason: 'no-cadena' });
   });
 
+  it('nunca lee propiedades del prototipo (un id no puede venir de __proto__)', () => {
+    // El id está en el PROTOTIPO, no en el objeto: solo lo vería una lectura `obj[k]` ingenua.
+    const heredado = Object.create({ metaPixel: '1234567890123' });
+    const r = resolveTracking({ ...base, tracking: heredado });
+    expect(r.providers).toEqual([]);
+  });
+
   it('todos los patrones del catálogo compilan y cada proveedor tiene marcador único', () => {
     for (const p of PROVIDERS) expect(() => new RegExp(p.pattern)).not.toThrow();
     expect(new Set(PROVIDERS.map((p) => p.marker)).size).toBe(PROVIDERS.length);

@@ -54,13 +54,16 @@ export const PROVIDERS: readonly ProviderDef[] = catalogo.providers as ProviderD
 
 type Loose = Record<string, unknown>;
 
+/** Propiedad PROPIA de un objeto (nunca de su prototipo: `__proto__`, `constructor`…). */
+function propio(o: unknown, k: string): unknown {
+  return o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k)
+    ? (o as Loose)[k]
+    : undefined;
+}
+
 /** Cadena recortada; '' si no hay valor; `null` si hay un valor que NO es cadena. */
 function leer(obj: unknown, ruta: readonly string[]): string | null {
-  let cur: unknown = obj;
-  for (const k of ruta) {
-    if (cur == null || typeof cur !== 'object') return '';
-    cur = (cur as Loose)[k];
-  }
+  const cur = ruta.reduce<unknown>((acc, k) => propio(acc, k), obj);
   if (cur == null || cur === '') return '';
   return typeof cur === 'string' ? cur.trim() : null;
 }

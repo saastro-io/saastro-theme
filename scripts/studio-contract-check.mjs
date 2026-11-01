@@ -238,9 +238,11 @@ function trackingEnabled() {
   } catch {
     return [] // settings ilegible: 8e no opina (otros invariantes ya fallarán)
   }
+  // Solo propiedades PROPIAS (nunca las del prototipo: __proto__, constructor…).
+  const propio = (o, k) =>
+    o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined
   const leer = (ruta) => {
-    let cur = s
-    for (const k of ruta) cur = cur != null && typeof cur === 'object' ? cur[k] : undefined
+    const cur = ruta.reduce((acc, k) => propio(acc, k), s)
     return typeof cur === 'string' ? cur.trim() : ''
   }
   const on = []
