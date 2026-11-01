@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { LandingNotConfiguredCopy } from '@/lib/lp';
+import { onLeadSuccess, type TrackWindow } from '@/lib/lead-conversion';
 
 declare global {
   interface Window {
@@ -36,6 +37,8 @@ interface LandingFormProps {
    * fetches in the browser exactly as it did before.
    */
   initialSchema?: unknown;
+  /** Ruta interna de la página de gracias. Vacío = solo el panel de éxito del formulario. */
+  thanksHref?: string;
 }
 
 /**
@@ -45,7 +48,15 @@ interface LandingFormProps {
  * renders that Hub form on the page. When no Hub site is connected it announces
  * itself instead of pretending to work — no data is sent or stored.
  */
-export function LandingForm({ siteId, formSlug, locale, notConfigured, initialSchema }: LandingFormProps) {
+export function LandingForm({ siteId, formSlug, locale, notConfigured, initialSchema, thanksHref }: LandingFormProps) {
+  // Estable entre renders: HubForm lo mete en las dependencias de su envío.
+  const handleSuccess = useCallback(
+    (values: Record<string, unknown>) => {
+      onLeadSuccess(values, { thanksHref }, window as unknown as TrackWindow);
+    },
+    [thanksHref],
+  );
+
   // `h` — el tercer contador de la medición render-vs-JS. Este efecto solo
   // corre si el bundle de React se descargó, se parseó y montó la isla, que es
   // exactamente lo que distingue «el visitante tiene JS» de «al visitante le
@@ -75,6 +86,7 @@ export function LandingForm({ siteId, formSlug, locale, notConfigured, initialSc
       formSlug={formSlug}
       locale={locale}
       initialSchema={initialSchema}
+      onSuccess={handleSuccess}
       formProps={{ components: uiComponents }}
     />
   );

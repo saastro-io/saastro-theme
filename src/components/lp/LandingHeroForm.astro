@@ -23,9 +23,11 @@ interface Props {
   faqTitle: string;
   /** i18n `lp.notConfigured` — placeholder copy when forms.siteId is empty. */
   notConfigured: LandingNotConfiguredCopy;
+  /** Ruta interna de la página de gracias (`/lp/gracias` con prefijo de idioma). Vacío = el formulario solo muestra su panel de éxito. */
+  thanksHref?: string;
 }
 
-const { landing, siteId, formSchema, locale, faqTitle, notConfigured } = Astro.props;
+const { landing, siteId, formSchema, locale, faqTitle, notConfigured, thanksHref } = Astro.props;
 
 // The landing's markdown body (the punchy blocks) renders below the hero, when
 // the entry has one. Landings that are pure form + bullets simply pass no body.
@@ -116,6 +118,7 @@ const hasBody = Astro.slots.has('default');
         locale={locale}
         notConfigured={notConfigured}
         initialSchema={formSchema}
+        thanksHref={thanksHref}
         client:load
       />
     </div>
