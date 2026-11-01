@@ -57,6 +57,10 @@ function analyticsTrackerLoaded(): boolean {
 function mirrorGenConsent(analytics: boolean): void {
   try {
     if (analytics) {
+      // Solo si cambia: el beacon ya arranca solo cuando el valor ya era
+      // 'granted' al cargar; emitir el evento en cada montaje contaría la
+      // visita dos veces.
+      if (localStorage.getItem('gen-consent') === 'granted') return
       localStorage.setItem('gen-consent', 'granted')
       window.dispatchEvent(new Event('gen:consent-granted'))
     } else {
