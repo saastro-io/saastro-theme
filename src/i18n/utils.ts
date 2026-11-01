@@ -79,6 +79,25 @@ export function localePath(locale: Locale, path: string): string {
   return `/${locale}${path}`;
 }
 
+/**
+ * Quita el prefijo de idioma de una ruta ya servida (`/es/about/` → `/about/`;
+ * `/about/` se queda igual). Solo cuenta como prefijo un SEGMENTO completo:
+ * `/esoterico` no empieza por el idioma `es`. El idioma por defecto no lleva prefijo.
+ */
+export function stripLocalePrefix(pathname: string): string {
+  for (const locale of locales) {
+    if (locale === defaultLocale) continue;
+    if (pathname === `/${locale}`) return '/';
+    if (pathname.startsWith(`/${locale}/`)) return pathname.slice(locale.length + 1);
+  }
+  return pathname;
+}
+
+/**
+ * Alternates hreflang de una página. `pagePath` es la ruta SIN prefijo de idioma
+ * (pasa `stripLocalePrefix(Astro.url.pathname)`): pasarle la ruta ya prefijada
+ * producía `/es/es/about/` para el español y un `en` que apuntaba a la página en español.
+ */
 export function getHreflangEntries(pagePath: string) {
   return locales.map((locale) => ({
     locale,

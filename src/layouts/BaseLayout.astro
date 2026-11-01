@@ -15,8 +15,8 @@ import SiteJsonLd from '../components/SiteJsonLd.astro';
 import Analytics from '../components/Analytics.astro';
 import GenTracking from '../components/GenTracking.astro';
 import { ClientRouter } from 'astro:transitions';
-import { i18nConfig } from '../i18n/config';
-import { getHreflangEntries } from '../i18n/utils';
+import { i18nConfig, defaultLocale } from '../i18n/config';
+import { getHreflangEntries, stripLocalePrefix } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
 import { resolveTracking } from '../lib/tracking';
@@ -35,6 +35,8 @@ export interface Props {
   /** `false` = `noindex, follow` SIN apagar la medición (p. ej. la página de gracias, que
    *  los píxeles necesitan). `noindex` (vista previa) sí lo apaga todo: su URL lleva un token. */
   indexable?: boolean;
+  /** `false` = sin alternates hreflang (contenido de un solo idioma, p. ej. una landing). */
+  alternates?: boolean;
   googleSiteVerificationId?: string;
   analytics?: {
     googleAnalyticsId?: string;
@@ -54,6 +56,7 @@ const {
   ogType = 'website',
   noindex = false,
   indexable = true,
+  alternates = true,
   googleSiteVerificationId,
   analytics = {},
 } = Astro.props;
@@ -90,7 +93,13 @@ const siteName = resolveSiteName(Astro.locals);
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
 const canonical = canonicalUrl ?? `${siteUrl}${Astro.url.pathname}`;
 const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
-const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathname) : [];
+// `alternates={false}` para contenido que existe en UN solo idioma (las landings: un .md
+// por slug, servido igual bajo cualquier prefijo): un alternate hacia una traducción que no
+// existe es una señal falsa para el buscador.
+const hreflangEntries =
+  i18nConfig.enabled && alternates ? getHreflangEntries(stripLocalePrefix(Astro.url.pathname)) : [];
+// x-default = la versión del idioma por defecto (antes: la propia página, fuese cual fuese).
+const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.href;
 ---
 
 <!doctype html>
@@ -121,8 +130,8 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
     {hreflangEntries.map(({ locale, href }) => (
       <link rel="alternate" hreflang={locale} href={`${siteUrl}${href}`} />
     ))}
-    {hreflangEntries.length > 0 && (
-      <link rel="alternate" hreflang="x-default" href={`${siteUrl}${Astro.url.pathname}`} />
+    {hreflangEntries.length > 0 && xDefaultHref && (
+      <link rel="alternate" hreflang="x-default" href={`${siteUrl}${xDefaultHref}`} />
     )}
 
     <link rel="preconnect" href="/" crossorigin />

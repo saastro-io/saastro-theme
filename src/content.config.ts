@@ -68,6 +68,12 @@ const lp = defineCollection({
     disclaimer: z.string().optional(),
     order: z.number().default(0),
     draft: z.boolean().default(false),
+    // ¿Se indexa en buscadores? NO por defecto: una landing de pago vive de su
+    // anuncio y no debe competir con la home ni duplicarse bajo cada prefijo de
+    // idioma. Una landing SEO (la que lleva metaTitle de SERP) lo pone a true.
+    // `false` ⇒ `noindex, follow` SIN apagar la medición (las conversiones por URL
+    // y los píxeles siguen funcionando).
+    indexable: z.boolean().default(false),
   }),
 });
 
