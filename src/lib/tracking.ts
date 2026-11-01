@@ -37,7 +37,7 @@ export interface EnabledProvider {
 export interface RejectedId {
   key: string;
   /** 'formato': no cumple el patrón. 'no-cadena': YAML lo leyó como número/booleano
-   *  (un id sin comillas; los de 15+ dígitos pierden precisión): hay que entrecomillarlo. */
+   *  (un id sin comillas, o `true`/`false`; los de 15+ dígitos pierden precisión): hay que entrecomillarlo. */
   reason: 'formato' | 'no-cadena';
 }
 
@@ -103,7 +103,9 @@ export function resolveTracking(
     providers.push({ key: def.key, id, category: def.category });
   }
 
-  let label = leer(settings.tracking, ['googleAdsConversionLabel']) ?? '';
+  const etiqueta = leer(settings.tracking, ['googleAdsConversionLabel']);
+  if (etiqueta === null) rejected.push({ key: 'googleAdsConversionLabel', reason: 'no-cadena' });
+  let label = etiqueta ?? '';
   if (label && !new RegExp(catalogo.googleAdsConversionLabelPattern).test(label)) {
     rejected.push({ key: 'googleAdsConversionLabel', reason: 'formato' });
     label = '';

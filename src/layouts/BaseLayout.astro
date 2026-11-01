@@ -65,7 +65,7 @@ const tracking = resolveTracking(settings, {
 for (const r of tracking.rejected) {
   console.warn(
     r.reason === 'no-cadena'
-      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número, no como cadena — ENTRECOMILLA el id. DESCARTADO`
+      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`
       : `[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`,
   );
 }

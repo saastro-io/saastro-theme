@@ -66,6 +66,12 @@ describe('resolveTracking', () => {
     expect(r.rejected).toContainEqual({ key: 'metaPixel', reason: 'no-cadena' });
   });
 
+  it('una etiqueta de conversión que YAML lee como número también se avisa', () => {
+    const r = resolveTracking({ ...base, tracking: { googleAds: 'AW-123456789', googleAdsConversionLabel: 1234567890 as unknown as string } });
+    expect(r.googleAdsConversionLabel).toBe('');
+    expect(r.rejected).toContainEqual({ key: 'googleAdsConversionLabel', reason: 'no-cadena' });
+  });
+
   it('todos los patrones del catálogo compilan y cada proveedor tiene marcador único', () => {
     for (const p of PROVIDERS) expect(() => new RegExp(p.pattern)).not.toThrow();
     expect(new Set(PROVIDERS.map((p) => p.marker)).size).toBe(PROVIDERS.length);
