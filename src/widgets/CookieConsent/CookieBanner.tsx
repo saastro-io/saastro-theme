@@ -51,7 +51,6 @@ function analyticsTrackerLoaded(): boolean {
   return Boolean(w.gaLoaded || w.gtmLoaded || w.trackersLoaded)
 }
 
-
 /** El beacon de Gen en modo `consent="required"` lee `localStorage['gen-consent']`,
  *  no la cookie del banner: sin este espejo nunca arrancaba (ni se apagaba al
  *  retirar). Se alinea con la categoría `analytics`. */
@@ -78,6 +77,8 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
   useEffect(() => {
     const consent = getConsent()
     if (!consent) setVisible(true)
+    // Quien ya eligió antes de que existiera el espejo no pasa por `save`.
+    else mirrorGenConsent(consent.analytics)
 
     const w = window as Window & { __cookieReopenPending?: boolean }
     const handleReopen = () => {
