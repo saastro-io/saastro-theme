@@ -5,8 +5,10 @@
  * All values are exposed through getSettings() which returns a frozen object.
  *
  * This shape is trimmed to exactly what the theme consumes (SEO meta, analytics,
- * favicon color, site name, forms wiring). It is NOT read by the Saastro Hub —
- * content is edited via i18n, structural config via saastrocms.config.ts.
+ * favicon color, site name, forms wiring). Content is edited via i18n, structural
+ * config via saastrocms.config.ts. El Hub SÍ escribe algunas claves de este
+ * fichero (`forms.siteId`, `gen.*`, `analytics.cloudflareWebAnalytics.token`, y
+ * el bloque `tracking`) con `setConfigPath`, que solo escribe cadenas.
  */
 import settingsRaw from '../data/settings.yaml?raw';
 import { parse } from 'yaml';
@@ -44,6 +46,21 @@ export interface SiteSettings {
     readonly cloudflareWebAnalytics?: {
       readonly token: string;
     };
+  };
+  /**
+   * Píxeles de medición y anuncios (src/lib/tracking.ts + tracking-providers.json).
+   * Plano y de solo cadenas (el Hub solo sabe escribir cadenas). Vacío = apagado.
+   * `ga4`/`gtm` ganan a `analytics.googleAnalytics/googleTagManager`.
+   */
+  readonly tracking?: {
+    readonly ga4?: string;
+    readonly gtm?: string;
+    readonly googleAds?: string;
+    readonly googleAdsConversionLabel?: string;
+    readonly metaPixel?: string;
+    readonly tiktokPixel?: string;
+    readonly linkedinPartnerId?: string;
+    readonly clarity?: string;
   };
   readonly forms: {
     readonly siteId: string;

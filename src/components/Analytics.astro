@@ -1,32 +1,48 @@
 ---
+import type { EnabledProvider } from '../lib/tracking';
+
 export interface Props {
-  googleAnalyticsId?: string;
-  googleTagManagerId?: string;
+  /** Proveedores ya validados por `resolveTracking` (src/lib/tracking.ts). */
+  providers?: EnabledProvider[];
+  /** Etiqueta de conversión de Google Ads (`AW-…/<label>`); '' = sin conversión. */
+  googleAdsConversionLabel?: string;
 }
 
-const { googleAnalyticsId, googleTagManagerId } = Astro.props;
-const hayGoogle = Boolean(googleAnalyticsId || googleTagManagerId);
+const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
 ---
 
-{/* Google (GA4 y/o GTM) — UNA sola puerta de consentimiento y Consent Mode v2.
+{/* Medición y anuncios — UNA sola puerta de consentimiento para todos.
 
-    Antes había dos IIFE casi idénticas (una por producto) con su propio
-    `hasConsent`; ahora una sola lee la cookie `cookie_consent` del banner
-    (src/lib/cookies.ts) y decide.
+    Los ids ya vienen validados (formato) desde resolveTracking: aquí solo se
+    serializan. Nada carga hasta que la cookie `cookie_consent` del banner
+    (src/lib/cookies.ts) lo permite:
+      analytics → GA4, Clarity
+      marketing → Google Ads, Meta, TikTok, LinkedIn
+      any       → GTM (con analytics o con marketing)
+    Consent Mode v2: `default denied` ANTES de cargar nada de Google; `update`
+    al aceptar (analytics → analytics_storage; marketing → ad_storage,
+    ad_user_data, ad_personalization).
 
-    Consent Mode v2: antes de cargar NINGÚN script de Google se declara todo
-    `denied`; al aceptar (o si ya estaba aceptado) se hace `update`.
-      analytics  → analytics_storage
-      marketing  → ad_storage + ad_user_data + ad_personalization
-    GA4 se carga solo con `analytics`. GTM se carga con `analytics` O
-    `marketing` (un contenedor puede llevar solo etiquetas de anuncios); lo que
-    cada etiqueta puede hacer lo limita Consent Mode.
+    Revocar no se puede "descargar": el banner recarga la página si hay un
+    tracker vivo (CookieBanner.tsx → consentRevoked; flag window.trackersLoaded).
 
-    Revocar no se puede "descargar": el banner recarga la página si un tracker
-    estaba vivo (CookieBanner.tsx → consentRevoked). */}
-{hayGoogle && (
-  <script is:inline define:vars={{ gaId: googleAnalyticsId ?? '', gtmId: googleTagManagerId ?? '' }}>
+    window.saastroTrack(evento, datos): único punto para emitir eventos de
+    conversión. Solo llega a los proveedores YA cargados (o sea, con
+    consentimiento); sin consentimiento no hace nada y devuelve []. El
+    `event_id` que reciba en `datos` viaja a Meta (eventID) y TikTok (event_id)
+    para poder deduplicar contra una API de conversiones de servidor.
+
+    Los snippets de cada proveedor son los de su documentación pública, escritos
+    de memoria: SIN VERIFICAR contra los proveedores reales (ver el PR). */}
+{providers.length > 0 && (
+  <script is:inline define:vars={{ providers, adsLabel: googleAdsConversionLabel }}>
     (function () {
+      var CAT = {};
+      var ID = {};
+      providers.forEach(function (p) { CAT[p.key] = p.category; ID[p.key] = p.id; });
+      var loaded = {};
+      var hayGoogle = !!(ID.ga4 || ID.gtm || ID.googleAds);
+
       function readConsent() {
         try {
           var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
@@ -38,56 +54,140 @@ const hayGoogle = Boolean(googleAnalyticsId || googleTagManagerId);
         }
       }
       function mode(v) { return v ? 'granted' : 'denied'; }
+      function allowed(cat, c) {
+        if (cat === 'analytics') return !!c.analytics;
+        if (cat === 'marketing') return !!c.marketing;
+        return !!(c.analytics || c.marketing); // 'any'
+      }
 
       window.dataLayer = window.dataLayer || [];
       function gtag() { window.dataLayer.push(arguments); }
       window.gtag = window.gtag || gtag;
 
-      // 1) Todo denegado ANTES de cualquier script de Google.
-      gtag('consent', 'default', {
-        analytics_storage: 'denied',
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        wait_for_update: 500,
-      });
-
-      function update(c) {
-        gtag('consent', 'update', {
-          analytics_storage: mode(c.analytics),
-          ad_storage: mode(c.marketing),
-          ad_user_data: mode(c.marketing),
-          ad_personalization: mode(c.marketing),
+      if (hayGoogle) {
+        // 1) Todo denegado ANTES de cualquier script de Google.
+        gtag('consent', 'default', {
+          analytics_storage: 'denied',
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          wait_for_update: 500,
         });
       }
 
-      function loadGa() {
-        if (!gaId || window.gaLoaded) return;
-        window.gaLoaded = true;
+      function script(src) {
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
-        document.head.appendChild(s);
-        gtag('js', new Date());
-        gtag('config', gaId);
+        s.src = src;
+        var f = document.getElementsByTagName('script')[0];
+        if (f && f.parentNode) f.parentNode.insertBefore(s, f); else document.head.appendChild(s);
       }
 
-      function loadGtm() {
-        if (!gtmId || window.gtmLoaded) return;
-        window.gtmLoaded = true;
-        window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-        var f = document.getElementsByTagName('script')[0];
-        var j = document.createElement('script');
-        j.async = true;
-        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
-        f.parentNode.insertBefore(j, f);
+      var gtagJs = false;
+      function ensureGtagJs(id) {
+        if (gtagJs) return;
+        gtagJs = true;
+        script('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id));
+        gtag('js', new Date());
       }
+
+      var LOADERS = {
+        ga4: function (id) { ensureGtagJs(id); gtag('config', id); window.gaLoaded = true; },
+        googleAds: function (id) { ensureGtagJs(id); gtag('config', id); },
+        gtm: function (id) {
+          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          script('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id));
+          window.gtmLoaded = true;
+        },
+        metaPixel: function (id) {
+          (function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+            if (!f._fbq) f._fbq = n;
+            n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+            t = b.createElement(e); t.async = true; t.src = v;
+            s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+          })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          window.fbq('init', id);
+          window.fbq('track', 'PageView');
+        },
+        tiktokPixel: function (id) {
+          var t = 'ttq';
+          window.TiktokAnalyticsObject = t;
+          var ttq = window[t] = window[t] || [];
+          ttq.methods = ['page', 'track', 'identify', 'instances', 'debug', 'on', 'off', 'once', 'ready', 'alias', 'group', 'enableCookie', 'disableCookie'];
+          ttq.setAndDefer = function (o, m) { o[m] = function () { o.push([m].concat(Array.prototype.slice.call(arguments, 0))); }; };
+          for (var i = 0; i < ttq.methods.length; i++) ttq.setAndDefer(ttq, ttq.methods[i]);
+          ttq._i = ttq._i || {}; ttq._i[id] = [];
+          ttq._t = ttq._t || {}; ttq._t[id] = +new Date();
+          script('https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=' + encodeURIComponent(id) + '&lib=' + t);
+          ttq.page();
+        },
+        linkedinPartnerId: function (id) {
+          window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+          window._linkedin_data_partner_ids.push(id);
+          script('https://snap.licdn.com/li.lms-analytics/insight.min.js');
+        },
+        clarity: function (id) {
+          window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
+          script('https://www.clarity.ms/tag/' + encodeURIComponent(id));
+        },
+      };
 
       function apply(c) {
         if (!c.analytics && !c.marketing) return;
-        update(c);
-        if (c.analytics) loadGa();
-        if (c.analytics || c.marketing) loadGtm();
+        if (hayGoogle) {
+          gtag('consent', 'update', {
+            analytics_storage: mode(c.analytics),
+            ad_storage: mode(c.marketing),
+            ad_user_data: mode(c.marketing),
+            ad_personalization: mode(c.marketing),
+          });
+        }
+        providers.forEach(function (p) {
+          if (loaded[p.key] || !allowed(CAT[p.key], c) || !LOADERS[p.key]) return;
+          loaded[p.key] = true;
+          window.trackersLoaded = true;
+          LOADERS[p.key](p.id);
+        });
+      }
+
+      // Conversión. Solo a lo ya cargado. Devuelve las claves a las que llegó.
+      var LEAD = { generate_lead: true };
+      window.saastroTrack = function (name, data) {
+        data = data || {};
+        var sent = [];
+        var eid = data.event_id;
+        if (loaded.ga4) { gtag('event', name, data); sent.push('ga4'); }
+        if (loaded.gtm) { window.dataLayer.push(Object.assign({ event: name }, data)); sent.push('gtm'); }
+        if (loaded.googleAds && adsLabel && LEAD[name]) {
+          gtag('event', 'conversion', { send_to: ID.googleAds + '/' + adsLabel });
+          sent.push('googleAds');
+        }
+        if (loaded.metaPixel && window.fbq) {
+          var opts = eid ? { eventID: eid } : undefined;
+          if (LEAD[name]) window.fbq('track', 'Lead', {}, opts);
+          else window.fbq('trackCustom', name, {}, opts);
+          sent.push('metaPixel');
+        }
+        if (loaded.tiktokPixel && window.ttq) {
+          window.ttq.track(LEAD[name] ? 'SubmitForm' : name, {}, eid ? { event_id: eid } : undefined);
+          sent.push('tiktokPixel');
+        }
+        if (loaded.clarity && window.clarity) { window.clarity('event', name); sent.push('clarity'); }
+        // LinkedIn: sus conversiones se definen por regla (id de conversión) en su
+        // panel; sin ese id en settings no hay evento que emitir desde aquí.
+        return sent;
+      };
+
+      // Navegaciones posteriores con ClientRouter: los pixeles solo cuentan la primera carga.
+      var navegaciones = 0;
+      function pagina() {
+        navegaciones += 1;
+        if (navegaciones < 2) return;
+        if (loaded.ga4) gtag('event', 'page_view');
+        if (loaded.metaPixel && window.fbq) window.fbq('track', 'PageView');
+        if (loaded.tiktokPixel && window.ttq) window.ttq.page();
       }
 
       function start() {
@@ -96,6 +196,7 @@ const hayGoogle = Boolean(googleAnalyticsId || googleTagManagerId);
           var d = (e && e.detail) || {};
           apply({ analytics: d.analytics === true, marketing: d.marketing === true });
         });
+        document.addEventListener('astro:page-load', pagina);
       }
 
       if (document.readyState === 'loading') {
