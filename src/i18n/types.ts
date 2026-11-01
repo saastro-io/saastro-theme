@@ -54,6 +54,9 @@ export interface Translations {
     essentialDescription: string;
     analyticsLabel: string;
     analyticsDescription: string;
+    /** Opcionales: el i18n de los descendientes es merge=ours; sin ellas el banner usa su texto por defecto. */
+    marketingLabel?: string;
+    marketingDescription?: string;
     personalizationLabel: string;
     personalizationDescription: string;
     alwaysActive: string;

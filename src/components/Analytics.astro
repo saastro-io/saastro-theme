@@ -5,125 +5,103 @@ export interface Props {
 }
 
 const { googleAnalyticsId, googleTagManagerId } = Astro.props;
+const hayGoogle = Boolean(googleAnalyticsId || googleTagManagerId);
 ---
 
-{/* Google Analytics - Only loads if user consented to analytics */}
-{googleAnalyticsId && (
-  <script is:inline define:vars={{ id: googleAnalyticsId }}>
-    (function() {
-      const STORAGE_PREFIX = "cookie-consent";
-      
-      function hasConsent(category) {
+{/* Google (GA4 y/o GTM) — UNA sola puerta de consentimiento y Consent Mode v2.
+
+    Antes había dos IIFE casi idénticas (una por producto) con su propio
+    `hasConsent`; ahora una sola lee la cookie `cookie_consent` del banner
+    (src/lib/cookies.ts) y decide.
+
+    Consent Mode v2: antes de cargar NINGÚN script de Google se declara todo
+    `denied`; al aceptar (o si ya estaba aceptado) se hace `update`.
+      analytics  → analytics_storage
+      marketing  → ad_storage + ad_user_data + ad_personalization
+    GA4 se carga solo con `analytics`. GTM se carga con `analytics` O
+    `marketing` (un contenedor puede llevar solo etiquetas de anuncios); lo que
+    cada etiqueta puede hacer lo limita Consent Mode.
+
+    Revocar no se puede "descargar": el banner recarga la página si un tracker
+    estaba vivo (CookieBanner.tsx → consentRevoked). */}
+{hayGoogle && (
+  <script is:inline define:vars={{ gaId: googleAnalyticsId ?? '', gtmId: googleTagManagerId ?? '' }}>
+    (function () {
+      function readConsent() {
         try {
-          if (category === "essential") return true;
-          const match = document.cookie.split('; ').find(c => c.startsWith('cookie_consent='));
-          if (!match) return false;
-          const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
-          return !!consent[category];
-        } catch {
-          return false;
+          var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
+          if (!match) return {};
+          var c = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          return { analytics: c.analytics === true, marketing: c.marketing === true };
+        } catch (e) {
+          return {};
         }
       }
-      
-      function loadGoogleAnalytics() {
-        if (!hasConsent("analytics")) {
-          // Listen for consent updates
-          window.addEventListener("cookie-consent-updated", function(e) {
-            if (e.detail.analytics && !window.gaLoaded) {
-              loadGoogleAnalyticsScript();
-            }
-          });
-          return;
-        }
-        
-        loadGoogleAnalyticsScript();
+      function mode(v) { return v ? 'granted' : 'denied'; }
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = window.gtag || gtag;
+
+      // 1) Todo denegado ANTES de cualquier script de Google.
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500,
+      });
+
+      function update(c) {
+        gtag('consent', 'update', {
+          analytics_storage: mode(c.analytics),
+          ad_storage: mode(c.marketing),
+          ad_user_data: mode(c.marketing),
+          ad_personalization: mode(c.marketing),
+        });
       }
-      
-      function loadGoogleAnalyticsScript() {
-        if (window.gaLoaded) return;
+
+      function loadGa() {
+        if (!gaId || window.gaLoaded) return;
         window.gaLoaded = true;
-        
-        // Load gtag.js
-        const script = document.createElement("script");
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
-        document.head.appendChild(script);
-        
-        // Initialize gtag
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-          window.dataLayer.push(arguments);
-        }
-        window.gtag = gtag;
-        gtag("js", new Date());
-        gtag("config", id);
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', gaId);
       }
-      
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadGoogleAnalytics);
-      } else {
-        loadGoogleAnalytics();
-      }
-    })();
-  </script>
-)}
 
-{/* Google Tag Manager - Only loads if user consented to analytics.
-    NOTA: el banner del theme solo tiene las categorías essential/analytics/
-    personalization — aquí se gatea por `analytics` a secas. Si algún día se
-    añade una categoría `marketing` al CookieBanner (y a lib/cookies.ts),
-    reintroducir `analytics || marketing` en esta condición. */}
-{googleTagManagerId && (
-  <script is:inline define:vars={{ id: googleTagManagerId }}>
-    (function() {
-      const STORAGE_PREFIX = "cookie-consent";
-      
-      function hasConsent(category) {
-        try {
-          if (category === "essential") return true;
-          const match = document.cookie.split('; ').find(c => c.startsWith('cookie_consent='));
-          if (!match) return false;
-          const consent = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
-          return !!consent[category];
-        } catch {
-          return false;
-        }
-      }
-      
-      function loadGoogleTagManager() {
-        if (!hasConsent("analytics")) {
-          // Listen for consent updates
-          window.addEventListener("cookie-consent-updated", function(e) {
-            if (e.detail.analytics && !window.gtmLoaded) {
-              loadGoogleTagManagerScript();
-            }
-          });
-          return;
-        }
-
-        loadGoogleTagManagerScript();
-      }
-      
-      function loadGoogleTagManagerScript() {
-        if (window.gtmLoaded) return;
+      function loadGtm() {
+        if (!gtmId || window.gtmLoaded) return;
         window.gtmLoaded = true;
-        
-        (function(w,d,s,l,i){
-          w[l]=w[l]||[];
-          w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-          var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),
-              dl=l!='dataLayer'?'&l='+l:'';
-          j.async=true;
-          j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-          f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer',id);
+        window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = document.getElementsByTagName('script')[0];
+        var j = document.createElement('script');
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
+        f.parentNode.insertBefore(j, f);
       }
-      
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadGoogleTagManager);
+
+      function apply(c) {
+        if (!c.analytics && !c.marketing) return;
+        update(c);
+        if (c.analytics) loadGa();
+        if (c.analytics || c.marketing) loadGtm();
+      }
+
+      function start() {
+        apply(readConsent());
+        window.addEventListener('cookie-consent-updated', function (e) {
+          var d = (e && e.detail) || {};
+          apply({ analytics: d.analytics === true, marketing: d.marketing === true });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
       } else {
-        loadGoogleTagManager();
+        start();
       }
     })();
   </script>

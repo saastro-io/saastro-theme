@@ -367,6 +367,8 @@
     "essentialDescription": "Required for the site to function correctly.",
     "analyticsLabel": "Analytics",
     "analyticsDescription": "Help us understand how visitors use the site.",
+    "marketingLabel": "Marketing",
+    "marketingDescription": "Measure our advertising and show you relevant offers on other sites.",
     "personalizationLabel": "Personalization",
     "personalizationDescription": "Remember your preferences and settings.",
     "alwaysActive": "Always active"
