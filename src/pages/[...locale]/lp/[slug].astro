@@ -70,6 +70,11 @@ if (isPreview) {
   Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 }
 
+if (!landing.indexable && !isPreview) {
+  // Además de la meta (BaseLayout): la cabecera cubre a quien no lee el HTML.
+  Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
+}
+
 const rendered = await render(entry);
 const Content = rendered.Content;
 const LAYOUTS = { 'hero-form': LandingHeroForm, largo: LandingLong };
@@ -83,7 +88,13 @@ const seoTitle = landing.metaTitle ?? `${landing.title} · ${siteName}`;
 const seoDescription = landing.metaDescription ?? landing.subtitle;
 ---
 
-<SiteLayout title={seoTitle} description={seoDescription} noindex={isPreview}>
+<SiteLayout
+  title={seoTitle}
+  description={seoDescription}
+  noindex={isPreview}
+  indexable={landing.indexable}
+  alternates={false}
+>
   {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
       landings son `prerender = false`, y el contador del HTML depende de un
       nonce por petición que una página estática no puede tener. Apagado salvo

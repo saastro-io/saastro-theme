@@ -38,6 +38,8 @@ export interface LandingData {
   disclaimer?: string;
   order: number;
   draft: boolean;
+  /** ¿Se indexa? `false` por defecto (content.config.ts): `noindex, follow` sin apagar la medición. */
+  indexable: boolean;
 }
 
 /**
