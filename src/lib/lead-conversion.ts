@@ -27,9 +27,15 @@ export function leadEventId(values: Record<string, unknown>, w?: Pick<TrackWindo
   return `lead-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e9).toString(36)}`
 }
 
-/** Solo rutas internas: `/gracias` sí; `//evil.com`, `https://…` y `javascript:` no. */
+/**
+ * Solo rutas internas: `/gracias` sí; `//evil.com`, `https://…` y `javascript:` no.
+ * Los navegadores QUITAN tabuladores y saltos de línea de una URL antes de
+ * interpretarla, así que `/\t/evil.com` acaba siendo `//evil.com` (protocolo
+ * relativo → otro sitio). Por eso se rechaza cualquier espacio, control o `\`
+ * en TODA la cadena, no solo en el segundo carácter.
+ */
 export function isInternalPath(href: unknown): href is string {
-  return typeof href === 'string' && /^\/(?!\/|\\)/.test(href)
+  return typeof href === 'string' && /^\/(?![/\\])[^\s\\\u0000-\u001f\u007f]*$/.test(href)
 }
 
 /** Espera antes de navegar para que los píxeles terminen de enviar (SIN VERIFICAR el valor). */

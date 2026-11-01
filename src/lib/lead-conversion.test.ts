@@ -34,7 +34,7 @@ describe('isInternalPath', () => {
     expect(isInternalPath('/es/lp/gracias?x=1')).toBe(true);
   });
   it('rechaza todo lo que pueda sacar al visitante del site', () => {
-    for (const h of ['//evil.com', 'https://evil.com', 'javascript:alert(1)', '/\\evil.com', '', undefined, null, 5]) {
+    for (const h of ['//evil.com', 'https://evil.com', 'javascript:alert(1)', '/\\evil.com', '/\t/evil.com', '/\n/evil.com', '/\r/evil.com', '/ /evil.com', '/a\\b', '/\u0000x', '', undefined, null, 5]) {
       expect(isInternalPath(h)).toBe(false);
     }
   });
