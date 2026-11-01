@@ -25,7 +25,6 @@ const TODOS = [GA4, GTM, ADS, META, TIKTOK, LINKEDIN, CLARITY];
 function ejecutar(cookie: string, providers: P[], adsLabel = '') {
   const scripts: string[] = [];
   const oyentes: Record<string, (e: unknown) => void> = {};
-  const docOyentes: Record<string, () => void> = {};
   const insert = (s: { src: string }) => scripts.push(s.src);
   const doc = {
     cookie,
@@ -33,7 +32,7 @@ function ejecutar(cookie: string, providers: P[], adsLabel = '') {
     head: { appendChild: insert },
     getElementsByTagName: () => [{ parentNode: { insertBefore: insert } }],
     createElement: () => ({}),
-    addEventListener: (n: string, f: () => void) => { docOyentes[n] = f; },
+    addEventListener: () => {},
   };
   const win: Record<string, unknown> = {
     document: doc,
@@ -47,7 +46,6 @@ function ejecutar(cookie: string, providers: P[], adsLabel = '') {
   return {
     scripts, win, dl,
     evento: (d: unknown) => oyentes['cookie-consent-updated']({ detail: d }),
-    pagina: () => docOyentes['astro:page-load'](),
     track: (n: string, d?: object) => (win.saastroTrack as (n: string, d?: object) => string[])(n, d),
   };
 }
@@ -163,16 +161,5 @@ describe('saastroTrack (conversión)', () => {
     (r.win.fbq as unknown) = (...a: unknown[]) => llamadas.push(a);
     r.track('click_whatsapp', { event_id: 'z' });
     expect(llamadas).toContainEqual(['trackCustom', 'click_whatsapp', {}, { eventID: 'z' }]);
-  });
-});
-
-describe('navegaciones con ClientRouter', () => {
-  it('la primera carga no repite page_view; las siguientes sí', () => {
-    const r = ejecutar(SOLO_ANALYTICS, [GA4]);
-    const vistas = () => r.dl().filter((a) => a[0] === 'event' && a[1] === 'page_view').length;
-    r.pagina();
-    expect(vistas()).toBe(0);
-    r.pagina();
-    expect(vistas()).toBe(1);
   });
 });

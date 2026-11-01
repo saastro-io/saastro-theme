@@ -63,7 +63,11 @@ const tracking = resolveTracking(settings, {
   overrides: { googleAnalyticsId: analytics.googleAnalyticsId, googleTagManagerId: analytics.googleTagManagerId },
 });
 for (const r of tracking.rejected) {
-  console.warn(`[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`);
+  console.warn(
+    r.reason === 'no-cadena'
+      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número, no como cadena — ENTRECOMILLA el id. DESCARTADO`
+      : `[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`,
+  );
 }
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),

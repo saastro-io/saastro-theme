@@ -180,15 +180,11 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
         return sent;
       };
 
-      // Navegaciones posteriores con ClientRouter: los pixeles solo cuentan la primera carga.
-      var navegaciones = 0;
-      function pagina() {
-        navegaciones += 1;
-        if (navegaciones < 2) return;
-        if (loaded.ga4) gtag('event', 'page_view');
-        if (loaded.metaPixel && window.fbq) window.fbq('track', 'PageView');
-        if (loaded.tiktokPixel && window.ttq) window.ttq.page();
-      }
+      // Navegaciones con ClientRouter: NO se emite page_view/PageView a mano. GA4
+      // (medición mejorada, «cambios de página por el historial») y fbevents ya
+      // escuchan pushState por su cuenta y un envío manual los duplicaría. Sin
+      // medir en navegador no se sabe cuál de los dos casos es el real, así que
+      // no se añade nada; la conversión (envío + /lp/gracias) es una carga completa.
 
       function start() {
         apply(readConsent());
@@ -196,7 +192,6 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
           var d = (e && e.detail) || {};
           apply({ analytics: d.analytics === true, marketing: d.marketing === true });
         });
-        document.addEventListener('astro:page-load', pagina);
       }
 
       if (document.readyState === 'loading') {

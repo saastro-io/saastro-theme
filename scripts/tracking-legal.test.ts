@@ -118,3 +118,31 @@ describe('8e tracking-legal', () => {
     expect(r.out).toContain('tracking-legal')
   })
 })
+
+/** Un site cuyo banner NO enlaza a ninguna política interna escaneable. */
+function siteSinPolitica(settings: string, islaProps: string | null) {
+  const root = site({ settings })
+  const w = (rel: string, body: string) => writeFileSync(join(root, rel), body)
+  const isla = islaProps == null ? '' : `<astro-island component-export="CookieBanner" props='${islaProps}'></astro-island>`
+  w('dist/client/index.html', pagina(isla))
+  return root
+}
+
+describe('8e: nunca verde sin medir', () => {
+  it('píxel encendido y NINGÚN banner con política → rojo', () => {
+    const r = check(siteSinPolitica('tracking:\n  metaPixel: "1234567890123"\n', null))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('NINGUNA página lleva el banner')
+  })
+
+  it('píxel encendido y política EXTERNA (no escaneable) → aviso «NO SE MIDIÓ», no verde mudo', () => {
+    const r = check(siteSinPolitica('tracking:\n  metaPixel: "1234567890123"\n', '{"cookiesPolicyHref":[0,"https://ejemplo.com/cookies"]}'))
+    expect(r.out).toContain('NO SE MIDIÓ')
+    expect(r.out).toContain('tracking-legal')
+  })
+
+  it('sin píxeles encendidos y sin política: no opina (verde)', () => {
+    const r = check(siteSinPolitica('tracking:\n  metaPixel: ""\n', null))
+    expect(r.code, r.out).toBe(0)
+  })
+})

@@ -36,7 +36,9 @@ export interface EnabledProvider {
 
 export interface RejectedId {
   key: string;
-  reason: 'formato';
+  /** 'formato': no cumple el patrón. 'no-cadena': YAML lo leyó como número/booleano
+   *  (un id sin comillas; los de 15+ dígitos pierden precisión): hay que entrecomillarlo. */
+  reason: 'formato' | 'no-cadena';
 }
 
 export interface ResolvedTracking {
@@ -52,13 +54,15 @@ export const PROVIDERS: readonly ProviderDef[] = catalogo.providers as ProviderD
 
 type Loose = Record<string, unknown>;
 
-function leer(obj: unknown, ruta: readonly string[]): string {
+/** Cadena recortada; '' si no hay valor; `null` si hay un valor que NO es cadena. */
+function leer(obj: unknown, ruta: readonly string[]): string | null {
   let cur: unknown = obj;
   for (const k of ruta) {
     if (cur == null || typeof cur !== 'object') return '';
     cur = (cur as Loose)[k];
   }
-  return typeof cur === 'string' ? cur.trim() : '';
+  if (cur == null || cur === '') return '';
+  return typeof cur === 'string' ? cur.trim() : null;
 }
 
 export interface ResolveOptions {
@@ -82,10 +86,15 @@ export function resolveTracking(
       def.key === 'ga4' ? opts.overrides?.googleAnalyticsId
       : def.key === 'gtm' ? opts.overrides?.googleTagManagerId
       : undefined;
-    const id =
-      (override ?? '').trim() ||
-      leer(settings.tracking, [def.key]) ||
-      (def.legacy ? leer(settings, def.legacy) : '');
+    const propio = leer(settings.tracking, [def.key]);
+    const legado = def.legacy ? leer(settings, def.legacy) : '';
+    // `null` = el YAML trae algo que no es una cadena (p. ej. un id numérico sin
+    // comillas): se avisa en vez de apagar el proveedor en silencio.
+    if ((propio === null && !(override ?? '').trim()) || (propio === '' && legado === null && !(override ?? '').trim())) {
+      rejected.push({ key: def.key, reason: 'no-cadena' });
+      continue;
+    }
+    const id = (override ?? '').trim() || propio || legado || '';
     if (!id) continue;
     if (!new RegExp(def.pattern).test(id)) {
       rejected.push({ key: def.key, reason: 'formato' });
@@ -94,7 +103,7 @@ export function resolveTracking(
     providers.push({ key: def.key, id, category: def.category });
   }
 
-  let label = leer(settings.tracking, ['googleAdsConversionLabel']);
+  let label = leer(settings.tracking, ['googleAdsConversionLabel']) ?? '';
   if (label && !new RegExp(catalogo.googleAdsConversionLabelPattern).test(label)) {
     rejected.push({ key: 'googleAdsConversionLabel', reason: 'formato' });
     label = '';
