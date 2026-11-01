@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { editableField, editableSection } from "@saastro/studio/markers"
-import { consentRevoked, getConsent, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { consentRevoked, getConsent, resolvePrefs, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { mirrorGenConsent } from "@/lib/gen-consent"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
@@ -51,26 +52,6 @@ function analyticsTrackerLoaded(): boolean {
   return Boolean(w.gaLoaded || w.gtmLoaded || w.trackersLoaded)
 }
 
-/** El beacon de Gen en modo `consent="required"` lee `localStorage['gen-consent']`,
- *  no la cookie del banner: sin este espejo nunca arrancaba (ni se apagaba al
- *  retirar). Se alinea con la categoría `analytics`. */
-function mirrorGenConsent(analytics: boolean): void {
-  try {
-    if (analytics) {
-      // Solo si cambia: el beacon ya arranca solo cuando el valor ya era
-      // 'granted' al cargar; emitir el evento en cada montaje contaría la
-      // visita dos veces.
-      if (localStorage.getItem('gen-consent') === 'granted') return
-      localStorage.setItem('gen-consent', 'granted')
-      window.dispatchEvent(new Event('gen:consent-granted'))
-    } else {
-      localStorage.removeItem('gen-consent')
-    }
-  } catch {
-    /* storage bloqueado: el beacon simplemente no arranca */
-  }
-}
-
 export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing = false, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
   const [visible, setVisible] = useState(false)
   const [showCustomize, setShowCustomize] = useState(false)
@@ -82,7 +63,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
     const consent = getConsent()
     if (!consent) setVisible(true)
     // Quien ya eligió antes de que existiera el espejo no pasa por `save`.
-    else mirrorGenConsent(consent.analytics)
+    else mirrorGenConsent(consent.analytics, { alMontar: true })
 
     const w = window as Window & { __cookieReopenPending?: boolean }
     const handleReopen = () => {
@@ -112,9 +93,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
 
   const save = useCallback(
     (input: Omit<ConsentPrefs, 'marketing'> & { marketing?: boolean }) => {
-      // Sin la categoría a la vista no hay consentimiento que dar: nunca se
-      // guarda un `marketing: true` que el visitante no pudo ver ni decidir.
-      const prefs: ConsentPrefs = { ...input, marketing: showMarketing && input.marketing === true }
+      const prefs = resolvePrefs(input, showMarketing)
       const previous = getConsent()
       setConsent(prefs)
       mirrorGenConsent(prefs.analytics)

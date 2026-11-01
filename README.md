@@ -37,7 +37,6 @@ src/
 │   ├── MobileMenu.tsx            # shadcn Sheet + Accordion for mobile nav
 │   ├── LocaleSelector.tsx        # EN / ES locale switcher (opt-in)
 │   ├── Analytics.astro           # GA4 + GTM (consent-aware, reads cookie)
-│   ├── AnalyticsNoscript.astro   # GTM noscript fallback
 │   ├── JsonLd.astro              # Structured data (Organization, Article, etc.)
 │   ├── OgImage.astro             # SVG-based OG image template (1200x630)
 │   └── ui/                       # shadcn primitives
@@ -151,7 +150,7 @@ All widgets auto-translate when i18n is enabled.
 GDPR-compliant cookie consent with granular control. Uses shadcn Button, Switch, Label, Separator.
 
 - Shows on first visit, saves preference in `cookie_consent` cookie (1 year)
-- Three categories: Essential (always on), Analytics, Personalization
+- Categories: Essential (always on), Analytics, Marketing (the switch only appears when the site has an ad pixel configured), Personalization
 - Customize mode with individual toggles
 - Fires `cookie-consent-updated` event — Analytics component listens for it
 - Auto-translates via i18n when enabled
@@ -322,9 +321,10 @@ The `ApplyColorMode` inline script runs before paint — no FOUC. It checks `loc
 
 Google Analytics 4 and Google Tag Manager, both consent-aware:
 
-1. On page load, checks `cookie_consent` cookie for analytics permission
-2. If no consent yet, listens for `cookie-consent-updated` event
-3. Only loads the tracking script after explicit consent
+1. Declares Consent Mode v2 `default: denied` (analytics_storage, ad_storage, ad_user_data, ad_personalization) before any Google script
+2. On page load, reads the `cookie_consent` cookie; if there is no consent yet, listens for `cookie-consent-updated`
+3. GA4 loads only with `analytics`; GTM loads with `analytics` or `marketing`; Consent Mode limits what each tag may do
+4. There is no GTM `<noscript>` iframe: without JS the visitor cannot consent
 
 Pass IDs via SiteLayout or BaseLayout:
 

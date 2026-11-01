@@ -8,7 +8,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { consentRevoked, parseConsent, setConsent } from './cookies';
+import { consentRevoked, parseConsent, resolvePrefs, setConsent } from './cookies';
 
 function escribirCon(protocol: string): string {
   const doc = { cookie: '' };
@@ -86,5 +86,19 @@ describe('consentRevoked (cuándo hay que recargar)', () => {
   it('conceder o mantener no revoca', () => {
     expect(consentRevoked({ analytics: false, marketing: false }, on)).toBe(false);
     expect(consentRevoked(on, on)).toBe(false);
+  });
+});
+
+describe('resolvePrefs (lo que guarda cada botón)', () => {
+  const todo = { analytics: true, marketing: true, personalization: true };
+  it('sin la categoría a la vista, marketing NUNCA se guarda a true', () => {
+    expect(resolvePrefs(todo, false).marketing).toBe(false);
+  });
+  it('con la categoría a la vista respeta lo elegido', () => {
+    expect(resolvePrefs(todo, true).marketing).toBe(true);
+    expect(resolvePrefs({ ...todo, marketing: false }, true).marketing).toBe(false);
+  });
+  it('un marketing ausente o no booleano cuenta como no', () => {
+    expect(resolvePrefs({ analytics: true, personalization: true }, true).marketing).toBe(false);
   });
 });

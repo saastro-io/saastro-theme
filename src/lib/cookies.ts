@@ -66,3 +66,13 @@ export function consentRevoked(
   if (!previous) return false
   return (previous.analytics && !next.analytics) || (previous.marketing && !next.marketing)
 }
+
+/** Lo que de verdad se guarda al pulsar un botón del banner. Sin la categoría a
+ *  la vista no hay consentimiento que dar: nunca se guarda un `marketing: true`
+ *  que el visitante no pudo ver ni decidir. */
+export function resolvePrefs(
+  input: Omit<ConsentPrefs, 'marketing'> & { marketing?: boolean },
+  showMarketing: boolean,
+): ConsentPrefs {
+  return { ...input, marketing: showMarketing && input.marketing === true }
+}
