@@ -182,7 +182,7 @@ const footerLinks = [
   />
 
   {t?.whatsapp?.number && (
-    <WhatsAppWidget t={t.whatsapp} fieldPrefix="whatsapp" client:load />
+    <WhatsAppWidget t={t.whatsapp} fieldPrefix="whatsapp" client:idle />
   )}
 </BaseLayout>
 
