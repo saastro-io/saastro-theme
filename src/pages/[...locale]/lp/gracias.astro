@@ -1,0 +1,57 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getSettings } from '../../../lib/settings';
+
+// Página de gracias de las landings de pago. A donde llega el visitante cuando el
+// formulario se ha enviado BIEN (LandingForm → onLeadSuccess).
+//
+// - SSR (`prerender = false`) como `lp/[slug]`: así no entra en studio-contract.json
+//   (una ruta prerenderizada nueva pone el contrato rojo hasta registrarla).
+// - `indexable={false}`: noindex, follow — y SIN apagar la medición. Es la diferencia
+//   con `noindex` (vista previa de un borrador): los píxeles SÍ tienen que cargar
+//   aquí (reglas de conversión por URL de LinkedIn y Google Ads, page_view de GA4).
+//   Siguen esperando al consentimiento del banner como en cualquier página.
+// - Esta página NO emite `generate_lead`: lo emite el formulario en el momento del
+//   envío (con el event_id compartido con el Hub). Emitirlo aquí otra vez contaría
+//   cada recarga como una conversión nueva.
+//
+// El texto está aquí por idioma, no en el JSON de traducciones: añadir hojas al i18n
+// las vuelve "huérfanas" para el contrato (solo se leen en rutas SSR) y obliga a
+// tocarlo en cada descendiente (los i18n son merge=ours). LÍMITE: no es editable
+// desde el Studio todavía.
+export const prerender = false;
+
+const lang = Astro.locals.lang ?? 'es';
+const lp = Astro.locals.localePath;
+const siteName = Astro.locals.t?.meta?.siteName ?? getSettings().site.name;
+
+const COPY: Record<string, { title: string; body: string; back: string }> = {
+  es: {
+    title: '¡Gracias! Hemos recibido tus datos',
+    body: 'En breve nos pondremos en contacto contigo. Si tienes cualquier duda mientras tanto, escríbenos.',
+    back: 'Volver al inicio',
+  },
+  en: {
+    title: 'Thank you! We have received your details',
+    body: 'We will get in touch with you shortly. If you have any questions in the meantime, just write to us.',
+    back: 'Back to home',
+  },
+};
+const copy = COPY[lang] ?? COPY.en;
+
+Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
+Astro.response.headers.set('Cache-Control', 'no-store');
+---
+
+<SiteLayout title={`${copy.title} · ${siteName}`} description={copy.body} indexable={false}>
+  <div class="mx-auto flex min-h-[50vh] max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
+    <h1 class="mb-4 font-heading text-3xl font-bold leading-tight text-foreground">{copy.title}</h1>
+    <p class="mb-8 text-base leading-relaxed text-muted-foreground">{copy.body}</p>
+    <a
+      href={lp('/')}
+      class="inline-flex items-center rounded-full border-[1.4px] border-foreground bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
+    >
+      {copy.back}
+    </a>
+  </div>
+</SiteLayout>
