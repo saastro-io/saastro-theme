@@ -8,13 +8,13 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { parseConsent, setConsent } from './cookies';
+import { consentRevoked, parseConsent, resolvePrefs, setConsent } from './cookies';
 
 function escribirCon(protocol: string): string {
   const doc = { cookie: '' };
   vi.stubGlobal('document', doc);
   vi.stubGlobal('location', { protocol });
-  setConsent({ analytics: false, personalization: false });
+  setConsent({ analytics: false, marketing: false, personalization: false });
   return doc.cookie;
 }
 
@@ -41,5 +41,64 @@ describe('setConsent', () => {
       analytics: false,
       personalization: false,
     });
+  });
+});
+
+describe('categoría marketing', () => {
+  it('se escribe y se vuelve a leer', () => {
+    const doc = { cookie: '' };
+    vi.stubGlobal('document', doc);
+    vi.stubGlobal('location', { protocol: 'https:' });
+    setConsent({ analytics: false, marketing: true, personalization: false });
+    expect(parseConsent(doc.cookie.split(';')[0])).toMatchObject({ analytics: false, marketing: true });
+  });
+
+  it('una cookie anterior a la categoría se lee como marketing:false, nunca aceptada', () => {
+    const vieja = encodeURIComponent(
+      JSON.stringify({ essential: true, analytics: true, personalization: true, timestamp: 'x' }),
+    );
+    const c = parseConsent(`cookie_consent=${vieja}`);
+    expect(c?.analytics).toBe(true);
+    expect(c?.marketing).toBe(false);
+  });
+
+  it('un valor no booleano en marketing no cuenta como aceptado', () => {
+    const raro = encodeURIComponent(JSON.stringify({ analytics: true, marketing: 'true' }));
+    expect(parseConsent(`cookie_consent=${raro}`)?.marketing).toBe(false);
+  });
+
+  it('JSON que no es un objeto se descarta', () => {
+    expect(parseConsent(`cookie_consent=${encodeURIComponent('null')}`)).toBeNull();
+  });
+});
+
+describe('consentRevoked (cuándo hay que recargar)', () => {
+  const on = { analytics: true, marketing: true };
+  it('sin consentimiento previo no hay nada que revocar', () => {
+    expect(consentRevoked(null, { analytics: false, marketing: false })).toBe(false);
+  });
+  it('retirar analytics revoca', () => {
+    expect(consentRevoked(on, { analytics: false, marketing: true })).toBe(true);
+  });
+  it('retirar marketing revoca', () => {
+    expect(consentRevoked(on, { analytics: true, marketing: false })).toBe(true);
+  });
+  it('conceder o mantener no revoca', () => {
+    expect(consentRevoked({ analytics: false, marketing: false }, on)).toBe(false);
+    expect(consentRevoked(on, on)).toBe(false);
+  });
+});
+
+describe('resolvePrefs (lo que guarda cada botón)', () => {
+  const todo = { analytics: true, marketing: true, personalization: true };
+  it('sin la categoría a la vista, marketing NUNCA se guarda a true', () => {
+    expect(resolvePrefs(todo, false).marketing).toBe(false);
+  });
+  it('con la categoría a la vista respeta lo elegido', () => {
+    expect(resolvePrefs(todo, true).marketing).toBe(true);
+    expect(resolvePrefs({ ...todo, marketing: false }, true).marketing).toBe(false);
+  });
+  it('un marketing ausente o no booleano cuenta como no', () => {
+    expect(resolvePrefs({ analytics: true, personalization: true }, true).marketing).toBe(false);
   });
 });

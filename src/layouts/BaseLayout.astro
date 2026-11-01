@@ -13,7 +13,6 @@ import Favicons from '../head/Favicons.astro';
 import LocalBusinessJsonLd from '../components/LocalBusinessJsonLd.astro';
 import SiteJsonLd from '../components/SiteJsonLd.astro';
 import Analytics from '../components/Analytics.astro';
-import AnalyticsNoscript from '../components/AnalyticsNoscript.astro';
 import GenTracking from '../components/GenTracking.astro';
 import { ClientRouter } from 'astro:transitions';
 import { i18nConfig } from '../i18n/config';
@@ -197,7 +196,8 @@ const hreflangEntries = i18nConfig.enabled ? getHreflangEntries(Astro.url.pathna
 
   <body>
     <a href="#main-content" class="skip-to-content">Skip to content</a>
-    <AnalyticsNoscript googleTagManagerId={resolvedAnalytics.googleTagManagerId} />
+    {/* Sin <noscript> de GTM: sin JS el visitante no puede dar consentimiento, y el iframe
+        de ns.html cargaba el contenedor igualmente. Quien no ejecuta JS no se mide. */}
     <slot />
   </body>
 </html>

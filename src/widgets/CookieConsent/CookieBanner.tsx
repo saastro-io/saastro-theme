@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { editableField, editableSection } from "@saastro/studio/markers"
-import { getConsent, setConsent } from "@/lib/cookies"
+import { consentRevoked, getConsent, resolvePrefs, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { mirrorGenConsent } from "@/lib/gen-consent"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
@@ -18,6 +19,10 @@ interface CookieBannerTranslations {
   essentialDescription: string
   analyticsLabel: string
   analyticsDescription: string
+  /** Opcionales: los i18n de los descendientes son `merge=ours` y no reciben
+   *  claves nuevas solas — sin ellas se usa el texto por defecto de abajo. */
+  marketingLabel?: string
+  marketingDescription?: string
   personalizationLabel: string
   personalizationDescription: string
   alwaysActive: string
@@ -26,6 +31,10 @@ interface CookieBannerTranslations {
 interface CookieBannerProps {
   translations: CookieBannerTranslations
   cookiesPolicyHref: string
+  /** Muestra la categoría «marketing». Solo si el site tiene algún píxel de
+   *  anuncios encendido: un interruptor sin nada detrás confunde y obliga a
+   *  describir en la política algo que no ocurre. */
+  showMarketing?: boolean
   /** Studio section key — i18n namespace the field markers bind to. */
   fieldPrefix?: string
 }
@@ -39,19 +48,22 @@ interface CookieBannerProps {
  *  inútil: volvería a cargar igual tras el reload. Incluirlo solo provocaría una
  *  recarga sin efecto cada vez que alguien apaga analytics en un site con beacon. */
 function analyticsTrackerLoaded(): boolean {
-  const w = window as Window & { gaLoaded?: boolean; gtmLoaded?: boolean }
-  return Boolean(w.gaLoaded || w.gtmLoaded)
+  const w = window as Window & { gaLoaded?: boolean; gtmLoaded?: boolean; trackersLoaded?: boolean }
+  return Boolean(w.gaLoaded || w.gtmLoaded || w.trackersLoaded)
 }
 
-export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
+export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing = false, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
   const [visible, setVisible] = useState(false)
   const [showCustomize, setShowCustomize] = useState(false)
   const [analytics, setAnalytics] = useState(false)
+  const [marketing, setMarketing] = useState(false)
   const [personalization, setPersonalization] = useState(false)
 
   useEffect(() => {
     const consent = getConsent()
     if (!consent) setVisible(true)
+    // Quien ya eligió antes de que existiera el espejo no pasa por `save`.
+    else mirrorGenConsent(consent.analytics, { alMontar: true })
 
     const w = window as Window & { __cookieReopenPending?: boolean }
     const handleReopen = () => {
@@ -62,6 +74,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
       const existing = getConsent()
       if (existing) {
         setAnalytics(existing.analytics)
+        setMarketing(existing.marketing)
         setPersonalization(existing.personalization)
       }
       setShowCustomize(true)
@@ -79,9 +92,11 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
   }, [])
 
   const save = useCallback(
-    (prefs: { analytics: boolean; personalization: boolean }) => {
+    (input: Omit<ConsentPrefs, 'marketing'> & { marketing?: boolean }) => {
+      const prefs = resolvePrefs(input, showMarketing)
       const previous = getConsent()
       setConsent(prefs)
+      mirrorGenConsent(prefs.analytics)
       window.dispatchEvent(new CustomEvent("cookie-consent-updated", { detail: prefs }))
       setVisible(false)
       setShowCustomize(false)
@@ -92,11 +107,11 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
       // forma fiable de "descargar" esos scripts, así que si analytics pasa de
       // on→off con un tracker vivo, recargamos: al arrancar sin consentimiento,
       // los loaders gateados (Analytics.astro / beacon CF) ya no lo inyectan.
-      if (previous?.analytics && !prefs.analytics && analyticsTrackerLoaded()) {
+      if (consentRevoked(previous, prefs) && analyticsTrackerLoaded()) {
         window.location.reload()
       }
     },
-    [],
+    [showMarketing],
   )
 
   if (!visible) return <></>
@@ -146,6 +161,21 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
                   />
                 </div>
 
+                {/* Marketing */}
+                {showMarketing && (
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="cookie-marketing" className="text-sm font-medium" {...editableField("marketingLabel")}>{t.marketingLabel ?? "Marketing"}</Label>
+                      <p className="text-xs text-muted-foreground" {...editableField("marketingDescription")}>{t.marketingDescription ?? "Measure our advertising and show you relevant offers on other sites."}</p>
+                    </div>
+                    <Switch
+                      id="cookie-marketing"
+                      checked={marketing}
+                      onCheckedChange={setMarketing}
+                    />
+                  </div>
+                )}
+
                 {/* Personalization */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="space-y-0.5">
@@ -163,12 +193,12 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
           )}
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" {...editableField("rejectAll")} onClick={() => save({ analytics: false, personalization: false })}>
+            <Button variant="outline" size="sm" {...editableField("rejectAll")} onClick={() => save({ analytics: false, marketing: false, personalization: false })}>
               {t.rejectAll}
             </Button>
 
             {showCustomize ? (
-              <Button size="sm" {...editableField("savePreferences")} onClick={() => save({ analytics, personalization })}>
+              <Button size="sm" {...editableField("savePreferences")} onClick={() => save({ analytics, marketing, personalization })}>
                 {t.savePreferences}
               </Button>
             ) : (
@@ -176,7 +206,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, fieldPrefix =
                 <Button variant="outline" size="sm" {...editableField("customize")} onClick={() => setShowCustomize(true)}>
                   {t.customize}
                 </Button>
-                <Button size="sm" {...editableField("acceptAll")} onClick={() => save({ analytics: true, personalization: true })}>
+                <Button size="sm" {...editableField("acceptAll")} onClick={() => save({ analytics: true, marketing: true, personalization: true })}>
                   {t.acceptAll}
                 </Button>
               </>
