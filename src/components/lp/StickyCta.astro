@@ -1,0 +1,57 @@
+---
+// CTA fijo en móvil de una landing de captación (`chrome: minimo`). Lleva al formulario
+// (`#lead-form`) y se esconde mientras el formulario está en pantalla.
+//
+// Capas: el banner de cookies es z-50 y tapa esta barra mientras esté abierto (a
+// propósito: el consentimiento va primero); el botón de WhatsApp es z-60 y vive en
+// `right: 20px; bottom: 20px` (src/widgets/WhatsApp), de ahí el `pr-24`: el texto del
+// botón no queda debajo de la burbuja. Solo `md:hidden`: en escritorio el formulario
+// ya está a la vista.
+export interface Props {
+  label: string;
+  href?: string;
+}
+const { label, href = '#lead-form' } = Astro.props;
+---
+
+<div
+  id="lp-sticky-cta"
+  class="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 py-3 pr-24 shadow-lg backdrop-blur-md transition-transform duration-200 md:hidden"
+  data-sticky-cta
+>
+  <a
+    href={href}
+    class="flex w-full items-center justify-center rounded-full border-[1.4px] border-foreground bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+  >
+    {label}
+  </a>
+</div>
+
+{/* La barra es fija: sin este relleno tapa el final del pie (copyright y «Gestionar
+    cookies», que son obligatorios y tienen que poder pulsarse). Solo móvil, igual que la barra.
+    OJO: Astro adjunta los estilos de un componente a la RUTA entera (/lp/[slug]), no solo a
+    las páginas que lo pintan. Sin `:has(#lp-sticky-cta)` este relleno se aplicaría también a las
+    landings `completo`, que no tienen barra (medido en dist/server/entry.mjs). */}
+<style is:global>
+  @media (max-width: 767px) {
+    body:has(#lp-sticky-cta) {
+      padding-bottom: 5rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var bar = document.getElementById('lp-sticky-cta');
+    var form = document.getElementById('lead-form');
+    if (!bar || !form || !('IntersectionObserver' in window)) return;
+    // Con el formulario a la vista la barra sobra: se desliza fuera.
+    new IntersectionObserver(function (entries) {
+      // Si llegan varias entradas juntas, la última es el estado actual.
+      var oculta = entries[entries.length - 1].isIntersecting;
+      bar.style.transform = oculta ? 'translateY(100%)' : '';
+      // Fuera de pantalla no puede seguir en el orden de tabulación ni leerse: `inert` lo saca de ambos.
+      bar.inert = oculta;
+    }).observe(form);
+  })();
+</script>

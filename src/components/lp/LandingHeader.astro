@@ -1,0 +1,21 @@
+---
+import Logo from '../Logo.astro';
+import { brandLogo, resolveSiteName } from '../../lib/brand';
+
+// Cabecera de una landing de captación (`chrome: minimo`): SOLO la marca. Sin menú,
+// sin selector de idioma, sin cambio de tema y sin botón de contacto: cada enlace de
+// salida es una fuga de la conversión. El logo apunta a la home (la gente lo espera).
+// Es un componente aparte —no un modo de Header.astro— para no tocar un fichero que
+// cada descendiente edita y que daría conflicto en cada `git merge upstream/main`.
+export interface Props {
+  homeUrl?: string;
+}
+const { homeUrl = '/' } = Astro.props;
+const siteName = resolveSiteName(Astro.locals);
+---
+
+<header class="z-30 flex h-16 items-center border-b bg-background/80 px-4 backdrop-blur-md">
+  <div class="container mx-auto flex items-center justify-center md:justify-start">
+    <Logo href={homeUrl} siteName={siteName} logoLight={brandLogo.light} logoDark={brandLogo.dark} />
+  </div>
+</header>

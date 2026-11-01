@@ -74,6 +74,12 @@ const lp = defineCollection({
     // `false` ⇒ `noindex, follow` SIN apagar la medición (las conversiones por URL
     // y los píxeles siguen funcionando).
     indexable: z.boolean().default(false),
+    // Marco de la página. `completo` (por defecto) = cabecera y pie del site, como hasta ahora.
+    // `minimo` = página de captación: cabecera con SOLO el logo (sin menú ni enlaces de
+    // salida), pie legal del site y un CTA fijo en móvil que lleva al formulario.
+    chrome: z.enum(['completo', 'minimo']).default('completo'),
+    // Texto del CTA fijo móvil (solo con chrome: minimo). Vacío = un texto genérico por idioma.
+    cta: z.string().optional(),
   }),
 });
 

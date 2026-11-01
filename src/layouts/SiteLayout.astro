@@ -15,6 +15,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import LandingHeader from '../components/lp/LandingHeader.astro';
 import { Announcement } from '../widgets/Announcement/Announcement';
 import { CookieBanner } from '../widgets/CookieConsent/CookieBanner';
 import { ContactSheetProvider } from '../widgets/ContactSheet';
@@ -33,12 +34,17 @@ export interface Props extends BaseProps {
   showAnnouncement?: boolean;
   announcement?: Partial<AnnouncementProps>;
   cookiesPolicyHref?: string;
+  /** `minimo` = cabecera con SOLO el logo (landing de captación). Se decide AQUÍ y no pasando
+   *  `slot="header"` condicional desde la página: un hijo `{cond && <X slot="header"/>}` cuenta
+   *  como contenido de la ranura aunque sea `false` y deja la página SIN cabecera. */
+  chrome?: 'completo' | 'minimo';
 }
 
 const {
   showAnnouncement = false,
   announcement = {},
   cookiesPolicyHref = '/legal/cookies',
+  chrome = 'completo',
   ...baseProps
 } = Astro.props;
 
@@ -140,7 +146,11 @@ const footerLinks = [
   )}
 
   <slot name="header">
-    <Header menu={navMenu} localeLinks={localeLinks} fieldPrefix="nav" />
+    {chrome === 'minimo' ? (
+      <LandingHeader homeUrl={lp('/')} />
+    ) : (
+      <Header menu={navMenu} localeLinks={localeLinks} fieldPrefix="nav" />
+    )}
   </slot>
 
   <main id="main-content" class="flex-1" tabindex="-1">
