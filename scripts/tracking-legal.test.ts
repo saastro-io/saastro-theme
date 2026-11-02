@@ -33,7 +33,7 @@ function pagina(extra = '') {
 }
 
 /** Un site mínimo: portada con el banner, política de cookies, y los settings dados. */
-function site({ settings, marcadores = [] }: { settings: string; marcadores?: string[] }) {
+function site({ settings, marcadores = [], extraHome = '' }: { settings: string; marcadores?: string[]; extraHome?: string }) {
   const root = mkdtempSync(join(tmpdir(), 'tracking-legal-'))
   dirs.push(root)
   const w = (rel: string, body: string) => {
@@ -44,7 +44,7 @@ function site({ settings, marcadores = [] }: { settings: string; marcadores?: st
   w('src/pages/index.astro', '---\n---\n')
   w('src/pages/legal/cookies.astro', '---\n---\n')
   w('src/data/settings.yaml', settings)
-  w('dist/client/index.html', pagina(ISLA))
+  w('dist/client/index.html', pagina(ISLA + extraHome))
   w('dist/client/legal/cookies/index.html', pagina(marcadores.map((m) => `<div data-legal="${m}"></div>`).join('')))
   w(
     'studio-contract.json',
@@ -61,10 +61,10 @@ function site({ settings, marcadores = [] }: { settings: string; marcadores?: st
   return root
 }
 
-function check(root: string) {
+function check(root: string, env: Record<string, string> = {}) {
   const r = spawnSync(process.execPath, [SCRIPT], {
     cwd: root,
-    env: { ...process.env, STUDIO_DEFAULT_LOCALE: 'en' },
+    env: { ...process.env, PUBLIC_WHATSAPP_NUMBER: '', ...env, STUDIO_DEFAULT_LOCALE: 'en' },
     encoding: 'utf8',
   })
   return { code: r.status, out: `${r.stdout}\n${r.stderr}` }
@@ -226,3 +226,26 @@ describe('8e: proveedor exento de consentimiento (Cloudflare Web Analytics)', ()
     expect(sinAncla).toEqual(['cloudflareWebAnalytics'])
   })
 })
+
+describe('sec-markers: secciones condicionales por variable de build', () => {
+  const seccion = (k: string) => `<section data-saastro="sec:${k}"></section>`;
+  const s = 'tracking:\n  metaPixel: ""\n';
+
+  it('sección sin registrar y SIN variable → rojo (el contrato de la plantilla manda)', () => {
+    const r = check(site({ settings: s, extraHome: seccion('whatsapp') }));
+    expect(r.code, r.out).not.toBe(0);
+    expect(r.out).toContain('sec:whatsapp');
+  });
+
+  it('whatsapp sin registrar CON PUBLIC_WHATSAPP_NUMBER → verde con aviso (no falla)', () => {
+    const r = check(site({ settings: s, extraHome: seccion('whatsapp') }), { PUBLIC_WHATSAPP_NUMBER: '34000000000' });
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('PUBLIC_WHATSAPP_NUMBER');
+  });
+
+  it('la variable no excusa a OTRA sección sin registrar → rojo', () => {
+    const r = check(site({ settings: s, extraHome: seccion('banner') }), { PUBLIC_WHATSAPP_NUMBER: '34000000000' });
+    expect(r.code, r.out).not.toBe(0);
+    expect(r.out).toContain('sec:banner');
+  });
+});
