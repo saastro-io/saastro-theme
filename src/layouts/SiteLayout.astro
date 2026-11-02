@@ -20,11 +20,11 @@ import { Announcement } from '../widgets/Announcement/Announcement';
 import { CookieBanner } from '../widgets/CookieConsent/CookieBanner';
 import { ContactSheetProvider } from '../widgets/ContactSheet';
 import { WhatsAppWidget } from '../widgets/WhatsApp';
-import { i18nConfig } from '../i18n/config';
-import { getLocaleLinks } from '../i18n/utils';
+import { getLocaleLinks, stripLocalePrefix } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
 import { resolveTracking } from '../lib/tracking';
+import { resolveWhatsAppNumber } from '../lib/whatsapp';
 import type { Props as BaseProps } from './BaseLayout.astro';
 import type { AnnouncementProps } from '../widgets/Announcement/Announcement';
 
@@ -50,25 +50,30 @@ const {
 
 // Los ids de medición los resuelve BaseLayout; aquí solo hace falta saber si el
 // banner debe ofrecer «marketing» (hay algún píxel de anuncios encendido).
-const { showMarketing } = resolveTracking(settings, {
+const { showMarketing, consentKeys } = resolveTracking(settings, {
   noindex: baseProps.noindex,
   overrides: baseProps.analytics,
+  // MISMA lista que BaseLayout (que recibe `landingTracking` dentro de baseProps): el
+  // banner y el cargador tienen que coincidir o el consentimiento se pide sobre otra versión.
+  landing: baseProps.landingTracking,
 });
 const basePropsWithDefaults = { ...baseProps };
 
 const footerSiteName = resolveSiteName(Astro.locals);
 
-// i18n: read from middleware locals when enabled
-const i18nEnabled = i18nConfig.enabled;
-const lang = i18nEnabled ? Astro.locals.lang : i18nConfig.defaultLocale;
-const t = i18nEnabled ? Astro.locals.t : undefined;
-const lp = i18nEnabled ? Astro.locals.localePath : (p: string) => p;
-const pagePath = Astro.url.pathname;
-const normalizedPath =
-  i18nEnabled && lang !== i18nConfig.defaultLocale
-    ? pagePath.replace(`/${lang}`, '') || '/'
-    : pagePath;
-const localeLinks = i18nEnabled ? getLocaleLinks(normalizedPath, lang) : [];
+// i18n: el middleware rellena locals siempre (con un solo idioma, lang = defaultLocale).
+const lang = Astro.locals.lang;
+const t = Astro.locals.t;
+const lp = Astro.locals.localePath;
+const normalizedPath = stripLocalePrefix(Astro.url.pathname);
+const localeLinks = getLocaleLinks(normalizedPath, lang);
+
+// WhatsApp: el widget solo se monta si hay número válido. Sale de PUBLIC_WHATSAPP_NUMBER
+// (variable de build) y, si no está, de la clave i18n `whatsapp.number` (src/lib/whatsapp.ts).
+// SIEMPRE se lee `t.whatsapp.number` aunque gane la variable: el contrato i18n-consumo
+// necesita ver la hoja leída.
+const whatsapp = resolveWhatsAppNumber(import.meta.env.PUBLIC_WHATSAPP_NUMBER, t?.whatsapp?.number);
+if (whatsapp.warning) console.warn(whatsapp.warning);
 
 // Cookie banner translations: use i18n JSON if available, else English defaults
 const cookieT = t?.cookieBanner ?? {
@@ -178,11 +183,12 @@ const footerLinks = [
     cookiesPolicyHref={lp(cookiesPolicyHref)}
     translations={cookieT}
     showMarketing={showMarketing}
+    trackingKeys={consentKeys}
     client:idle
   />
 
-  {t?.whatsapp?.number && (
-    <WhatsAppWidget t={t.whatsapp} fieldPrefix="whatsapp" client:idle />
+  {t?.whatsapp && whatsapp.number && (
+    <WhatsAppWidget t={{ ...t.whatsapp, number: whatsapp.number }} fieldPrefix="whatsapp" client:idle />
   )}
 </BaseLayout>
 

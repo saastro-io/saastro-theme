@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { locales, defaultLocale } from '../../../i18n/config';
+import { locales, i18nConfig } from '../../../i18n/config';
+import { legalEntryParams } from '../../../lib/i18n-derive';
 import { pageOverride, pageKeyFromPath } from '../../../i18n/meta';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
@@ -8,12 +9,10 @@ export const prerender = true;
 
 export async function getStaticPaths() {
   const allLegal = await getCollection('legal');
-  return allLegal.map((e) => {
-    const [loc, ...rest] = e.id.split('/');
-    return {
-      params: { locale: loc === defaultLocale ? undefined : loc, slug: rest.join('/') },
-    };
-  });
+  return legalEntryParams(
+    allLegal.map((e) => e.id),
+    i18nConfig,
+  ).map((params) => ({ params }));
 }
 
 const slug = Astro.params.slug as string;

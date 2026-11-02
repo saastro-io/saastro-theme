@@ -8,7 +8,7 @@
  * y que mirar el DOM no sería suficiente (el píxel vive en settings).
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -33,7 +33,7 @@ function pagina(extra = '') {
 }
 
 /** Un site mínimo: portada con el banner, política de cookies, y los settings dados. */
-function site({ settings, marcadores = [] }: { settings: string; marcadores?: string[] }) {
+function site({ settings, marcadores = [], extraHome = '' }: { settings: string; marcadores?: string[]; extraHome?: string }) {
   const root = mkdtempSync(join(tmpdir(), 'tracking-legal-'))
   dirs.push(root)
   const w = (rel: string, body: string) => {
@@ -44,7 +44,7 @@ function site({ settings, marcadores = [] }: { settings: string; marcadores?: st
   w('src/pages/index.astro', '---\n---\n')
   w('src/pages/legal/cookies.astro', '---\n---\n')
   w('src/data/settings.yaml', settings)
-  w('dist/client/index.html', pagina(ISLA))
+  w('dist/client/index.html', pagina(ISLA + extraHome))
   w('dist/client/legal/cookies/index.html', pagina(marcadores.map((m) => `<div data-legal="${m}"></div>`).join('')))
   w(
     'studio-contract.json',
@@ -61,10 +61,10 @@ function site({ settings, marcadores = [] }: { settings: string; marcadores?: st
   return root
 }
 
-function check(root: string) {
+function check(root: string, env: Record<string, string> = {}) {
   const r = spawnSync(process.execPath, [SCRIPT], {
     cwd: root,
-    env: { ...process.env, STUDIO_DEFAULT_LOCALE: 'en' },
+    env: { ...process.env, PUBLIC_WHATSAPP_NUMBER: '', ...env, STUDIO_DEFAULT_LOCALE: 'en' },
     encoding: 'utf8',
   })
   return { code: r.status, out: `${r.stdout}\n${r.stderr}` }
@@ -146,3 +146,106 @@ describe('8e: nunca verde sin medir', () => {
     expect(r.code, r.out).toBe(0)
   })
 })
+
+describe('8e: lista de ids por proveedor', () => {
+  it('dos ids de GA4 sin ancla → rojo (una lista no deja el proveedor «apagado» para el checker)', () => {
+    const r = check(site({ settings: 'tracking:\n  ga4: "G-AAAAAA0001,G-BBBBBB0002"\n' }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-ga4')
+  })
+
+  it('con ancla → verde', () => {
+    const r = check(site({ settings: 'tracking:\n  ga4: "G-AAAAAA0001, G-BBBBBB0002"\n', marcadores: ['tracking-ga4'] }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('un id válido entre inválidos basta para obligar; si TODOS son inválidos no obliga', () => {
+    const uno = check(site({ settings: 'tracking:\n  ga4: "UA-1,G-AAAAAA0001"\n' }))
+    expect(uno.code, uno.out).not.toBe(0)
+    expect(uno.out).toContain('tracking-ga4')
+    const ninguno = check(site({ settings: 'tracking:\n  ga4: "UA-1,G-x"\n' }))
+    expect(ninguno.code, ninguno.out).toBe(0)
+  })
+
+  it('el legado analytics.googleAnalytics.id también admite lista', () => {
+    const r = check(site({ settings: 'analytics:\n  googleAnalytics:\n    id: "G-AAAAAA0001,G-BBBBBB0002"\n' }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-ga4')
+  })
+})
+
+describe('8e: proveedor exento de consentimiento (Cloudflare Web Analytics)', () => {
+  const TOKEN = 'c0ffee00c0ffee00c0ffee00c0ffee00'
+
+  it('encendido por tracking.cloudflareWebAnalytics y SIN ancla → verde (exención explícita del catálogo)', () => {
+    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('encendido por la ruta vieja analytics.cloudflareWebAnalytics.token y SIN ancla → verde', () => {
+    const r = check(site({ settings: `analytics:\n  cloudflareWebAnalytics:\n    token: "${TOKEN}"\n` }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('NO exime a los demás: con Meta encendido sigue faltando SU ancla y no se pide la de Cloudflare', () => {
+    const r = check(site({ settings: `tracking:\n  metaPixel: "1234567890123"\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-meta')
+    expect(r.out).not.toMatch(/cloudflare/i)
+  })
+
+  it('un site con SOLO Cloudflare no necesita banner ni política (no hay nada que declarar): verde, no «NO SE MIDIÓ»', () => {
+    const r = check(siteSinPolitica(`tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, null))
+    expect(r.code, r.out).toBe(0)
+    expect(r.out).not.toContain('NO SE MIDIÓ')
+    expect(r.out).not.toContain('NINGUNA página lleva el banner')
+  })
+
+  it('la política no declara nada de Cloudflare y no hay aviso inverso por ello', () => {
+    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, marcadores: ['tracking-cloudflare'] }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('la regla de exención del checker es la del catálogo: category none Y motivo escrito, las dos cosas', () => {
+    const fuente = readFileSync(SCRIPT, 'utf8')
+    const m = fuente.match(/const trackingExento = \(def\) =>\s*([\s\S]*?)\n\n/)
+    if (!m) throw new Error('no se encuentra trackingExento en el checker')
+    // eslint-disable-next-line no-new-func
+    const exento = new Function('def', `return (${m[1]});`) as (d: Record<string, unknown>) => boolean
+    expect(exento({ category: 'none', exemptReason: 'motivo' })).toBe(true)
+    expect(exento({ category: 'none' })).toBe(false)
+    expect(exento({ category: 'none', exemptReason: '   ' })).toBe(false)
+    expect(exento({ category: 'none', exemptReason: 5 })).toBe(false)
+    expect(exento({ category: 'analytics', exemptReason: 'motivo' })).toBe(false)
+    expect(exento({ category: 'marketing' })).toBe(false)
+  })
+
+  it('el catálogo real: Cloudflare es el único exento y todo lo demás lleva ancla', () => {
+    const cat = JSON.parse(readFileSync(join(dirname(SCRIPT), '..', 'src', 'lib', 'tracking-providers.json'), 'utf8')).providers
+    const sinAncla = cat.filter((p: { marker?: string }) => !p.marker).map((p: { key: string }) => p.key)
+    expect(sinAncla).toEqual(['cloudflareWebAnalytics'])
+  })
+})
+
+describe('sec-markers: secciones condicionales por variable de build', () => {
+  const seccion = (k: string) => `<section data-saastro="sec:${k}"></section>`;
+  const s = 'tracking:\n  metaPixel: ""\n';
+
+  it('sección sin registrar y SIN variable → rojo (el contrato de la plantilla manda)', () => {
+    const r = check(site({ settings: s, extraHome: seccion('whatsapp') }));
+    expect(r.code, r.out).not.toBe(0);
+    expect(r.out).toContain('sec:whatsapp');
+  });
+
+  it('whatsapp sin registrar CON PUBLIC_WHATSAPP_NUMBER → verde con aviso (no falla)', () => {
+    const r = check(site({ settings: s, extraHome: seccion('whatsapp') }), { PUBLIC_WHATSAPP_NUMBER: '34000000000' });
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('PUBLIC_WHATSAPP_NUMBER');
+  });
+
+  it('la variable no excusa a OTRA sección sin registrar → rojo', () => {
+    const r = check(site({ settings: s, extraHome: seccion('banner') }), { PUBLIC_WHATSAPP_NUMBER: '34000000000' });
+    expect(r.code, r.out).not.toBe(0);
+    expect(r.out).toContain('sec:banner');
+  });
+});

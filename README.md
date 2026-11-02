@@ -36,7 +36,7 @@ src/
 │   ├── DesktopMenu.tsx           # shadcn NavigationMenu with dropdowns
 │   ├── MobileMenu.tsx            # shadcn Sheet + Accordion for mobile nav
 │   ├── LocaleSelector.tsx        # EN / ES locale switcher (opt-in)
-│   ├── Analytics.astro           # GA4 + GTM (consent-aware, reads cookie)
+│   ├── Analytics.astro           # Pixels from settings.tracking.* (consent-aware, reads cookie)
 │   ├── JsonLd.astro              # Structured data (Organization, Article, etc.)
 │   ├── OgImage.astro             # SVG-based OG image template (1200x630)
 │   └── ui/                       # shadcn primitives
@@ -122,7 +122,7 @@ Pure HTML shell. Handles everything that goes in `<head>`:
 - SEO meta tags (title, description, canonical)
 - Open Graph + Twitter Card
 - Hreflang links (when i18n is enabled)
-- Google Analytics + GTM (consent-aware)
+- Measurement pixels from `settings.tracking.*` (consent-aware, see [Analytics](#analytics))
 - Google Site Verification
 - Dark mode (anti-FOUC inline script)
 - View Transitions (`ClientRouter`)
@@ -187,7 +187,7 @@ export const i18nConfig = {
 };
 ```
 
-Keep the `i18n` block in `astro.config.mjs` (`routing: 'manual'`) in sync — it's the signal the Saastro Hub reads to detect locales.
+`astro.config.mjs` (Astro `i18n`, sitemap, Studio) derives its locales from this file: there is no second list to keep in sync. Full guide: `docs/idiomas.md`.
 
 ### How it works
 
@@ -198,14 +198,15 @@ Keep the `i18n` block in `astro.config.mjs` (`routing: 'manual'`) in sync — it
 
 ### Without i18n
 
-Set `enabled: false`. Pages work as plain static pages. No middleware, no translation JSON. The SiteLayout uses hardcoded English defaults. The locale selector disappears from the Header.
+Use a single locale (`locales: ['es']`) or set `enabled: false` (= base locale only). No prefixed routes, no locale selector, no hreflang. The middleware still fills `Astro.locals`. See `docs/idiomas.md`.
 
 ### Adding a locale
 
-1. Add the locale to `config.ts` (locales array + label) and to the `i18n` block in `astro.config.mjs`
-2. Create `translations/{locale}.json` (copy from `en.json`)
-3. Import it in `utils.ts` and add to `translationMap`
-4. Add locale subfolder to `content/legal/{locale}/` for legal pages
+1. Add the locale to `config.ts` (`locales` + `localeLabels`)
+2. Create `translations/{locale}.json` (copy from `en.json`) — the build fails if it is missing
+3. Add its 404 text to `src/lib/not-found.ts` and the locale to `saastrocms.config.ts`
+4. Add locale subfolder to `src/content/legal/{locale}/` for legal pages
+5. `pnpm studio:contract:update`
 
 ### Content collections with i18n
 
@@ -263,10 +264,9 @@ This repo is a **GitHub Template repository**. To start a new client site:
 
 1. **GitHub → "Use this template" → Create a new repository.**
 2. In the **Saastro Hub**, open the workspace → **New site → "Connect existing"** and pick the new repo.
-3. Open the site's **Setup** page. Because the template already ships Studio + config + i18n + marked components, every step validates green — nothing to install or auto-mark.
-4. Set the **deploy URL** (your Cloudflare Pages project — unique per project) and start editing content from the Hub.
-
-What's left per project is only what's inherently per-project: the repo, the deploy target, and the real content/branding. The instrumentation travels with the template.
+3. Open the site's **Setup** page. The Studio instrumentation (config, i18n, marked components) travels with the template, so there is nothing to install or auto-mark.
+4. Set `SITE_URL` to the real domain and the **deploy target** (a Cloudflare Workers project, see [Deploy](#deploy-to-cloudflare)).
+5. **Clean what the template inherits before publishing.** The repo is also the theme's own showcase site, so a new site starts with the theme's home page, sample posts and generic legal texts (the measurement ids and the WhatsApp number now ship empty; `theme.saastro.io` gets its own through build variables). Passing the Studio checks does not mean these are clean. The exact list, with where each one is changed and which ones the Hub rewrites by itself, is in [docs/nuevo-site-checklist.md](docs/nuevo-site-checklist.md).
 
 ## Content Collections
 
@@ -319,20 +319,24 @@ The `ApplyColorMode` inline script runs before paint — no FOUC. It checks `loc
 
 ## Analytics
 
-Google Analytics 4 and Google Tag Manager, both consent-aware:
+Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off; the template ships them empty) or in build variables `PUBLIC_TRACKING_<KEY>` (`PUBLIC_TRACKING_GA4`, `PUBLIC_TRACKING_CLARITY`, `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS`, `PUBLIC_TRACKING_META_PIXEL`, …: the key in UPPER_SNAKE_CASE; full list in [docs/guia-pixeles.md](docs/guia-pixeles.md#variables-de-build-las-pone-el-despliegue)). A non-empty variable wins over `settings.yaml`; an invalid one is dropped with a build warning and does NOT fall back to settings. They are not secrets (they end up in the served HTML) and are read at build time. The floating WhatsApp widget mounts only with a number: `PUBLIC_WHATSAPP_NUMBER` or the i18n key `whatsapp.number` (empty in the template); it also needs the `whatsapp` i18n block (its texts). `Analytics.astro` reads the resolved ids; there is nothing to pass as props.
 
-1. Declares Consent Mode v2 `default: denied` (analytics_storage, ad_storage, ad_user_data, ad_personalization) before any Google script
-2. On page load, reads the `cookie_consent` cookie; if there is no consent yet, listens for `cookie-consent-updated`
-3. GA4 loads only with `analytics`; GTM loads with `analytics` or `marketing`; Consent Mode limits what each tag may do
-4. There is no GTM `<noscript>` iframe: without JS the visitor cannot consent
+| Key | Provider | Waits for consent |
+|---|---|---|
+| `ga4` | Google Analytics 4 | `analytics` |
+| `gtm` | Google Tag Manager | `analytics` or `marketing` |
+| `googleAds` (+ `googleAdsConversionLabel`) | Google Ads | `marketing` |
+| `metaPixel` | Meta Pixel | `marketing` |
+| `tiktokPixel` | TikTok Pixel | `marketing` |
+| `linkedinPartnerId` | LinkedIn Insight Tag | `marketing` |
+| `clarity` | Microsoft Clarity | `analytics` |
+| `cloudflareWebAnalytics` | Cloudflare Web Analytics | **exempt**: loads without consent (the catalogue records the reason) |
 
-Pass IDs via SiteLayout or BaseLayout:
-
-```astro
-<SiteLayout
-  analytics={{ googleAnalyticsId: 'G-XXXXXXXXXX', googleTagManagerId: 'GTM-XXXXXXX' }}
-/>
-```
+- Each key accepts several ids separated by commas (`"G-AAAA…,G-BBBB…"`, max 5; Clarity and Cloudflare, 1). Invalid ids are dropped with a build warning.
+- Google tags declare Consent Mode v2 `default: denied` before any Google script; if there is no consent yet, the component listens for `cookie-consent-updated`.
+- No pixel loads in the Studio preview or local dev. There is no GTM `<noscript>` iframe: without JS the visitor cannot consent.
+- Turning a provider on adds a processing: the cookie policy must declare it (`<div data-legal="tracking-…">`, see `docs/legal-marketing.md`) or `pnpm studio:check` fails. Cloudflare Web Analytics has no anchor because it is exempt.
+- Old routes (`analytics.googleAnalytics.id`, `analytics.cloudflareWebAnalytics.token`) are still read as a fallback; `tracking.*` wins.
 
 ### Lead attribution (SAASTRO Gen) — opt-in
 

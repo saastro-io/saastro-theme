@@ -34,9 +34,12 @@ src/components/ValuesGrid.astro merge=ours
 src/components/CompareTable.astro merge=ours
 src/components/CtaBanner.astro merge=ours
 
-# Config del site: sus ids de medición (`tracking:`), su `forms.siteId` del Hub, su
-# nombre. NO es contenido de ejemplo, pero comparte el mecanismo. El Hub ESCRIBE aquí
-# los ids de cada site, incluidos los de theme.saastro.io en el repo del theme.
+# Config del site: su `forms.siteId` del Hub, su nombre y, si los puso ahí, sus ids de
+# medición (`tracking:`). NO es contenido de ejemplo, pero comparte el mecanismo. Medido:
+# el aprovisionamiento del Hub escribe aquí SOLO `forms.siteId` y el bloque `gen`; la
+# tarjeta de píxeles del Hub escribe `tracking.*` en un site ya creado. En el repo del theme
+# los ids de medición van VACÍOS (la plantilla sale limpia) y theme.saastro.io los pone con
+# variables de build `PUBLIC_TRACKING_*` / `PUBLIC_WHATSAPP_NUMBER` (docs/guia-pixeles.md).
 #
 # Qué hace y qué NO: el driver `ours` solo se invoca cuando las DOS ramas han cambiado
 # el fichero desde la base. Un site que ya lo editó (su nombre, su `forms.siteId`…) se

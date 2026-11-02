@@ -10,6 +10,8 @@ import { fetchHubFormSchema } from '../../../lib/hub-form-schema';
 import { LP_PREVIEW_SECRET } from 'astro:env/server';
 import type { LandingData } from '../../../lib/lp';
 import { verifyPreview } from '../../../lib/lp-preview';
+import { defaultLocale } from '../../../i18n/config';
+import { lpLocaleFromParam, pickByLocale } from '../../../lib/lp-locale';
 
 // SSR, not prerendered — deliberately. Prerendered collection routes make CI
 // red every time the client publishes a new entry (the contract sees a route it
@@ -25,9 +27,15 @@ import { verifyPreview } from '../../../lib/lp-preview';
 export const prerender = false;
 
 const { slug } = Astro.params;
+
+// Un prefijo de idioma que no está declarado (`/zz/lp/x`) es 404, no home: la
+// redirección de abajo es solo para slugs. Antes que nada, sin tocar la colección.
+if (!lpLocaleFromParam(Astro.params.locale).ok) {
+  return new Response(null, { status: 404 });
+}
 const t = Astro.locals.t;
 const lp = Astro.locals.localePath;
-const locale = Astro.locals.lang;
+const locale = Astro.locals.lang ?? defaultLocale;
 
 const entries = await getCollection('lp');
 const found = entries.find((l) => l.id === slug);
@@ -83,7 +91,7 @@ const Layout = LAYOUTS[landing.layout];
 
 const minimo = landing.chrome === 'minimo';
 const CTA_POR_DEFECTO: Record<string, string> = { es: 'Solicitar información', en: 'Get in touch' };
-const ctaLabel = landing.cta ?? CTA_POR_DEFECTO[locale] ?? CTA_POR_DEFECTO.en;
+const ctaLabel = landing.cta ?? pickByLocale(CTA_POR_DEFECTO, locale);
 
 const siteName = t.meta.siteName ?? getSettings().site.name;
 // SEO landings carry a SERP-tuned title/description in frontmatter; the H1 and
@@ -100,6 +108,7 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   indexable={landing.indexable}
   alternates={false}
   chrome={landing.chrome}
+  landingTracking={{ tracking: landing.tracking, mode: landing.trackingMode }}
 >
   {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
       landings son `prerender = false`, y el contador del HTML depende de un

@@ -1,10 +1,15 @@
 import { flattenSpansDeep } from '@saastro/studio/richtext';
 import { defaultLocale, locales, localeLabels, type Locale } from './config';
 import type { Translations } from './types';
-import en from './translations/en.json';
-import es from './translations/es.json';
+import { buildTranslationMap } from '../lib/i18n-derive';
+import { i18nConfig } from './config';
 
-const translationMap: Record<Locale, unknown> = { en, es };
+// Todas las traducciones por glob: un idioma nuevo no necesita tocar este fichero.
+// Si un idioma de `locales` no tiene su `<locale>.json`, el build FALLA (no cae al base).
+const translationMap = buildTranslationMap(
+  import.meta.glob('./translations/*.json', { eager: true, import: 'default' }),
+  i18nConfig,
+) as Record<Locale, unknown>;
 
 /**
  * Deep-merge base (defaultLocale) with override (target locale).
@@ -87,8 +92,10 @@ export function localePath(locale: Locale, path: string): string {
 export function stripLocalePrefix(pathname: string): string {
   for (const locale of locales) {
     if (locale === defaultLocale) continue;
-    if (pathname === `/${locale}`) return '/';
-    if (pathname.startsWith(`/${locale}/`)) return pathname.slice(locale.length + 1);
+    // `string`: con UN solo idioma, `locale` quedaría `never` tras el `continue`.
+    const prefix: string = locale;
+    if (pathname === `/${prefix}`) return '/';
+    if (pathname.startsWith(`/${prefix}/`)) return pathname.slice(prefix.length + 1);
   }
   return pathname;
 }

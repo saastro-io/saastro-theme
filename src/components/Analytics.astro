@@ -4,11 +4,24 @@ import type { EnabledProvider } from '../lib/tracking';
 export interface Props {
   /** Proveedores ya validados por `resolveTracking` (src/lib/tracking.ts). */
   providers?: EnabledProvider[];
-  /** Etiqueta de conversión de Google Ads (`AW-…/<label>`); '' = sin conversión. */
+  /** Etiqueta de conversión de Google Ads (`AW-…/<label>`); '' = sin conversión.
+   *  Compat: se asocia a la PRIMERA cuenta de googleAds si no llega `googleAdsConversions`. */
   googleAdsConversionLabel?: string;
+  /** Conversiones por cuenta de Google Ads (de `resolveTracking`). */
+  googleAdsConversions?: Array<{ id: string; label: string }>;
 }
 
-const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
+const { providers = [], googleAdsConversionLabel = '', googleAdsConversions } = Astro.props;
+// Conversiones: lo que dice resolveTracking, o (compat) la etiqueta suelta con la primera cuenta.
+const adsConv =
+  googleAdsConversions ??
+  (googleAdsConversionLabel
+    ? [{ id: providers.find((p) => p.key === 'googleAds')?.ids?.[0] ?? '', label: googleAdsConversionLabel }].filter((c) => c.id)
+    : []);
+// Host de producción del propio site (de SITE_URL). El beacon de Cloudflare bloquea
+// `*.saastro.io` (previews, apps internas) SALVO este host: un site de la suite que
+// sirve en un subdominio de saastro.io (theme.saastro.io) es tráfico real.
+const ownHost = Astro.site?.hostname ?? '';
 ---
 
 {/* Medición y anuncios — UNA sola puerta de consentimiento para todos.
@@ -23,6 +36,17 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
     al aceptar (analytics → analytics_storage; marketing → ad_storage,
     ad_user_data, ad_personalization).
 
+    EXENTOS (categoría `none` del catálogo, hoy Cloudflare Web Analytics): cargan SIN
+    puerta de consentimiento, por una decisión escrita en el catálogo
+    (`exemptReason` de tracking-providers.json). No entran en `covers`/KEYS (no
+    piden volver a consentir), no marcan `trackersLoaded` (revocar no recarga por
+    ellos) y no reciben `saastroTrack`. Siguen sin cargar en una vista previa
+    (resolveTracking con `noindex`) y en los hosts de `isBlockedMeasureHost`.
+
+    VERSIÓN del consentimiento: la cookie guarda `providers` (los proveedores
+    encendidos al consentir). Si hoy hay uno que no está, el consentimiento NO
+    vale: no carga nada y el banner vuelve a preguntar (consentCovers).
+
     Revocar no se puede "descargar": el banner recarga la página si hay un
     tracker vivo (CookieBanner.tsx → consentRevoked; flag window.trackersLoaded).
 
@@ -35,19 +59,44 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
     Los snippets de cada proveedor son los de su documentación pública, escritos
     de memoria: SIN VERIFICAR contra los proveedores reales (ver el PR). */}
 {providers.length > 0 && (
-  <script is:inline define:vars={{ providers, adsLabel: googleAdsConversionLabel }}>
+  <script is:inline define:vars={{ providers, adsConv, ownHost }}>
     (function () {
+      // FIRMA de lo que esta página enciende. Con ClientRouter (navegación sin recargar) este
+      // script se vuelve a ejecutar al llegar a otra página; si la firma cambia (una landing con
+      // override de píxeles <-> el resto del site) los trackers ya cargados NO se pueden descargar
+      // y el listener del script anterior seguiría vivo: el override de una página pasaría a la
+      // otra. Se recarga la página nueva (una sola vez: tras recargar no hay firma previa).
+      // Con la misma firma (todo el site sin landings) no pasa nada.
+      var sig = JSON.stringify([providers.map(function (p) { return [p.key, p.ids]; }), adsConv]);
+      if (window.__saastroTrackSig !== undefined && window.__saastroTrackSig !== sig) {
+        location.reload();
+        return;
+      }
+      window.__saastroTrackSig = sig;
       var CAT = {};
-      var ID = {};
-      providers.forEach(function (p) { CAT[p.key] = p.category; ID[p.key] = p.id; });
+      var IDS = {};
+      providers.forEach(function (p) { CAT[p.key] = p.category; IDS[p.key] = p.ids; });
       var loaded = {};
-      var hayGoogle = !!(ID.ga4 || ID.gtm || ID.googleAds);
+      var hayGoogle = !!(IDS.ga4 || IDS.gtm || IDS.googleAds);
+      // Solo los que piden consentimiento: un exento ('none') no cuenta en la versión.
+      var KEYS = providers.filter(function (p) { return p.category !== 'none'; }).map(function (p) { return p.key; });
+
+      // REPLICA de consentCovers (src/lib/cookies.ts): un consentimiento solo vale
+      // si cubre TODOS los proveedores encendidos ahora. Sin `providers` guardado
+      // (cookie anterior a la versión) y con algún proveedor encendido → NO vale.
+      // Analytics.test.ts ejecuta este código contra la función pura.
+      function covers(c) {
+        if (KEYS.length === 0) return true;
+        if (!Array.isArray(c.providers)) return false;
+        return KEYS.every(function (k) { return c.providers.indexOf(k) !== -1; });
+      }
 
       function readConsent() {
         try {
           var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
           if (!match) return {};
           var c = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          if (!c || typeof c !== 'object' || !covers(c)) return {};
           return { analytics: c.analytics === true, marketing: c.marketing === true };
         } catch (e) {
           return {};
@@ -83,6 +132,7 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
         if (f && f.parentNode) f.parentNode.insertBefore(s, f); else document.head.appendChild(s);
       }
 
+      // Un solo gtag.js para todo Google (con el primer id); luego un `config` por id.
       var gtagJs = false;
       function ensureGtagJs(id) {
         if (gtagJs) return;
@@ -91,15 +141,20 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
         gtag('js', new Date());
       }
 
+      // Cada cargador recibe TODOS los ids del proveedor (ya validados, sin repetir).
       var LOADERS = {
-        ga4: function (id) { ensureGtagJs(id); gtag('config', id); window.gaLoaded = true; },
-        googleAds: function (id) { ensureGtagJs(id); gtag('config', id); },
-        gtm: function (id) {
-          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-          script('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id));
+        ga4: function (ids) { ensureGtagJs(ids[0]); ids.forEach(function (id) { gtag('config', id); }); window.gaLoaded = true; },
+        googleAds: function (ids) { ensureGtagJs(ids[0]); ids.forEach(function (id) { gtag('config', id); }); },
+        // Un contenedor = un gtm.js (cada uno con su gtm.start).
+        gtm: function (ids) {
+          ids.forEach(function (id) {
+            window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+            script('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id));
+          });
           window.gtmLoaded = true;
         },
-        metaPixel: function (id) {
+        // Un fbq('init') por píxel y UN solo PageView (fbq lo manda a todos los inicializados).
+        metaPixel: function (ids) {
           (function (f, b, e, v, n, t, s) {
             if (f.fbq) return;
             n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
@@ -108,31 +163,82 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
             t = b.createElement(e); t.async = true; t.src = v;
             s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
           })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-          window.fbq('init', id);
+          ids.forEach(function (id) { window.fbq('init', id); });
           window.fbq('track', 'PageView');
         },
-        tiktokPixel: function (id) {
+        // Un ttq.load por píxel y UNA sola ttq.page().
+        tiktokPixel: function (ids) {
           var t = 'ttq';
           window.TiktokAnalyticsObject = t;
           var ttq = window[t] = window[t] || [];
           ttq.methods = ['page', 'track', 'identify', 'instances', 'debug', 'on', 'off', 'once', 'ready', 'alias', 'group', 'enableCookie', 'disableCookie'];
           ttq.setAndDefer = function (o, m) { o[m] = function () { o.push([m].concat(Array.prototype.slice.call(arguments, 0))); }; };
           for (var i = 0; i < ttq.methods.length; i++) ttq.setAndDefer(ttq, ttq.methods[i]);
-          ttq._i = ttq._i || {}; ttq._i[id] = [];
-          ttq._t = ttq._t || {}; ttq._t[id] = +new Date();
-          script('https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=' + encodeURIComponent(id) + '&lib=' + t);
+          ttq._i = ttq._i || {};
+          ttq._t = ttq._t || {};
+          ttq.load = function (id) {
+            ttq._i[id] = [];
+            ttq._t[id] = +new Date();
+            script('https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=' + encodeURIComponent(id) + '&lib=' + t);
+          };
+          ids.forEach(function (id) { ttq.load(id); });
           ttq.page();
         },
-        linkedinPartnerId: function (id) {
+        // Lista de partner ids; la etiqueta se carga una vez.
+        linkedinPartnerId: function (ids) {
           window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-          window._linkedin_data_partner_ids.push(id);
+          ids.forEach(function (id) { window._linkedin_data_partner_ids.push(id); });
           script('https://snap.licdn.com/li.lms-analytics/insight.min.js');
         },
-        clarity: function (id) {
+        // UN solo proyecto por página (maxIds 1 en el catálogo): llega un único id.
+        clarity: function (ids) {
           window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
-          script('https://www.clarity.ms/tag/' + encodeURIComponent(id));
+          script('https://www.clarity.ms/tag/' + encodeURIComponent(ids[0]));
         },
       };
+
+      // Exentos de consentimiento. Mismo bloqueo de hosts que RenderRatio/GenTracking
+      // (copia de isBlockedMeasureHost; measure-host.test.ts la compara) y mismo shim
+      // que antes de entrar en el catálogo: el beacon de CF trata el SPA con
+      // history.pushState y, sin normalizar, ClientRouter le da URLs same-origin que
+      // acaban en `https:://`.
+      var EXEMPT = {
+        cloudflareWebAnalytics: function (ids) {
+          var h = location.hostname;
+          var blocked =
+            h === 'localhost' ||
+            h === '127.0.0.1' ||
+            (h.endsWith('.saastro.io') && h !== ownHost) ||
+            h.endsWith('.saastro.test') ||
+            h.endsWith('.local');
+          if (blocked) return;
+          var s = document.createElement('script');
+          s.defer = true;
+          s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+          s.setAttribute('data-cf-beacon', JSON.stringify({ token: ids[0] }));
+          s.onload = function () {
+            function norm(u) {
+              if (u == null) return u;
+              try {
+                var abs = u instanceof URL ? u : new URL(String(u), location.href);
+                if (abs.origin === location.origin) return abs.pathname + abs.search + abs.hash;
+              } catch (_) {}
+              return u;
+            }
+            ['pushState', 'replaceState'].forEach(function (k) {
+              var orig = history[k].bind(history);
+              history[k] = function (state, title, url) { return orig(state, title, norm(url)); };
+            });
+          };
+          document.head.appendChild(s);
+        },
+      };
+      function loadExempt() {
+        providers.forEach(function (p) {
+          if (p.category !== 'none' || !EXEMPT[p.key]) return;
+          EXEMPT[p.key](p.ids);
+        });
+      }
 
       function apply(c) {
         if (!c.analytics && !c.marketing) return;
@@ -145,10 +251,11 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
           });
         }
         providers.forEach(function (p) {
+          // Los exentos no están en LOADERS (los carga loadExempt): aquí no entran ni marcan trackersLoaded.
           if (loaded[p.key] || !allowed(CAT[p.key], c) || !LOADERS[p.key]) return;
           loaded[p.key] = true;
           window.trackersLoaded = true;
-          LOADERS[p.key](p.id);
+          LOADERS[p.key](p.ids);
         });
       }
 
@@ -160,8 +267,9 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
         var eid = data.event_id;
         if (loaded.ga4) { gtag('event', name, data); sent.push('ga4'); }
         if (loaded.gtm) { window.dataLayer.push(Object.assign({ event: name }, data)); sent.push('gtm'); }
-        if (loaded.googleAds && adsLabel && LEAD[name]) {
-          gtag('event', 'conversion', { send_to: ID.googleAds + '/' + adsLabel });
+        // Google Ads: cada etiqueta pertenece a UNA cuenta; se emite a su `AW-…/<etiqueta>`.
+        if (loaded.googleAds && LEAD[name] && adsConv.length) {
+          adsConv.forEach(function (c) { gtag('event', 'conversion', { send_to: c.id + '/' + c.label }); });
           sent.push('googleAds');
         }
         if (loaded.metaPixel && window.fbq) {
@@ -194,11 +302,22 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
         });
       }
 
+      // Sin puerta de consentimiento y sin esperar al DOM, como cargaba antes en BaseLayout.
+      loadExempt();
+
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);
       } else {
         start();
       }
     })();
+  </script>
+)}
+{providers.length === 0 && (
+  <script is:inline>
+    // Página sin proveedores (otra sin píxeles, o la vista previa): si venimos SIN recargar de una
+    // página que SÍ los cargó (p. ej. una landing con override), sus trackers, su listener de
+    // consentimiento y su `saastroTrack` siguen vivos. Misma regla que la firma de arriba: se recarga.
+    if (window.__saastroTrackSig !== undefined) location.reload();
   </script>
 )}

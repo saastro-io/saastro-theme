@@ -1,8 +1,10 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { i18nConfig } from './i18n/config';
+import { legalGlob } from './lib/i18n-derive';
 
 const legal = defineCollection({
-  loader: glob({ pattern: '{en,es}/*.md', base: './src/content/legal' }),
+  loader: glob({ pattern: legalGlob(i18nConfig), base: './src/content/legal' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -80,6 +82,17 @@ const lp = defineCollection({
     chrome: z.enum(['completo', 'minimo']).default('completo'),
     // Texto del CTA fijo móvil (solo con chrome: minimo). Vacío = un texto genérico por idioma.
     cta: z.string().optional(),
+    // Píxeles propios de ESTA landing (override de `settings.tracking`). Mismas claves que
+    // el catálogo (metaPixel, tiktokPixel, linkedinPartnerId, googleAds,
+    // googleAdsConversionLabel, ga4, gtm); cloudflareWebAnalytics y clarity son del site.
+    // El esquema solo fija la FORMA: el valor de cada clave es una cadena con ids separados
+    // por comas y lo valida `resolveTracking` (src/lib/tracking.ts) con el patrón de su
+    // proveedor. Un id malo o una clave desconocida se descartan con aviso, NO rompen el
+    // build (una landing mal escrita no debe tumbar el site). Sin consentimiento nada carga.
+    tracking: z.record(z.string(), z.unknown()).optional(),
+    // `add` (por defecto): suma los ids de la landing a los del site. `replace`: para cada
+    // proveedor que la landing trae, sustituye los ids del site. Otro valor = `add` con aviso.
+    trackingMode: z.string().optional(),
   }),
 });
 

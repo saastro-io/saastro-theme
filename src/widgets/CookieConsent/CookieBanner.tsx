@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { editableField, editableSection } from "@saastro/studio/markers"
-import { consentRevoked, getConsent, resolvePrefs, revokedCategories, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { bannerAlMontar, consentRevoked, getConsent, resolvePrefs, revokedCategories, setConsent, type ConsentPrefs } from "@/lib/cookies"
 import { aplicarLimpiezaPendiente, clearTrackerCookies, marcarLimpiezaPendiente } from "@/lib/tracker-cookies"
 import { mirrorGenConsent } from "@/lib/gen-consent"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,10 @@ interface CookieBannerProps {
    *  anuncios encendido: un interruptor sin nada detrás confunde y obliga a
    *  describir en la política algo que no ocurre. */
   showMarketing?: boolean
+  /** Claves de los proveedores de tracking encendidos hoy (resolveTracking). El
+   *  consentimiento guardado solo vale si las cubre todas (consentCovers); si se
+   *  enciende un proveedor nuevo, el banner vuelve a salir. Se guardan al aceptar. */
+  trackingKeys?: string[]
   /** Studio section key — i18n namespace the field markers bind to. */
   fieldPrefix?: string
 }
@@ -53,7 +57,7 @@ function analyticsTrackerLoaded(): boolean {
   return Boolean(w.gaLoaded || w.gtmLoaded || w.trackersLoaded)
 }
 
-export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing = false, fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
+export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing = false, trackingKeys = [], fieldPrefix = 'cookieBanner' }: CookieBannerProps) {
   const [visible, setVisible] = useState(false)
   const [showCustomize, setShowCustomize] = useState(false)
   const [analytics, setAnalytics] = useState(false)
@@ -64,10 +68,18 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
     // Limpieza pendiente de una revocación que recargó la página (ver `save`).
     aplicarLimpiezaPendiente()
 
-    const consent = getConsent()
-    if (!consent) setVisible(true)
+    const inicial = bannerAlMontar(getConsent(), trackingKeys)
+    if (inicial.visible) setVisible(true)
+    if (inicial.prefill) {
+      setAnalytics(inicial.prefill.analytics)
+      setMarketing(inicial.prefill.marketing)
+      setPersonalization(inicial.prefill.personalization)
+    }
     // Quien ya eligió antes de que existiera el espejo no pasa por `save`.
-    else mirrorGenConsent(consent.analytics, { alMontar: true })
+    // Un consentimiento que ya no vale (proveedor nuevo) NO puede seguir
+    // concediendo en gen-consent: se retira hasta que vuelva a elegir.
+    if (inicial.mirrorAnalytics === 'retirar') mirrorGenConsent(false)
+    else if (inicial.mirrorAnalytics !== null) mirrorGenConsent(inicial.mirrorAnalytics, { alMontar: true })
 
     const w = window as Window & { __cookieReopenPending?: boolean }
     const handleReopen = () => {
@@ -99,7 +111,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
     (input: Omit<ConsentPrefs, 'marketing'> & { marketing?: boolean }) => {
       const prefs = resolvePrefs(input, showMarketing)
       const previous = getConsent()
-      setConsent(prefs)
+      setConsent(prefs, trackingKeys)
       mirrorGenConsent(prefs.analytics)
       window.dispatchEvent(new CustomEvent("cookie-consent-updated", { detail: prefs }))
       setVisible(false)
@@ -124,7 +136,7 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
         window.location.reload()
       }
     },
-    [showMarketing],
+    [showMarketing, trackingKeys],
   )
 
   if (!visible) return <></>

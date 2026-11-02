@@ -65,7 +65,10 @@
  *                         enlazada lo DECLARA (ancla <div data-legal="render-ratio">)
  *   8e. tracking-legal  — por cada píxel encendido en settings (ga4, gtm, Google Ads, Meta, TikTok,
  *                         LinkedIn, Clarity) la política enlazada lo NOMBRA (ancla
- *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md)
+ *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md).
+ *                         Un valor puede ser una lista de ids separados por comas. Los
+ *                         proveedores EXENTOS (catálogo: category "none" + exemptReason, hoy
+ *                         Cloudflare Web Analytics) no exigen ancla.
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -76,7 +79,10 @@
  *                         locale, y los logos de src/assets/brand/ que existan
  *  15. cobertura        — se midió al menos UNA página de contenido (las de error no cuentan);
  *                         si no, exit 1: sin páginas los invariantes por página no son aplicables
- *                         y no se dan por buenos. Ídem 7 con 0 bytes de CSS («no se midió»)
+ *                         y no se dan por buenos: cada invariante por página (sec-markers, field-markers,
+ *                         verbatim, img-raw, schema-scripts, locale-parity, manage-cookies, marca-header,
+ *                         cookie-policy, gen-legal, medicion-legal, tracking-legal)
+ *                         sale como «NO APLICABLE» con su motivo. Ídem 7 con 0 bytes de CSS
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
  */
@@ -87,7 +93,7 @@ import { createServer } from 'node:net'
 import { extname, join, relative } from 'node:path'
 import { parse } from 'node-html-parser'
 import { parse as parseYaml } from 'yaml'
-import { resolveDefaultLocale } from './lib/default-locale.mjs'
+import { resolveDefaultLocale, resolveDeclaredLocales } from './lib/default-locale.mjs'
 import { hojasI18n, huerfanas } from './lib/i18n-consumo.mjs'
 
 const ROOT = process.cwd()
@@ -128,9 +134,26 @@ const SKIP_SUBTREES = new Set(['seo', 'meta', 'metadata', 'opengraph', 'og'])
 // VERIFICADAS en cada pasada. La lista vive aquí —fichero hasheado por el
 // invariante 10— para que no crezca sin que se note. Un prefijo cubre su
 // subárbol (`lp` → `lp.*`).
+const WA_SIN_NUMERO = 'sólo se renderiza con número de WhatsApp (PUBLIC_WHATSAPP_NUMBER o whatsapp.number); la plantilla no lo trae'
+// Secciones del DOM que aparecen SOLO si el despliegue pone una variable de build (la plantilla
+// sale sin ellas y su contrato tampoco las lleva). key de sección → variable.
+const SECCIONES_CONDICIONALES = { whatsapp: 'PUBLIC_WHATSAPP_NUMBER' }
+const condicionalAvisada = new Set()
 const I18N_NO_VERIFICABLE = {
   // En modo dist las rutas on-demand no se renderizan.
   lp: 'sólo se leen en src/pages/[...locale]/lp/[slug].astro — landings SSR (prerender = false)',
+  // El widget de WhatsApp es CONDICIONAL: SiteLayout lo monta sólo si hay número (variable de
+  // build PUBLIC_WHATSAPP_NUMBER o la clave `whatsapp.number`). La plantilla sale con el número
+  // vacío, así que sus textos (prefill, name, role…) existen en el JSON pero este build no los
+  // renderiza; en un site con número SÍ se leen. Se enumeran como NO VERIFICADAS (aviso en cada
+  // pasada), no como muertas. `whatsapp.number` no entra aquí: SiteLayout lo lee SIEMPRE.
+  'whatsapp.prefill': WA_SIN_NUMERO,
+  'whatsapp.name': WA_SIN_NUMERO,
+  'whatsapp.role': WA_SIN_NUMERO,
+  'whatsapp.greeting': WA_SIN_NUMERO,
+  'whatsapp.cta': WA_SIN_NUMERO,
+  'whatsapp.ariaOpen': WA_SIN_NUMERO,
+  'whatsapp.ariaClose': WA_SIN_NUMERO,
   // `meta.title` estuvo aquí hasta el 30-sep: ninguna página lo leía porque las
   // tres que usan resolveMeta traían override. Ahora home no trae
   // `meta.pages.home.title` y hereda el global, que es lo que el panel SEO del
@@ -218,7 +241,11 @@ function measureFlagOn() {
 // El catálogo (clave, id válido, marcador) es src/lib/tracking-providers.json, la
 // MISMA fuente que usa el build: no hay dos listas que se desincronicen.
 //
-// LÍMITE CONOCIDO: este checker solo conoce settings.yaml. La prop `analytics` de
+// LANDINGS: además de settings.yaml se lee el frontmatter `tracking:` de CUALQUIER
+// landing (src/content/lp/*.md, publicada o borrador; ver docs/guia-pixeles.md). Un
+// proveedor encendido solo en una landing exige su ancla igual que uno del site.
+//
+// LÍMITE CONOCIDO: este checker solo conoce settings.yaml y las landings. La prop `analytics` de
 // BaseLayout (googleAnalyticsId / googleTagManagerId) tiene prioridad en el build
 // (resolveTracking) pero un checker que corre fuera de Astro no la ve: un site
 // que pase un id por esa prop con settings vacíos carga GA4/GTM y 8e no exige su
@@ -228,31 +255,86 @@ const TRACKING_CATALOG = JSON.parse(
   readFileSync(new URL('../src/lib/tracking-providers.json', import.meta.url), 'utf8'),
 ).providers
 
-/** Proveedores encendidos (con id de formato válido) según settings.yaml. */
-function trackingEnabled() {
-  const path = join(ROOT, 'src', 'data', 'settings.yaml')
-  if (!existsSync(path)) return []
-  let s
-  try {
-    s = parseYaml(readFileSync(path, 'utf8'))
-  } catch {
-    return [] // settings ilegible: 8e no opina (otros invariantes ya fallarán)
-  }
-  // Solo propiedades PROPIAS (nunca las del prototipo: __proto__, constructor…).
+// EXENCIÓN EXPLÍCITA: un proveedor del catálogo con `category: "none"` Y un
+// `exemptReason` escrito (hoy Cloudflare Web Analytics) no exige ancla en la
+// política. Las dos cosas a la vez: una `none` sin motivo, o un motivo en un
+// proveedor con otra categoría, NO eximen (el checker falla del lado de exigir).
+// Misma regla que `isExempt` de src/lib/tracking.ts (no se puede importar un .ts
+// desde este .mjs; tracking-legal.test.ts ejecuta ESTA copia).
+const trackingExento = (def) =>
+  def.category === 'none' && typeof def.exemptReason === 'string' && def.exemptReason.trim() !== ''
+
+/** Proveedores encendidos según settings.yaml Y según el frontmatter de CUALQUIER landing
+ *  (src/content/lp/*.md, publicada o borrador: una landing puede publicarse sin tocar el
+ *  checker, y un borrador con un píxel sin ancla no debe llegar a publicarse). Devuelve
+ *  Map<def, orígenes[]>. Los exentos de consentimiento no se devuelven: no hay ancla que
+ *  exigir por ellos; los `perLanding: false` (Clarity, Cloudflare) no se leen de una landing
+ *  porque `resolveTracking` los ignora allí. Se cuenta CADA proveedor con algún id de formato
+ *  válido, en `add` o en `replace`: ambos modos lo encienden en esa landing. */
+function trackingEnabledPorOrigen() {
   const propio = (o, k) =>
     o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined
-  const leer = (ruta) => {
-    const cur = ruta.reduce((acc, k) => propio(acc, k), s)
-    return typeof cur === 'string' ? cur.trim() : ''
+  const on = new Map()
+  const marca = (def, origen) => on.set(def, [...(on.get(def) ?? []), origen])
+  // El valor puede ser una lista separada por comas (como en resolveTracking): basta UN
+  // id con formato válido para que cargue. Los inválidos NO cargan (se descartan).
+  const valido = (def, valor) => {
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- patrón del catálogo del repo, no de entrada externa
+    const re = new RegExp(def.pattern)
+    return valor.split(',').some((id) => re.test(id.trim()))
   }
-  const on = []
-  for (const def of TRACKING_CATALOG) {
-    const id = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
-    // Un id con formato inválido NO carga (resolveTracking lo descarta): no hay tratamiento.
-    if (id && new RegExp(def.pattern).test(id)) on.push(def)
+
+  const path = join(ROOT, 'src', 'data', 'settings.yaml')
+  if (existsSync(path)) {
+    let s
+    try {
+      s = parseYaml(readFileSync(path, 'utf8'))
+    } catch {
+      s = undefined // settings ilegible: 8e no opina de settings (otros invariantes ya fallarán)
+    }
+    if (s !== undefined) {
+      const leer = (ruta) => {
+        const cur = ruta.reduce((acc, k) => propio(acc, k), s)
+        return typeof cur === 'string' ? cur.trim() : ''
+      }
+      for (const def of TRACKING_CATALOG) {
+        if (trackingExento(def)) continue
+        const valor = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
+        if (valido(def, valor)) marca(def, 'settings.yaml')
+      }
+    }
+  }
+
+  const lpDir = join(ROOT, 'src', 'content', 'lp')
+  if (existsSync(lpDir)) {
+    for (const f of readdirSync(lpDir).filter((n) => n.endsWith('.md')).sort()) {
+      let fm
+      try {
+        const m = readFileSync(join(lpDir, f), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---/)
+        fm = m ? parseYaml(m[1]) : undefined
+      } catch {
+        continue // frontmatter ilegible: el build de contenido ya falla
+      }
+      const t = propio(fm, 'tracking')
+      for (const def of TRACKING_CATALOG) {
+        if (trackingExento(def) || def.perLanding === false) continue
+        const v = propio(t, def.key)
+        if (typeof v === 'string' && valido(def, v.trim())) marca(def, `la landing ${f}`)
+      }
+    }
   }
   return on
 }
+
+const trackingEnabled = () => [...trackingEnabledPorOrigen().keys()]
+
+// Invariantes que recorren páginas de contenido: con 0 páginas medidas no son
+// aplicables y se enumeran uno a uno (invariante 15).
+const INVARIANTES_POR_PAGINA = [
+  'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
+  'locale-parity', 'manage-cookies', 'marca-header',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
+]
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const failures = []
@@ -391,7 +473,12 @@ if (!existsSync(join(ROOT, 'dist'))) {
   process.exit(1)
 }
 
-const localeFiles = readdirSync(I18N_DIR).filter((f) => f.endsWith('.json'))
+// Solo cuentan los idiomas DECLARADOS en src/i18n/config.ts: un `<loc>.json` de un idioma
+// que ya no se declara no se carga en el build y no debe contar como idioma del site.
+const DECLARED = resolveDeclaredLocales(ROOT)
+const localeFiles = readdirSync(I18N_DIR)
+  .filter((f) => f.endsWith('.json'))
+  .filter((f) => !DECLARED || DECLARED.includes(f.replace(/\.json$/, '')))
 const translations = Object.fromEntries(
   localeFiles.map((f) => [
     f.replace(/\.json$/, ''),
@@ -1105,10 +1192,17 @@ async function main() {
     if (contentKeys.length === 0) {
       fail('cobertura', '(build)', '—',
         `NO SE MIDIÓ ninguna página de contenido (modo ${mode}: ${errorKeys.length ? errorKeys.join(', ') : 'ninguna página'}). ` +
-          'Los invariantes sec-markers, field-markers, verbatim, locale-parity, manage-cookies y marca-header NO son aplicables sin páginas: no se dan por buenos',
+          'Ningún invariante por página se dio por bueno: cada uno sale abajo como NO APLICABLE',
         manifestV1
           ? 'el manifiesto es v1 y solo registra lo que dist/ prerenderiza. En un site SSR regenera con `pnpm studio:contract:update` (graba rutas v2 y el check pasa a crawl sobre el server local) y commitea el diff'
           : 'si el site es SSR, las rutas se miden en crawl: `pnpm studio:contract:update` las descubre de src/pages × locales, o fuerza `--mode=crawl`. Si el manifiesto las marca crawleable:false, el server local no las sirvió al generarlo: arréglalo antes de regenerar')
+      // Un «NO APLICABLE» por invariante, con su motivo: así el informe nombra
+      // lo que NO se comprobó en vez de callarlo dentro de un bloque global.
+      for (const inv of INVARIANTES_POR_PAGINA) {
+        fail(inv, '(build)', '—',
+          `NO APLICABLE — 0 páginas de contenido medidas (modo ${mode}): sin páginas no hay nada que contradecir y no se da por bueno`,
+          'mide las páginas en crawl (`pnpm studio:contract:update` o `--mode=crawl`)')
+      }
     }
 
     // 1 + 2 — marcadores de sección y de campo vs manifiesto
@@ -1162,6 +1256,17 @@ async function main() {
       }
       for (const key of got) {
         if (!(key in (entry.sections ?? {}))) {
+          // Sección CONDICIONAL: el contrato guardado es el de la plantilla (sin número de WhatsApp);
+          // un despliegue que pone PUBLIC_WHATSAPP_NUMBER añade la sección. Se avisa UNA vez, no se falla.
+          const variable = SECCIONES_CONDICIONALES[key]
+          if (variable && (process.env[variable] ?? '').trim() !== '') {
+            if (!condicionalAvisada.has(key)) {
+              condicionalAvisada.add(key)
+              warn('sec-markers', '(todas)', `sec:${key}`, `sección presente por la variable de build ${variable}, que el contrato de la plantilla no trae: NO VERIFICADA contra el manifiesto`,
+                'esperado en el despliegue que pone la variable; `pnpm studio:check` sin la variable la verifica contra el contrato')
+            }
+            continue
+          }
           fail('sec-markers', rel, `sec:${key}`, 'sección presente en el HTML pero NO registrada en el manifiesto',
             'si la sección nueva es deliberada, corre `pnpm studio:contract:update` y commitea el diff')
         }
@@ -1289,7 +1394,7 @@ async function main() {
       // ausentes manda a buscar una purga de Tailwind que no ha ocurrido.
       if (allCss.trim() === '') {
         fail('css-tokens', '(css)', '—',
-          `NO SE MIDIÓ ningún CSS: 0 bytes entre ${mode === 'crawl' ? 'los .css servidos' : 'los .css de dist/'} y los <style> de ${Object.keys(pages).length} página(s)`,
+          `NO APLICABLE — NO SE MIDIÓ ningún CSS: 0 bytes entre ${mode === 'crawl' ? 'los .css servidos' : 'los .css de dist/'} y los <style> de ${Object.keys(pages).length} página(s)`,
           'en un site SSR el CSS sale del Worker, no de dist/: mídelo en crawl (`pnpm studio:contract:update` graba las rutas, o `--mode=crawl`)')
       }
       for (const req of allCss.trim() === '' ? [] : (manifest.css?.requires ?? CSS_REQUIRES)) {
@@ -1432,17 +1537,19 @@ async function main() {
 
         // 8e — tracking-legal: por cada píxel encendido, la política lo nombra.
         // Un marcador por proveedor: «usamos cookies de terceros» no dice cuáles.
-        const trackingOn = trackingEnabled()
+        const trackingPorOrigen = trackingEnabledPorOrigen()
+        const trackingOn = [...trackingPorOrigen.keys()]
         trackingMeasured = true
         const onMarkers = new Set(trackingOn.map((d) => d.marker))
         for (const def of trackingOn) {
           if (!legalMarkers.has(def.marker)) {
             fail('tracking-legal', policyKey, `data-legal="${def.marker}"`,
-              `el site tiene ENCENDIDO ${def.label} (settings.yaml) y esta política de cookies NO lo declara`,
-              `RGPD: ${def.label} manda datos del visitante a un tercero (y puede fijar cookies o identificadores) solo tras el consentimiento, pero la política debe NOMBRARLO. Copia la sección de ${def.label} de ${TRACKING_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${def.marker}"></div>) al markdown de la política, en TODOS los locales, con el texto que apruebe JC. Si no querías ${def.label}, vacía su id en settings.tracking`)
+              `el site tiene ENCENDIDO ${def.label} (${[...new Set(trackingPorOrigen.get(def))].join(', ')}) y esta política de cookies NO lo declara`,
+              `RGPD: ${def.label} manda datos del visitante a un tercero (y puede fijar cookies o identificadores) solo tras el consentimiento, pero la política debe NOMBRARLO. Copia la sección de ${def.label} de ${TRACKING_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${def.marker}"></div>) al markdown de la política, en TODOS los locales, con el texto que apruebe JC. Si no querías ${def.label}, vacía su id en settings.tracking o en el tracking: de la landing`)
           }
         }
         for (const def of TRACKING_CATALOG) {
+          if (trackingExento(def)) continue // sin ancla propia: no hay nada que declarar de menos
           if (legalMarkers.has(def.marker) && !onMarkers.has(def.marker)) {
             // Inverso: aviso, no fallo (texto primero, flag después es el orden correcto).
             warn('tracking-legal', policyKey, `data-legal="${def.marker}"`,
@@ -1550,7 +1657,7 @@ async function main() {
       const deLocale = (loc, get) => plano(get(translations[loc]) ?? get(translations[defaultLocale]))
       // Sin NINGÚN <header> este invariante no comprobaría nada y saldría verde:
       // eso es justo lo que pasaría si el layout dejara de montar el Header.
-      if (!Object.values(pages).some((p) => p?.header)) {
+      if (contentKeys.length > 0 && !Object.values(pages).some((p) => p?.header)) {
         fail('marca-header', '(build)', '<header>', 'ninguna página construida lleva <header>: no hay marca que comprobar',
           'SiteLayout debe montar <Header>; si un site lo quita a propósito, ese cambio de arquitectura va con su propio check')
       }

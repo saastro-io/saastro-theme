@@ -1,8 +1,12 @@
 # Theme-only site config, read at build time by src/lib/settings.ts.
-# NOTE: el Hub escribe algunas claves de este fichero (forms.siteId, gen.*,
-# analytics.cloudflareWebAnalytics.token y el bloque `tracking`); el resto es la
-# config de build del propio site (SEO, analytics, forms wiring). Editable content
-# lives in i18n (src/i18n/translations/*), structural config in saastrocms.config.ts.
+# NOTE: el aprovisionamiento del Hub reescribe solo `forms.siteId` y el bloque `gen`.
+# La plantilla sale con `tracking.*` y el token de Cloudflare Web Analytics VACÍOS: un site nuevo
+# no mide hasta que se pongan (a mano, con la tarjeta de píxeles del Hub o con variables de build
+# `PUBLIC_TRACKING_*`, que GANAN a este fichero; docs/guia-pixeles.md). theme.saastro.io usa variables. El token de
+# Cloudflare va en `tracking.cloudflareWebAnalytics`; la ruta vieja
+# `analytics.cloudflareWebAnalytics.token` se sigue leyendo de respaldo y la nueva gana.
+# El resto es config de build del propio site (SEO, analytics, forms wiring). Editable
+# content lives in i18n (src/i18n/translations/*), structural config in saastrocms.config.ts.
 
 site:
   name: "TuMarca"
@@ -42,31 +46,37 @@ analytics:
     # CF Web Analytics beacon TOKEN (Hub → Audiencia gives you the site token).
     # This is the client-side beacon token — NOT the Hub's GraphQL "site tag".
     # Empty = disabled. Host-blocked in the Studio preview + local dev.
-    token: "ef7e6c6ac93b49ec815bffe7d0f37e14"
+    token: ""
 
 tracking:
-  # Píxeles de medición y anuncios. Vacío = apagado. Todos esperan al consentimiento
-  # del banner (analytics: GA4, Clarity · marketing: Google Ads, Meta, TikTok,
+  # Píxeles de medición y anuncios. Vacío = apagado. Todos (salvo Cloudflare Web
+  # Analytics, exento: ver abajo) esperan al consentimiento del banner (analytics: GA4, Clarity · marketing: Google Ads, Meta, TikTok,
   # LinkedIn · GTM con cualquiera de las dos) y NINGUNO carga en una vista previa.
   # Encender uno añade un tratamiento: la política de cookies debe declararlo
   # (ancla <div data-legal="tracking-…"></div>, ver docs/legal-marketing.md) o
   # `pnpm studio:check` se pone rojo. Un id con formato inválido se descarta con
   # aviso en el build. Si ga4/gtm están aquí, ganan a analytics.googleAnalytics/…
-  ga4: "G-B2MVN4RSSH" # G-XXXXXXXXXX
+  ga4: "" # G-XXXXXXXXXX
   gtm: "" # GTM-XXXXXXX
   googleAds: "" # AW-123456789
   googleAdsConversionLabel: "" # etiqueta de la conversión «lead» (solo con googleAds)
   metaPixel: "" # id numérico del Pixel
   tiktokPixel: "" # id del Pixel de TikTok
   linkedinPartnerId: "" # Partner ID del Insight Tag
-  clarity: "z7a7k9iubl" # id del proyecto de Microsoft Clarity
+  clarity: "" # id del proyecto de Microsoft Clarity
+  # Cloudflare Web Analytics: EXENTO de consentimiento (el catálogo lo dice con su motivo).
+  # Si está vacío se lee analytics.cloudflareWebAnalytics.token (ruta vieja); si hay
+  # valor aquí, gana. 32 caracteres hexadecimales.
+  cloudflareWebAnalytics: ""
+  # Cada valor admite varios ids separados por comas: "G-AAAA…,G-BBBB…" (máx. 5; Clarity
+  # y Cloudflare, 1). Se valida cada uno y los malos se descartan con aviso en el build.
 
 forms:
   # Saastro Hub form integration. `siteId` is the Hub site this template is
   # connected to (Hub → Setup shows it; copied by hand today). Leave empty until
   # connected — the contact form then shows a "configure me" placeholder instead
   # of erroring. `contactFormSlug` is the form the slide-out ContactSheet renders.
-  siteId: ""
+  siteId: "2b771188-8ef0-4d5f-be85-341aaece10ab"
   contactFormSlug: "contact"
 
 gen:

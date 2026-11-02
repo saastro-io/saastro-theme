@@ -15,11 +15,11 @@ import SiteJsonLd from '../components/SiteJsonLd.astro';
 import Analytics from '../components/Analytics.astro';
 import GenTracking from '../components/GenTracking.astro';
 import { ClientRouter } from 'astro:transitions';
-import { i18nConfig, defaultLocale } from '../i18n/config';
+import { locales, defaultLocale } from '../i18n/config';
 import { getHreflangEntries, stripLocalePrefix } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
-import { resolveTracking } from '../lib/tracking';
+import { resolveTracking, describeRejected, type LandingTracking } from '../lib/tracking';
 
 const settings = getSettings();
 
@@ -42,23 +42,28 @@ export interface Props {
     googleAnalyticsId?: string;
     googleTagManagerId?: string;
   };
+  /** Override de píxeles de la landing que se sirve (frontmatter `tracking:` +
+   *  `trackingMode:`). SiteLayout lo recibe por esta misma prop y lo pasa a SU
+   *  `resolveTracking` con las mismas opciones: banner y cargador ven la MISMA lista. */
+  landingTracking?: LandingTracking;
 }
 
 // Use locale from middleware if i18n is enabled, fallback to prop
-const localsLang = i18nConfig.enabled ? Astro.locals.lang : undefined;
+const localsLang = Astro.locals.lang;
 
 const {
   title,
   description = settings.metadata.description ?? 'A Saastro theme',
   image = '/og-image.png',
   canonicalUrl,
-  lang = localsLang ?? 'en',
+  lang = localsLang ?? defaultLocale,
   ogType = 'website',
   noindex = false,
   indexable = true,
   alternates = true,
   googleSiteVerificationId,
   analytics = {},
+  landingTracking,
 } = Astro.props;
 
 const resolvedGoogleSiteVerificationId =
@@ -68,25 +73,16 @@ const resolvedGoogleSiteVerificationId =
 const tracking = resolveTracking(settings, {
   noindex,
   overrides: { googleAnalyticsId: analytics.googleAnalyticsId, googleTagManagerId: analytics.googleTagManagerId },
+  landing: landingTracking,
 });
-for (const r of tracking.rejected) {
-  console.warn(
-    r.reason === 'no-cadena'
-      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`
-      : `[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`,
-  );
-}
+for (const r of tracking.rejected) console.warn(describeRejected(r));
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
-// y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga.
-const cfWebAnalyticsToken = noindex ? '' : (settings.analytics.cloudflareWebAnalytics?.token ?? '');
-// Host de producción del propio site (de SITE_URL). El beacon bloquea `*.saastro.io`
-// (previews, apps internas) SALVO este host: un site de la suite que sirve en un
-// subdominio de saastro.io (theme.saastro.io) es tráfico real y debe medirse.
-const cfOwnHost = Astro.site?.hostname ?? '';
+// y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga
+// (resolveTracking con `noindex` ya lo apaga todo, Cloudflare incluido).
 // SAASTRO Gen attribution beacon — renders only when the Hub (or the operator)
 // wired a Gen workspace into settings.gen. GenTracking itself host-blocks the
-// Studio preview + local dev, mirroring the CF Web Analytics guard below.
+// Studio preview + local dev, mirroring the CF Web Analytics guard in Analytics.astro.
 const genWorkspaceId = noindex ? '' : (settings.gen?.workspaceId ?? '');
 const genVertical = settings.gen?.vertical || 'default';
 const genConsent = settings.gen?.consent === 'required' ? 'required' : 'none';
@@ -101,7 +97,7 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
 // por slug, servido igual bajo cualquier prefijo): un alternate hacia una traducción que no
 // existe es una señal falsa para el buscador.
 const hreflangEntries =
-  i18nConfig.enabled && alternates ? getHreflangEntries(stripLocalePrefix(Astro.url.pathname)) : [];
+  alternates && locales.length > 1 ? getHreflangEntries(stripLocalePrefix(Astro.url.pathname)) : [];
 // x-default = la versión del idioma por defecto (antes: la propia página, fuese cual fuese).
 const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.href;
 ---
@@ -157,68 +153,22 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
     <Analytics
       providers={tracking.providers}
       googleAdsConversionLabel={tracking.googleAdsConversionLabel}
+      googleAdsConversions={tracking.googleAdsConversions}
     />
     <ClientRouter fallback="swap" />
 
     <slot name="head" />
 
-    {/* Cloudflare Web Analytics — recommended over GA/GTM. Loads on real
-        deployments but is BLOCKED on the Studio preview proxy + local dev
-        (where it would fire under the Hub origin and trip the Hub's CSP).
-        Only renders when a token is set. The onload shim normalizes
-        same-origin URLs to root-relative so the beacon's SPA tracker doesn't
-        emit `https:://` on ClientRouter anchor navigations.
-
-        CONSENT — decisión tomada, no un olvido: el beacon NO se gatea por
-        consentimiento, a diferencia de GA/GTM (que sí lo están, en
-        Analytics.astro). Motivo: el beacon de Cloudflare no escribe nada en el
-        dispositivo ni identifica al usuario, que es el supuesto típicamente
-        exento de consentimiento; gatearlo costaría analítica en toda la flota
-        sin ganancia legal clara. Si algún día cambia (el beacon empieza a usar
-        almacenamiento, o cambia el criterio), el patrón a copiar es el de
-        Analytics.astro: no cargar sin analytics===true + escuchar
-        cookie-consent-updated, y volver a incluirlo en analyticsTrackerLoaded()
-        del CookieBanner para que la revocación recargue. */}
-    {cfWebAnalyticsToken && (
-      <script is:inline define:vars={{ token: cfWebAnalyticsToken, ownHost: cfOwnHost }}>
-        {
-          const h = location.hostname
-          const blocked =
-            h === 'localhost' ||
-            h === '127.0.0.1' ||
-            (h.endsWith('.saastro.io') && h !== ownHost) ||
-            h.endsWith('.saastro.test') ||
-            h.endsWith('.local')
-          if (!blocked) {
-            const s = document.createElement('script')
-            s.defer = true
-            s.src = 'https://static.cloudflareinsights.com/beacon.min.js'
-            s.setAttribute('data-cf-beacon', JSON.stringify({ token }))
-            s.onload = () => {
-              const norm = (u) => {
-                if (u == null) return u
-                try {
-                  const abs = u instanceof URL ? u : new URL(String(u), location.href)
-                  if (abs.origin === location.origin) return abs.pathname + abs.search + abs.hash
-                } catch (_) {}
-                return u
-              }
-              for (const k of ['pushState', 'replaceState']) {
-                const orig = history[k].bind(history)
-                history[k] = (state, title, url) => orig(state, title, norm(url))
-              }
-            }
-            document.head.appendChild(s)
-          }
-        }
-      </script>
-    )}
+    {/* Cloudflare Web Analytics ya NO se carga aquí: es un proveedor más del catálogo
+        (`cloudflareWebAnalytics`, categoría `none` = exento de consentimiento, con su
+        motivo escrito en tracking-providers.json) y lo carga el ÚNICO cargador,
+        Analytics.astro, con el mismo bloqueo de hosts y el mismo shim de siempre. */}
 
     {/* SAASTRO Gen lead attribution — cookieless page-view beacon + visitor id
         on form submits. Off unless settings.gen.workspaceId is set (the Hub's
         per-site "Gen tracking" toggle writes it). */}
     {genWorkspaceId && (
-      <GenTracking workspaceId={genWorkspaceId} vertical={genVertical} consent={genConsent} />
+      <GenTracking workspaceId={genWorkspaceId} vertical={genVertical} consent={genConsent} trackingKeys={tracking.consentKeys} />
     )}
   </head>
 

@@ -68,7 +68,7 @@ describe('domainCandidates', () => {
 describe('rulesFor / matchesRule', () => {
   it('analytics incluye las medidas en Chrome (_ga, _ga_<id>, _clck, _clsk) y no las de anuncios', () => {
     const r = rulesFor(['analytics']);
-    for (const n of ['_ga', '_ga_B2MVN4RSSH', '_clck', '_clsk']) expect(matchesRule(n, r), n).toBe(true);
+    for (const n of ['_ga', '_ga_TESTAAAA01', '_clck', '_clsk']) expect(matchesRule(n, r), n).toBe(true);
     for (const n of ['_fbp', '_gcl_au', 'cookie_consent', 'foo']) expect(matchesRule(n, r), n).toBe(false);
   });
   it('marketing incluye anuncios y no analítica', () => {
@@ -86,7 +86,7 @@ describe('clearTrackerCookies', () => {
     const env = bote(
       [
         ['_ga', 'saastro.io'],
-        ['_ga_B2MVN4RSSH', 'saastro.io'],
+        ['_ga_TESTAAAA01', 'saastro.io'],
         ['_clck', 'saastro.io'],
         ['_clsk', 'saastro.io'],
         ['cookie_consent', null],
@@ -96,7 +96,7 @@ describe('clearTrackerCookies', () => {
       'theme.saastro.io',
     );
     const borradas = clearTrackerCookies(['analytics'], env);
-    expect(borradas.sort()).toEqual(['_clck', '_clsk', '_ga', '_ga_B2MVN4RSSH']);
+    expect(borradas.sort()).toEqual(['_clck', '_clsk', '_ga', '_ga_TESTAAAA01']);
     expect(env.nombres()).toEqual(['_fbp', 'cookie_consent', 'foo']);
   });
 
@@ -137,13 +137,13 @@ function almacen(inicial?: string) {
 
 describe('limpieza pendiente tras la recarga (el script vivo reescribe su cookie)', () => {
   it('REGRESIÓN medida: una cookie reescrita entre el borrado y la recarga se borra al cargar la página nueva', () => {
-    const env = bote([['_ga', 'saastro.io'], ['_ga_B2MVN4RSSH', 'saastro.io'], ['cookie_consent', null]], 'theme.saastro.io');
+    const env = bote([['_ga', 'saastro.io'], ['_ga_TESTAAAA01', 'saastro.io'], ['cookie_consent', null]], 'theme.saastro.io');
     const a = almacen();
     clearTrackerCookies(['analytics'], env); // borrado inmediato en save()
     marcarLimpiezaPendiente(['analytics'], a);
-    env.document.cookie = '_ga_B2MVN4RSSH=GS2.1.nueva; path=/; domain=saastro.io'; // GA la reescribe antes de recargar
-    expect(env.nombres()).toContain('_ga_B2MVN4RSSH');
-    expect(aplicarLimpiezaPendiente(env, a)).toEqual(['_ga_B2MVN4RSSH']); // ya en la página nueva
+    env.document.cookie = '_ga_TESTAAAA01=GS2.1.nueva; path=/; domain=saastro.io'; // GA la reescribe antes de recargar
+    expect(env.nombres()).toContain('_ga_TESTAAAA01');
+    expect(aplicarLimpiezaPendiente(env, a)).toEqual(['_ga_TESTAAAA01']); // ya en la página nueva
     expect(env.nombres()).toEqual(['cookie_consent']);
   });
   it('la marca se consume: una segunda carga no borra nada', () => {
