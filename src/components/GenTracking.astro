@@ -42,6 +42,8 @@ const {
   endpoint = 'https://gen.saastro.io',
   consent = 'none',
 } = Astro.props;
+// Host propio del site (`SITE_URL`): se mide aunque cuelgue de *.saastro.io.
+const ownHost = Astro.site?.hostname ?? '';
 ---
 
 {workspaceId && (
@@ -51,6 +53,7 @@ const {
     data-gen-vertical={vertical}
     data-gen-endpoint={endpoint}
     data-gen-consent={consent}
+    data-gen-own-host={ownHost}
   >
     (function () {
       try {
@@ -62,14 +65,16 @@ const {
         var vertical = cfg.genVertical || 'default';
         var endpoint = (cfg.genEndpoint || 'https://gen.saastro.io').replace(/\/+$/, '');
         var consentMode = cfg.genConsent || 'none';
+        var ownHost = cfg.genOwnHost || '';
 
         // Never track editor previews / local dev — the Studio preview proxy
         // serves the site under a *.saastro.io origin, and localhost is dev.
+        // The site's own host (SITE_URL) is real traffic even under saastro.io.
         var h = location.hostname;
         if (
           h === 'localhost' ||
           h === '127.0.0.1' ||
-          h.endsWith('.saastro.io') ||
+          (h.endsWith('.saastro.io') && h !== ownHost) ||
           h.endsWith('.saastro.test') ||
           h.endsWith('.local')
         )

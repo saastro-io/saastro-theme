@@ -13,6 +13,7 @@
  * mide una página estática, el nonce tiene que dejar de venir del servidor.
  */
 import { getSettings } from '../lib/settings';
+import { isBlockedMeasureHost } from '../lib/measure-host';
 
 const settings = getSettings();
 const enabled = settings.measure?.renderRatio === true;
@@ -21,13 +22,8 @@ const enabled = settings.measure?.renderRatio === true;
 // de Studio sirve el site bajo un origen *.saastro.io y localhost es dev.
 // Aquí se comprueba EN EL SERVIDOR, no en el navegador, porque el `<img>` va en
 // el HTML y no hay JS que pueda frenarlo.
-const host = Astro.url.hostname;
-const blockedHost =
-  host === 'localhost' ||
-  host === '127.0.0.1' ||
-  host.endsWith('.saastro.io') ||
-  host.endsWith('.saastro.test') ||
-  host.endsWith('.local');
+// El host propio del site (`SITE_URL`) sí se mide aunque cuelgue de saastro.io.
+const blockedHost = isBlockedMeasureHost(Astro.url.hostname, Astro.site?.hostname ?? '');
 
 const on = enabled && !blockedHost;
 
