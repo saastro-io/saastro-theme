@@ -22,7 +22,7 @@ import {
   sitemapI18n,
   studioLocales,
 } from './i18n-derive';
-import { i18nConfig } from '../i18n/config';
+import { i18nConfig, type Locale } from '../i18n/config';
 import { getTranslations } from '../i18n/utils';
 import { resolveDeclaredLocales } from '../../scripts/lib/default-locale.mjs';
 
@@ -91,7 +91,7 @@ describe('traducciones por glob', () => {
   it('cada idioma declarado en el repo tiene su json y se sirve de verdad', () => {
     for (const loc of effectiveLocales(i18nConfig)) {
       expect(() => read(`src/i18n/translations/${loc}.json`)).not.toThrow();
-      expect(getTranslations(loc as 'en').meta.title).toBe(JSON.parse(read(`src/i18n/translations/${loc}.json`)).meta.title);
+      expect(getTranslations(loc as Locale).meta.title).toBe(JSON.parse(read(`src/i18n/translations/${loc}.json`)).meta.title);
     }
   });
 });
