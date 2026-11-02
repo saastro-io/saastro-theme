@@ -8,7 +8,7 @@
  * y que mirar el DOM no sería suficiente (el píxel vive en settings).
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -144,5 +144,85 @@ describe('8e: nunca verde sin medir', () => {
   it('sin píxeles encendidos y sin política: no opina (verde)', () => {
     const r = check(siteSinPolitica('tracking:\n  metaPixel: ""\n', null))
     expect(r.code, r.out).toBe(0)
+  })
+})
+
+describe('8e: lista de ids por proveedor', () => {
+  it('dos ids de GA4 sin ancla → rojo (una lista no deja el proveedor «apagado» para el checker)', () => {
+    const r = check(site({ settings: 'tracking:\n  ga4: "G-AAAAAA0001,G-BBBBBB0002"\n' }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-ga4')
+  })
+
+  it('con ancla → verde', () => {
+    const r = check(site({ settings: 'tracking:\n  ga4: "G-AAAAAA0001, G-BBBBBB0002"\n', marcadores: ['tracking-ga4'] }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('un id válido entre inválidos basta para obligar; si TODOS son inválidos no obliga', () => {
+    const uno = check(site({ settings: 'tracking:\n  ga4: "UA-1,G-AAAAAA0001"\n' }))
+    expect(uno.code, uno.out).not.toBe(0)
+    expect(uno.out).toContain('tracking-ga4')
+    const ninguno = check(site({ settings: 'tracking:\n  ga4: "UA-1,G-x"\n' }))
+    expect(ninguno.code, ninguno.out).toBe(0)
+  })
+
+  it('el legado analytics.googleAnalytics.id también admite lista', () => {
+    const r = check(site({ settings: 'analytics:\n  googleAnalytics:\n    id: "G-AAAAAA0001,G-BBBBBB0002"\n' }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-ga4')
+  })
+})
+
+describe('8e: proveedor exento de consentimiento (Cloudflare Web Analytics)', () => {
+  const TOKEN = 'c0ffee00c0ffee00c0ffee00c0ffee00'
+
+  it('encendido por tracking.cloudflareWebAnalytics y SIN ancla → verde (exención explícita del catálogo)', () => {
+    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('encendido por la ruta vieja analytics.cloudflareWebAnalytics.token y SIN ancla → verde', () => {
+    const r = check(site({ settings: `analytics:\n  cloudflareWebAnalytics:\n    token: "${TOKEN}"\n` }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('NO exime a los demás: con Meta encendido sigue faltando SU ancla y no se pide la de Cloudflare', () => {
+    const r = check(site({ settings: `tracking:\n  metaPixel: "1234567890123"\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-meta')
+    expect(r.out).not.toMatch(/cloudflare/i)
+  })
+
+  it('un site con SOLO Cloudflare no necesita banner ni política (no hay nada que declarar): verde, no «NO SE MIDIÓ»', () => {
+    const r = check(siteSinPolitica(`tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, null))
+    expect(r.code, r.out).toBe(0)
+    expect(r.out).not.toContain('NO SE MIDIÓ')
+    expect(r.out).not.toContain('NINGUNA página lleva el banner')
+  })
+
+  it('la política no declara nada de Cloudflare y no hay aviso inverso por ello', () => {
+    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, marcadores: ['tracking-cloudflare'] }))
+    expect(r.code, r.out).toBe(0)
+  })
+
+  it('la regla de exención del checker es la del catálogo: category none Y motivo escrito, las dos cosas', () => {
+    const fuente = readFileSync(SCRIPT, 'utf8')
+    const m = fuente.match(/const trackingExento = \(def\) =>\s*([\s\S]*?)\n\n/)
+    if (!m) throw new Error('no se encuentra trackingExento en el checker')
+    // eslint-disable-next-line no-new-func
+    const exento = new Function('def', `return (${m[1]});`) as (d: Record<string, unknown>) => boolean
+    expect(exento({ category: 'none', exemptReason: 'motivo' })).toBe(true)
+    expect(exento({ category: 'none' })).toBe(false)
+    expect(exento({ category: 'none', exemptReason: '   ' })).toBe(false)
+    expect(exento({ category: 'none', exemptReason: 5 })).toBe(false)
+    expect(exento({ category: 'analytics', exemptReason: 'motivo' })).toBe(false)
+    expect(exento({ category: 'marketing' })).toBe(false)
+  })
+
+  it('el catálogo real: Cloudflare es el único exento y todo lo demás lleva ancla', () => {
+    const cat = JSON.parse(readFileSync(join(dirname(SCRIPT), '..', 'src', 'lib', 'tracking-providers.json'), 'utf8')).providers
+    const sinAncla = cat.filter((p: { marker?: string }) => !p.marker).map((p: { key: string }) => p.key)
+    expect(sinAncla).toEqual(['cloudflareWebAnalytics'])
   })
 })

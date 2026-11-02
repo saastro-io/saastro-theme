@@ -16,11 +16,14 @@ el formato exacto de cada id y las cookies que deja es
 ## Antes de nada: tres reglas
 
 1. **Un id vacío = apagado.** Nada se carga sin id.
-2. **Nada carga sin consentimiento.** Los ids se ponen y el banner decide (ver la
-   categoría de cada proveedor abajo).
+2. **Nada carga sin consentimiento, salvo el proveedor exento.** Los ids se ponen y
+   el banner decide (ver la categoría de cada proveedor abajo). La única excepción
+   es Cloudflare Web Analytics (categoría `none`, su sección está más abajo): carga
+   sin esperar al banner, por una exención escrita con su motivo en el catálogo.
 3. **Encender un proveedor exige nombrarlo en la política de cookies**
    (ancla `data-legal="tracking-<proveedor>"`, ver `docs/legal-marketing.md`). Si
    no, `pnpm studio:check` se pone rojo. El texto lo aprueba el responsable del site.
+   El proveedor exento no exige ancla (excepción explícita del catálogo).
 
 **Un id con formato inválido no se inyecta nunca**: se descarta con un aviso en el
 build. Un id **numérico sin comillas** en el YAML (`metaPixel: 1234567890`) también
@@ -151,6 +154,124 @@ su propia propiedad o cuenta**, no en la del que las construye.
   las conversiones de LinkedIn se definen en su panel por regla (por ejemplo, por
   URL: la página `/lp/gracias`).
 - **Documentación:** <https://www.linkedin.com/help/lms/answer/a415390>
+
+## Cloudflare Web Analytics · `cloudflareWebAnalytics` · categoría `none` (exento de consentimiento)
+
+- **Id:** el *token del beacon*, 32 caracteres hexadecimales (patrón `^[0-9a-fA-F]{32}$`).
+  No es el *site tag* de la API GraphQL: es el token que va en `data-cf-beacon`.
+- **Cuenta necesaria:** una cuenta de Cloudflare. Gratis.
+- **Dónde se pone:** `tracking.cloudflareWebAnalytics`. La ruta antigua
+  `analytics.cloudflareWebAnalytics.token` **se sigue leyendo** como respaldo (hay
+  descendientes y el Hub la escribe todavía); si existen las dos, **gana
+  `tracking.cloudflareWebAnalytics`**, aunque su valor sea inválido (entonces se
+  descarta con aviso y NO se cae a la antigua en silencio).
+- **Cookies propias del site:** ninguna prevista en el catálogo (SIN VERIFICAR).
+- **Consentimiento: exento, y es una decisión escrita, no un olvido.** El motivo
+  literal está en `exemptReason` del catálogo. Consecuencias: carga sin esperar al
+  banner, no cuenta en «si hay un proveedor nuevo, volver a preguntar», retirar el
+  consentimiento no recarga la página por él y no recibe `window.saastroTrack`.
+  Sigue sin cargar en una vista previa de borrador y en `localhost`/`*.saastro.io`
+  (salvo el host propio del site). **SIN VERIFICAR** contra la documentación
+  vigente de Cloudflare que el beacon no use almacenamiento ni identifique al
+  visitante; la valoración legal y, si hace falta, el texto, son del responsable del site.
+- **Política de cookies:** el invariante 8e **no exige ancla** por este proveedor
+  (`docs/legal-marketing.md`, última sección).
+- **Solo un token por página:** con una lista `a,b` se usa el primero y el build avisa.
+- **Dónde (SIN VERIFICAR):** <https://dash.cloudflare.com> → Analytics y registros →
+  **Web Analytics** → el sitio → el token del fragmento JavaScript.
+
+## Varios ids en un mismo proveedor
+
+El valor de cualquier clave de `tracking:` puede ser **una cadena con ids separados
+por comas** (el Hub solo sabe escribir cadenas): `ga4: "G-AAAAAAAAAA,G-BBBBBBBBBB"`.
+
+- Se parte por comas, se recorta cada id, se **valida cada uno con el patrón de su
+  proveedor** (el malo se descarta con aviso en el build y el resto sigue), se quitan
+  los repetidos y se aplica el **tope de 5** por proveedor (si hay más, se usan los 5
+  primeros y se avisa). Un solo id funciona exactamente como siempre.
+- Lo que hace cada uno con la lista:
+
+| Proveedor | Con varios ids |
+|---|---|
+| GA4 | un solo `gtag.js` (con el primero) y un `gtag('config', id)` por id |
+| Google Ads | igual que GA4 (comparte el `gtag.js`) |
+| GTM | un `gtm.js` por contenedor |
+| Meta | un `fbq('init', id)` por píxel y **un solo** `PageView` |
+| TikTok | un `ttq.load(id)` por píxel y una sola `ttq.page()` |
+| LinkedIn | todos los partner ids en la lista y la etiqueta una vez |
+| Clarity | **un solo proyecto por página** (tope 1) |
+| Cloudflare | **un solo token** (tope 1) |
+
+- **Clarity (y Cloudflare) con lista: se usa el primero y se avisa**, en vez de
+  rechazarlo todo. Motivo: la etiqueta de Clarity es un singleton por página (dos
+  proyectos se pisarían), y rechazar la lista apagaría en silencio la grabación de un
+  site que hasta ayer funcionaba; el aviso del build deja el error a la vista y todos
+  los ids ya pasaron por el patrón, así que no hay riesgo de inyección.
+- **Eventos de conversión (`window.saastroTrack`, `generate_lead`):** van a **todos**
+  los ids: GA4 emite un evento que gtag reparte a todos sus `config`; Meta y TikTok
+  emiten uno que llega a todos los píxeles inicializados (TikTok: **SIN VERIFICAR**
+  con dos píxeles reales).
+- **Google Ads, etiquetas de conversión:** una etiqueta pertenece a **una** cuenta
+  `AW-…`. `googleAdsConversionLabel` admite una lista **en el mismo orden que
+  `googleAds`**: la i-ésima etiqueta va con la i-ésima cuenta (`,Etiqueta2` deja la
+  primera cuenta sin conversión). Con una sola etiqueta y varias cuentas, la
+  conversión sale **solo a la primera cuenta**; no se manda la etiqueta de una cuenta
+  a las demás.
+- **El consentimiento sigue siendo por proveedor**, no por id: añadir un segundo id de
+  un proveedor ya encendido no vuelve a pedir consentimiento (la política debe decir
+  que son varias propiedades o cuentas; ver `docs/legal-marketing.md`).
+- **Qué está verificado:** el cargador real se ejecuta en pruebas contra un DOM
+  simulado, y GA4 con dos ids se midió en un navegador. Los efectos en los paneles de
+  cada proveedor con varios ids reales **no** están comprobados.
+
+## Diseño propuesto (NO implementado): override de tracking por landing
+
+> Es el diseño del siguiente PR. Hoy ninguna landing puede cambiar los píxeles: son
+> los del site. Aquí solo se fija la forma para discutirla antes de escribir código.
+
+**Para qué:** una landing de campaña necesita su propio píxel de Meta o su propia
+cuenta y etiqueta de Google Ads sin tocar los del resto del site.
+
+**Forma** (frontmatter de la landing, solo cadenas, como todo lo que escribe el Hub):
+
+```yaml
+tracking:
+  mode: add            # add (por defecto) | replace
+  metaPixel: "1234567890123"
+  googleAds: "AW-123456789"
+  googleAdsConversionLabel: "AbCdEfGhIj_k"
+```
+
+- Las claves son las del catálogo (`ga4`, `gtm`, `googleAds`, `googleAdsConversionLabel`,
+  `metaPixel`, `tiktokPixel`, `linkedinPartnerId`, `clarity`) y los valores admiten
+  listas, con la **misma** validación, el mismo tope y los mismos avisos que en
+  `settings.tracking`. Una clave desconocida se descarta con aviso. Cloudflare Web
+  Analytics **no** se puede sobrescribir por landing (es del site).
+- **`mode: add` (suma):** los ids de la landing se añaden a los del site, sin
+  repetir y con el tope de 5 sobre la **suma**. La etiqueta de conversión se
+  empareja por posición con la lista **ya sumada**.
+- **`mode: replace` (sustituye):** para cada clave presente, los ids de la landing
+  **reemplazan** a los del site; una clave presente y **vacía** (`""`) apaga ese
+  proveedor en esa landing; una clave ausente hereda la del site.
+- `noindex` (vista previa) lo sigue apagando todo.
+
+**Lo que hay que resolver en el PR (decisiones, no huecos):**
+
+1. **Consentimiento.** Si la landing enciende un proveedor que el site no tiene, la
+   versión del consentimiento (`consentKeys`) es distinta en esa página: quien ya
+   consintió en el resto del site vería el banner de nuevo **solo ahí**. Es lo
+   correcto (no consintió ese tratamiento) y debe quedar probado.
+2. **Invariante `tracking-legal` (8e).** Hoy solo lee `settings.yaml`. Con overrides
+   tendrá que leer también el frontmatter de las landings **publicadas**; si no, un
+   proveedor encendido solo en una landing no exigiría ancla. Sin ese cambio el
+   override no se puede activar.
+3. **Dónde se resuelve.** Una función pura nueva (`resolveTracking(settings, { noindex,
+   landing })`) con tests en `src/lib`, y `BaseLayout`/`SiteLayout` pasando el
+   frontmatter. El esquema de la colección vive en `src/content.config.ts`, que está
+   en la lista de ficheros de arquitectura (`studio:contract:update`).
+4. **El Hub.** Hay que comprobar que su editor de landings preserva un bloque
+   `tracking:` anidado (hoy solo escribe cadenas planas); si no, el modo y las claves
+   se aplanan a `tracking_mode`, `tracking_metaPixel`… y hay que fijarlo antes.
 
 ---
 

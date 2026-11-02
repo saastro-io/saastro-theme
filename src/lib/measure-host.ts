@@ -8,7 +8,7 @@
  * bloqueado.
  *
  * Esta función la usa el servidor (RenderRatio). Los dos scripts `is:inline` del
- * navegador (BaseLayout y GenTracking) no pueden importarla y replican la MISMA
+ * navegador (Analytics, para el beacon de Cloudflare, y GenTracking) no pueden importarla y replican la MISMA
  * condición; `measure-host.test.ts` comprueba que la copia no se separa.
  */
 export function isBlockedMeasureHost(host: string, ownHost = ''): boolean {

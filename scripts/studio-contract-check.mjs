@@ -65,7 +65,10 @@
  *                         enlazada lo DECLARA (ancla <div data-legal="render-ratio">)
  *   8e. tracking-legal  — por cada píxel encendido en settings (ga4, gtm, Google Ads, Meta, TikTok,
  *                         LinkedIn, Clarity) la política enlazada lo NOMBRA (ancla
- *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md)
+ *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md).
+ *                         Un valor puede ser una lista de ids separados por comas. Los
+ *                         proveedores EXENTOS (catálogo: category "none" + exemptReason, hoy
+ *                         Cloudflare Web Analytics) no exigen ancla.
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -231,7 +234,17 @@ const TRACKING_CATALOG = JSON.parse(
   readFileSync(new URL('../src/lib/tracking-providers.json', import.meta.url), 'utf8'),
 ).providers
 
-/** Proveedores encendidos (con id de formato válido) según settings.yaml. */
+// EXENCIÓN EXPLÍCITA: un proveedor del catálogo con `category: "none"` Y un
+// `exemptReason` escrito (hoy Cloudflare Web Analytics) no exige ancla en la
+// política. Las dos cosas a la vez: una `none` sin motivo, o un motivo en un
+// proveedor con otra categoría, NO eximen (el checker falla del lado de exigir).
+// Misma regla que `isExempt` de src/lib/tracking.ts (no se puede importar un .ts
+// desde este .mjs; tracking-legal.test.ts ejecuta ESTA copia).
+const trackingExento = (def) =>
+  def.category === 'none' && typeof def.exemptReason === 'string' && def.exemptReason.trim() !== ''
+
+/** Proveedores encendidos (con algún id de formato válido) según settings.yaml. Los
+ *  exentos de consentimiento no se devuelven: no hay ancla que exigir por ellos. */
 function trackingEnabled() {
   const path = join(ROOT, 'src', 'data', 'settings.yaml')
   if (!existsSync(path)) return []
@@ -250,9 +263,13 @@ function trackingEnabled() {
   }
   const on = []
   for (const def of TRACKING_CATALOG) {
-    const id = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
-    // Un id con formato inválido NO carga (resolveTracking lo descarta): no hay tratamiento.
-    if (id && new RegExp(def.pattern).test(id)) on.push(def)
+    if (trackingExento(def)) continue
+    const valor = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
+    // El valor puede ser una lista separada por comas (como en resolveTracking): basta UN
+    // id con formato válido para que cargue. Los inválidos NO cargan (se descartan):
+    // si no queda ninguno, no hay tratamiento.
+    const re = new RegExp(def.pattern)
+    if (valor.split(',').some((id) => re.test(id.trim()))) on.push(def)
   }
   return on
 }
@@ -1461,6 +1478,7 @@ async function main() {
           }
         }
         for (const def of TRACKING_CATALOG) {
+          if (trackingExento(def)) continue // sin ancla propia: no hay nada que declarar de menos
           if (legalMarkers.has(def.marker) && !onMarkers.has(def.marker)) {
             // Inverso: aviso, no fallo (texto primero, flag después es el orden correcto).
             warn('tracking-legal', policyKey, `data-legal="${def.marker}"`,

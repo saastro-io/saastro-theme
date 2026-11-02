@@ -50,7 +50,11 @@ export interface SiteSettings {
   /**
    * Píxeles de medición y anuncios (src/lib/tracking.ts + tracking-providers.json).
    * Plano y de solo cadenas (el Hub solo sabe escribir cadenas). Vacío = apagado.
-   * `ga4`/`gtm` ganan a `analytics.googleAnalytics/googleTagManager`.
+   * `ga4`/`gtm`/`cloudflareWebAnalytics` ganan a `analytics.googleAnalytics/googleTagManager/
+   * cloudflareWebAnalytics.token` (la ruta vieja sigue leyéndose como respaldo).
+   * Cada valor puede ser UN id o varios separados por comas (`"G-AAA…,G-BBB…"`):
+   * se valida cada uno, tope 5 (Clarity y Cloudflare, 1). `googleAdsConversionLabel`
+   * admite una etiqueta por cuenta de `googleAds`, en el mismo orden.
    */
   readonly tracking?: {
     readonly ga4?: string;
@@ -61,6 +65,8 @@ export interface SiteSettings {
     readonly tiktokPixel?: string;
     readonly linkedinPartnerId?: string;
     readonly clarity?: string;
+    /** Token del beacon de Cloudflare Web Analytics (32 hex). Exento de consentimiento. */
+    readonly cloudflareWebAnalytics?: string;
   };
   readonly forms: {
     readonly siteId: string;
