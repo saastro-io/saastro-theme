@@ -27,9 +27,11 @@ De los once sites solo tres descienden del theme. Para los otros ocho
 `src/i18n/translations/*.json`, la portada (`[...locale]/index.astro` y sus
 secciones `Hero`, `AboutContent`, `Products`, `HowItWorks`, `TrustBar`,
 `StatementSection`, `ValuesGrid`, `CompareTable`, `CtaBanner`) y
-`studio-contract.json`—. Todo lo demás es **infra** y se mergea normal:
+`studio-contract.json`— y la **config del site** `src/data/settings.yaml` (sus
+ids de medición, su `forms.siteId`, su nombre; no es contenido de ejemplo, ver el
+comentario del `.gitattributes`). Todo lo demás es **infra** y se mergea normal:
 layouts, `lp/`, `404`/`500`/blog, `ui/`, `lib/`, middleware, `public/_headers`,
-scripts, config y CI. Si las dos ramas tocaron un fichero de contenido, el site
+scripts, el resto de la config y CI. Si las dos ramas tocaron un fichero de contenido, el site
 conserva el suyo; si solo lo tocó el theme, entra el del theme.
 
 **No actúa solo**: en el checkout del site, `git config merge.ours.driver true`
