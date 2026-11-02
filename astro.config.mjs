@@ -8,6 +8,8 @@ import { defineConfig, envField } from 'astro/config';
 import saastroStudio from '@saastro/studio';
 import { fileURLToPath } from 'node:url';
 import { sitemapIncludes } from './src/lib/sitemap-filter.ts';
+import { i18nConfig } from './src/i18n/config.ts';
+import { astroI18n, sitemapI18n, studioLocales } from './src/lib/i18n-derive.ts';
 
 // Strips the saastro:studio-* meta tags from prod HTML responses. Registered
 // 'pre' and BEFORE saastroStudio so it wraps Studio's own injector middleware
@@ -112,11 +114,7 @@ export default defineConfig({
   // own locale routing — our middleware + the `[locale]/` routes own that (EN at
   // the root, ES prefixed). This block exists so tooling (Saastro Studio/Hub)
   // can detect locales + defaultLocale, and `astro:i18n` utils are available.
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es'],
-    routing: 'manual',
-  },
+  i18n: astroI18n(i18nConfig),
 
   // Disable Astro sessions — there's no auth flow in the site anymore.
   // Without this, @astrojs/cloudflare injects a SESSION KV binding that
@@ -137,10 +135,7 @@ export default defineConfig({
     sitemap({
       // Fuera las rutas internas (`/__render/`…): responden 404. Ver sitemap-filter.ts.
       filter: sitemapIncludes,
-      i18n: {
-        defaultLocale: 'en',
-        locales: { en: 'en', es: 'es' },
-      },
+      i18n: sitemapI18n(i18nConfig),
     }),
     icon(),
     // `pages`: «páginas como datos» (`/<locale>/p/<slug>`, `/__render`,
@@ -152,7 +147,7 @@ export default defineConfig({
       autoWrap: true,
       autoWrapPages: true,
       pages: {
-        locales: ['es', 'en'],
+        locales: studioLocales(i18nConfig),
         blocksDir: 'src/blocks',
         layout: 'src/layouts/SiteLayout.astro',
       },

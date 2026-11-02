@@ -1,6 +1,5 @@
 import { defineMiddleware, sequence } from 'astro:middleware';
 import { applySecurityHeaders } from './lib/security-headers';
-import { i18nConfig } from './i18n/config';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
 import { I18N_READS_ENABLED, injectReads, trackReads } from './i18n/reads';
 
@@ -44,9 +43,6 @@ const securityHeaders = defineMiddleware(async (_context, next) => {
  * markers, so there's no request-time encoding or auth here.
  */
 const site = defineMiddleware(async (context, next) => {
-  // If i18n is disabled, pass through without locale detection.
-  if (!i18nConfig.enabled) return next();
-
   // Already populated (e.g. nested render) — skip.
   if (context.locals.lang) return next();
 

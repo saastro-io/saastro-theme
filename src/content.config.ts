@@ -1,8 +1,10 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { i18nConfig } from './i18n/config';
+import { legalGlob } from './lib/i18n-derive';
 
 const legal = defineCollection({
-  loader: glob({ pattern: '{en,es}/*.md', base: './src/content/legal' }),
+  loader: glob({ pattern: legalGlob(i18nConfig), base: './src/content/legal' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

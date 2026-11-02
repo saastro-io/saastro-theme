@@ -64,3 +64,27 @@ export function resolveDefaultLocale(root) {
       `o fuerza uno con STUDIO_DEFAULT_LOCALE=<locale>.`,
   )
 }
+
+/**
+ * Idiomas DECLARADOS en src/i18n/config.ts (`enabled` + `locales`), o `null` si
+ * el fichero no existe o no se puede leer con las anclas esperadas. Con
+ * `enabled: false` solo cuenta el base. Los comentarios se quitan antes de leer.
+ * @param {string} root
+ * @returns {string[] | null}
+ */
+export function resolveDeclaredLocales(root) {
+  const abs = join(root, I18N_CONFIG)
+  if (!existsSync(abs)) return null
+  const src = readFileSync(abs, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+  const list = /\blocales\s*:\s*\[([^\]]*)\]/.exec(src)
+  if (!list) return null
+  const locales = [...list[1].matchAll(/['"]([A-Za-z0-9_-]+)['"]/g)].map((m) => m[1])
+  if (locales.length === 0) return null
+  const enabled = /\benabled\s*:\s*(true|false)/.exec(src)
+  if (enabled && enabled[1] === 'false') {
+    const d = DEFAULT_LOCALE_RE.exec(src)
+    DEFAULT_LOCALE_RE.lastIndex = 0
+    return d ? [d[1]] : null
+  }
+  return locales
+}
