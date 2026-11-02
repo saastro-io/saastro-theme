@@ -80,6 +80,10 @@ const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
 // y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga.
 const cfWebAnalyticsToken = noindex ? '' : (settings.analytics.cloudflareWebAnalytics?.token ?? '');
+// Host de producción del propio site (de SITE_URL). El beacon bloquea `*.saastro.io`
+// (previews, apps internas) SALVO este host: un site de la suite que sirve en un
+// subdominio de saastro.io (theme.saastro.io) es tráfico real y debe medirse.
+const cfOwnHost = Astro.site?.hostname ?? '';
 // SAASTRO Gen attribution beacon — renders only when the Hub (or the operator)
 // wired a Gen workspace into settings.gen. GenTracking itself host-blocks the
 // Studio preview + local dev, mirroring the CF Web Analytics guard below.
@@ -176,13 +180,13 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
         cookie-consent-updated, y volver a incluirlo en analyticsTrackerLoaded()
         del CookieBanner para que la revocación recargue. */}
     {cfWebAnalyticsToken && (
-      <script is:inline define:vars={{ token: cfWebAnalyticsToken }}>
+      <script is:inline define:vars={{ token: cfWebAnalyticsToken, ownHost: cfOwnHost }}>
         {
           const h = location.hostname
           const blocked =
             h === 'localhost' ||
             h === '127.0.0.1' ||
-            h.endsWith('.saastro.io') ||
+            (h.endsWith('.saastro.io') && h !== ownHost) ||
             h.endsWith('.saastro.test') ||
             h.endsWith('.local')
           if (!blocked) {
