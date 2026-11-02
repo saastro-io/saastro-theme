@@ -6,6 +6,12 @@ export interface CookieConsent {
    *  trae: se lee como `false` (parseConsent), nunca como aceptada. */
   marketing: boolean
   personalization: boolean
+  /** Claves de los proveedores de tracking ENCENDIDOS cuando se consintió
+   *  (tracking-providers.json). Es la VERSIÓN del consentimiento: si hoy hay un
+   *  proveedor que no está aquí, el visitante no consintió ESE tratamiento y se
+   *  le vuelve a preguntar (ver `consentCovers`). Ausente = cookie anterior a
+   *  este campo. */
+  providers?: string[]
   timestamp: string
 }
 
@@ -25,18 +31,64 @@ export function parseConsent(cookieString: string): CookieConsent | null {
     const raw = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')))
     if (!raw || typeof raw !== 'object') return null
     // Cookies antiguas no traen `marketing`: «no» explícito, nunca undefined.
-    return { ...raw, marketing: raw.marketing === true }
+    // `providers` solo si es una lista; cualquier otra cosa = ausente (nunca se
+    // inventa una lista vacía: «vacía» SÍ significa «no había ninguno»). Mismo
+    // criterio que el inline de Analytics.astro (Array.isArray + indexOf).
+    const providers = Array.isArray(raw.providers) ? (raw.providers as string[]) : undefined
+    const { providers: _descartado, ...resto } = raw
+    return { ...resto, marketing: raw.marketing === true, ...(providers ? { providers } : {}) }
   } catch {
     return null
   }
 }
 
-export function setConsent(prefs: ConsentPrefs): void {
+/** ¿Este consentimiento cubre TODOS los proveedores encendidos ahora?
+ *
+ *  Fuente ÚNICA de la regla. Analytics.astro la REPLICA en su lector inline (no
+ *  puede importar), y Analytics.test.ts ejecuta el inline real contra esta
+ *  función: si divergen, falla.
+ *
+ *  - sin consentimiento → no.
+ *  - ningún proveedor encendido → sí (no hay nada que pedir).
+ *  - consentimiento SIN `providers` (anterior a esta versión) con algún proveedor
+ *    encendido → NO. No se puede saber si ese visitante vio los proveedores de
+ *    hoy, y la opción segura es volver a preguntar. Con ninguno encendido, vale.
+ *  - con `providers` → sí solo si todo proveedor encendido ahora está en la lista.
+ *    Un proveedor que se APAGA no invalida nada (la lista guardada es superconjunto). */
+export function consentCovers(
+  consent: { providers?: unknown } | null | undefined,
+  currentKeys: readonly string[],
+): boolean {
+  if (!consent) return false
+  if (currentKeys.length === 0) return true
+  const guardados = consent.providers
+  if (!Array.isArray(guardados)) return false
+  return currentKeys.every((k) => guardados.includes(k))
+}
+
+/** Lo que el banner hace al montarse. Pura para poder probarla sin React.
+ *  - `visible`: pregunta si no hay consentimiento válido.
+ *  - `mirrorAnalytics`: valor con el que alinear `gen-consent` (solo concede, ver
+ *    gen-consent.ts) cuando el consentimiento es válido; `'retirar'` si existe
+ *    pero NO es válido (no puede seguir concediendo); `null` si no hay cookie.
+ *  - `prefill`: la elección previa, para precargarla en «Personalizar». */
+export function bannerAlMontar(
+  consent: CookieConsent | null,
+  currentKeys: readonly string[],
+): { visible: boolean; mirrorAnalytics: boolean | 'retirar' | null; prefill: ConsentPrefs | null } {
+  if (!consent) return { visible: true, mirrorAnalytics: null, prefill: null }
+  const prefill = { analytics: consent.analytics, marketing: consent.marketing, personalization: consent.personalization }
+  if (consentCovers(consent, currentKeys)) return { visible: false, mirrorAnalytics: consent.analytics, prefill }
+  return { visible: true, mirrorAnalytics: 'retirar', prefill }
+}
+
+export function setConsent(prefs: ConsentPrefs, providers: readonly string[]): void {
   const consent: CookieConsent = {
     essential: true,
     analytics: prefs.analytics,
     marketing: prefs.marketing,
     personalization: prefs.personalization,
+    providers: [...new Set(providers)].sort(),
     timestamp: new Date().toISOString(),
   }
   const value = encodeURIComponent(JSON.stringify(consent))
@@ -51,10 +103,10 @@ export function getConsent(): CookieConsent | null {
   return parseConsent(document.cookie)
 }
 
-export function hasConsent(category: keyof CookieConsent): boolean {
+export function hasConsent(category: 'analytics' | 'marketing' | 'personalization', currentKeys: readonly string[]): boolean {
   const consent = getConsent()
-  if (!consent) return false
-  return !!consent[category]
+  if (!consentCovers(consent, currentKeys)) return false
+  return !!consent![category]
 }
 
 /** ¿Alguna categoría pasa de concedida a retirada? Es lo que obliga a recargar

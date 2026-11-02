@@ -23,6 +23,10 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
     al aceptar (analytics → analytics_storage; marketing → ad_storage,
     ad_user_data, ad_personalization).
 
+    VERSIÓN del consentimiento: la cookie guarda `providers` (los proveedores
+    encendidos al consentir). Si hoy hay uno que no está, el consentimiento NO
+    vale: no carga nada y el banner vuelve a preguntar (consentCovers).
+
     Revocar no se puede "descargar": el banner recarga la página si hay un
     tracker vivo (CookieBanner.tsx → consentRevoked; flag window.trackersLoaded).
 
@@ -42,12 +46,24 @@ const { providers = [], googleAdsConversionLabel = '' } = Astro.props;
       providers.forEach(function (p) { CAT[p.key] = p.category; ID[p.key] = p.id; });
       var loaded = {};
       var hayGoogle = !!(ID.ga4 || ID.gtm || ID.googleAds);
+      var KEYS = providers.map(function (p) { return p.key; });
+
+      // REPLICA de consentCovers (src/lib/cookies.ts): un consentimiento solo vale
+      // si cubre TODOS los proveedores encendidos ahora. Sin `providers` guardado
+      // (cookie anterior a la versión) y con algún proveedor encendido → NO vale.
+      // Analytics.test.ts ejecuta este código contra la función pura.
+      function covers(c) {
+        if (KEYS.length === 0) return true;
+        if (!Array.isArray(c.providers)) return false;
+        return KEYS.every(function (k) { return c.providers.indexOf(k) !== -1; });
+      }
 
       function readConsent() {
         try {
           var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
           if (!match) return {};
           var c = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          if (!c || typeof c !== 'object' || !covers(c)) return {};
           return { analytics: c.analytics === true, marketing: c.marketing === true };
         } catch (e) {
           return {};
