@@ -69,6 +69,8 @@ $ node scripts/cabeceras-check.mjs
 ✓ cabeceras-check — las dos listas cuadran (5 cabeceras).
 ```
 
+> Salida histórica de la medición de septiembre de 2026. A 2-nov-2026 `public/_headers` lleva 6 cabeceras (se añadió la CSP en modo informe) y el mismo comando imprime «6 cabeceras».
+
 Control negativo, porque un control que solo se ha visto pasar no se ha
 comprobado — reintroduciendo `X-XSS-Protection` en `public/_headers` del site:
 
