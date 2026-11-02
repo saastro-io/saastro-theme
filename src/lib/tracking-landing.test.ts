@@ -398,3 +398,51 @@ describe('extremo a extremo: el cargador real y saastroTrack de ESA página', ()
     expect(p.scripts.join(' ')).not.toContain(AW_B);
   });
 });
+
+describe('navegación sin recargar (ClientRouter): el override no pasa de una página a otra', () => {
+  const fuente = readFileSync(new URL('../components/Analytics.astro', import.meta.url), 'utf8');
+  const CODIGO = fuente.match(/<script is:inline[^>]*>([\s\S]*?)<\/script>/)![1];
+
+  /** Ejecuta el cargador real varias veces en la MISMA ventana, como hace ClientRouter. */
+  function navegar(paginas: Array<ReturnType<typeof resolveTracking>>) {
+    const scripts: string[] = [];
+    let recargas = 0;
+    const insert = (s: { src?: string }) => scripts.push(s.src ?? '');
+    const doc = {
+      cookie: '', readyState: 'complete', head: { appendChild: insert },
+      getElementsByTagName: () => [{ parentNode: { insertBefore: insert } }],
+      createElement: () => ({ attrs: {}, setAttribute() {} }), addEventListener: () => {},
+    };
+    const win: Record<string, any> = { document: doc, addEventListener: () => {} };
+    win.window = win;
+    for (const r of paginas) {
+      runInNewContext(CODIGO, {
+        providers: r.providers, adsConv: r.googleAdsConversions, ownHost: '', window: win, document: doc,
+        location: { hostname: 'sitio.example', href: 'https://sitio.example/', origin: 'https://sitio.example', reload: () => { recargas++; } },
+        history: { pushState() {}, replaceState() {} }, URL, encodeURIComponent, decodeURIComponent, JSON, Date, Array, Object,
+      });
+    }
+    return { recargas, win };
+  }
+  const s = site({ metaPixel: META_A });
+  const conLanding = resolveTracking(s, { landing: { tracking: { metaPixel: META_B }, mode: 'replace' } });
+  const sin = resolveTracking(s);
+
+  it('landing con override -> página normal: recarga (los píxeles ya vivos no se pueden descargar)', () => {
+    expect(navegar([conLanding, sin]).recargas).toBe(1);
+  });
+  it('página normal -> landing con override: recarga', () => {
+    expect(navegar([sin, conLanding]).recargas).toBe(1);
+  });
+  it('la misma firma (todo el site sin landings) NO recarga nunca', () => {
+    expect(navegar([sin, resolveTracking(s), resolveTracking(s)]).recargas).toBe(0);
+  });
+  it('la segunda carga tras recargar parte de cero: sin firma previa, no vuelve a recargar', () => {
+    expect(navegar([conLanding]).recargas).toBe(0);
+  });
+  it('al recargar, el script de la página nueva no se ejecuta a medias (no reabre el listener ni cambia la firma)', () => {
+    const { win } = navegar([conLanding, sin]);
+    expect(win.__saastroTrackSig).toContain(META_B);
+    expect(win.__saastroTrackSig).not.toContain(META_A);
+  });
+});

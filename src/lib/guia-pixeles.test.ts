@@ -55,12 +55,14 @@ describe('docs/guia-pixeles.md ↔ tracking-providers.json', () => {
     expect(legal).toMatch(/Cloudflare Web Analytics \(exento de consentimiento/);
     expect(legal).toMatch(/Esto no es texto legal/);
   });
-  it('documenta los varios ids (tope, Clarity) y el override por landing como diseño NO implementado', () => {
+  it('documenta los varios ids (tope, Clarity) y el override por landing con su contrato', () => {
     expect(guia).toMatch(/separados\s+por comas/);
     expect(guia).toMatch(/tope de 5/);
     expect(guia).toMatch(/Clarity[^\n]*un solo proyecto por página/i);
-    expect(guia).toMatch(/Diseño propuesto \(NO implementado\): override de tracking por landing/);
-    expect(guia).toMatch(/mode: add/);
+    expect(guia).toMatch(/## Override de píxeles por landing/);
+    expect(guia).not.toMatch(/NO implementado/);
+    expect(guia).toMatch(/trackingMode: add/);
+    expect(guia).toMatch(/src\/content\/lp\/<slug>\.md/);
     expect(guia).toMatch(/replace/);
   });
   it('no afirma que Consent Mode limite TODAS las etiquetas de un contenedor GTM', () => {
