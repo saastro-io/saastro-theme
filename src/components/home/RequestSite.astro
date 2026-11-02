@@ -4,8 +4,9 @@
  *
  * El formulario NO se dibuja aquí: es el HubForm del site (`RequestSiteForm`,
  * el mismo que abre el botón de contacto del Header). Si el site aún no está
- * conectado al Hub (`forms.siteId` vacío) se pinta `notConnected` en su lugar
- * y no se monta nada que pueda enviar.
+ * conectado al Hub (`forms.siteId` vacío) se muestra `notConnected` en su lugar
+ * y no se monta nada que pueda enviar. Con siteId, `notConnected` sigue en el
+ * HTML pero con `hidden` (lo exige el contrato Studio).
  */
 import { Icon } from 'astro-icon/components';
 import { getSettings } from '@/lib/settings';
@@ -33,6 +34,15 @@ const {
 } = Astro.props;
 
 const { siteId, contactFormSlug } = getSettings().forms;
+
+// Aviso de privacidad junto al formulario: el MISMO texto (`contactForm.*`) y el
+// mismo enlace que el panel de contacto del Header. Sin él la home recogería
+// datos personales sin información visible.
+const avisoT = (Astro.locals.t as any)?.contactForm ?? {
+  privacyNotice: "We'll use your details based on legitimate interest as set out in our ",
+  privacyPolicyLinkText: 'Privacy Policy',
+};
+const privacyHref = Astro.locals.localePath ? Astro.locals.localePath('/legal/privacy') : '/legal/privacy';
 ---
 
 <section class="sec" id="contact">
@@ -55,10 +65,18 @@ const { siteId, contactFormSlug } = getSettings().forms;
       )}
     </div>
     <div class="ds-card form-card">
-      {siteId ? (
+      {siteId && (
         <RequestSiteForm locale={locale} siteId={siteId} formSlug={contactFormSlug} client:only="react" />
-      ) : (
-        <p class="not-connected">{notConnected}</p>
+      )}
+      {/* El texto se emite SIEMPRE y se oculta con `hidden` cuando hay siteId:
+          el contrato Studio (field-markers + verbatim) exige `notConnected` en el
+          DOM, y sin esto conectar el formulario ponía studio:check en rojo. */}
+      <p class="not-connected" hidden={Boolean(siteId)}>{notConnected}</p>
+      {siteId && (
+        <p class="privacy-note">
+          {avisoT.privacyNotice}
+          <a href={privacyHref} target="_blank" rel="noopener noreferrer">{avisoT.privacyPolicyLinkText}</a>.
+        </p>
       )}
     </div>
   </div>
@@ -101,6 +119,15 @@ const { siteId, contactFormSlug } = getSettings().forms;
   .not-connected {
     color: var(--ds-fg-muted);
     font-size: 14px;
+  }
+  .privacy-note {
+    color: var(--ds-fg-muted);
+    font-size: 12px;
+    margin: 16px 0 0;
+  }
+  .privacy-note a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   @media (max-width: 1000px) {
     .contact { grid-template-columns: 1fr; gap: 32px; }
