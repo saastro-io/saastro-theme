@@ -324,14 +324,15 @@ Otros tres sites de plantilla, misma orden (driver + `--attr-source`): **68**,
 ### (c3) (b): cuántos acabarían pisados con la resolución más simple
 
 Sobre el primer injerto al día de hoy, con el driver ya aplicado (70 en
-conflicto):
+conflicto), medido con `git checkout --theirs`/`--ours` sobre los 70 y
+commit en dos clones:
 
 - **`--theirs` en bloque** (entra el theme): **70 ficheros del site pisados**,
   15 de ellos contenido propio de la lista de arriba; entre ellos los textos
   legales de la política de cookies y privacidad y los favicons. Más 159
-  ficheros nuevos que el site no pidió (tests incluidos).
+  ficheros nuevos que el site no pidió (21 son `*.test.*`).
 - **`--ours` en bloque** (se queda el site): **0 pisados**, pero tampoco llega
-  ninguna de las 70 mejoras del theme: el injerto queda en 159 ficheros nuevos
+  ninguno de los cambios del theme en esos 70 ficheros: el injerto queda en 159 ficheros nuevos
   más un commit de merge. Es un `git fetch` caro.
 - **La receta por ruta** (b1/b2) toca solo las rutas que se eligen. Para el
   mismo salto, entre `24ad92f` y `dc9991c` (10 commits, 24 ficheros tocados),
@@ -350,7 +351,9 @@ Es lo único en lo que el injerto compensa. Tras el primer injerto el site
 **es** descendiente: `git merge-base HEAD upstream/main` devuelve el commit
 del theme que se injertó y `git merge upstream/main` deja de dar «unrelated
 histories». Medido con dos clones, uno por resolución del primero, y luego un
-`git merge upstream/main` con 10 commits nuevos (24 ficheros):
+`git merge upstream/main`. Aquí el primer injerto se hizo en `24ad92f` (69
+conflictos, 157 añadidos; no es el `dc9991c` de (c3)) y el segundo trajo los 10
+commits siguientes hasta `dc9991c` (24 ficheros):
 
 | Primer injerto resuelto con | Conflictos al 2.º merge | Tiempo |
 | --- | --- | --- |
@@ -360,8 +363,9 @@ histories». Medido con dos clones, uno por resolución del primero, y luego un
 Con `--ours` los 11 son justo lo que el site conservaba distinto de la base:
 `package.json`, `pnpm-lock.yaml`, `public/_headers`, `BaseLayout`,
 `SiteLayout`, `Analytics.astro`, `lib/cookies.ts`, `lib/security-headers.ts`,
-`CookieBanner.tsx` y los dos `legal/cookies.md`. Y no se acaba: cada fichero que
-el site no adopte vuelve a chocar en cada actualización que lo toque. Con un
+`CookieBanner.tsx` y los dos `legal/cookies.md`. Cabe esperar que cada fichero que
+el site no adopte vuelva a chocar en cada actualización que lo toque (solo se
+midieron dos segundos merges; SIN VERIFICAR como regla). Con un
 salto más largo (59 commits, 153 ficheros, desde `376333a`) fueron **42**
 conflictos (37 con `--attr-source=upstream/main`; ese `376333a` aún no traía
 `.gitattributes`, así que tampoco hubo driver en el primer injerto). Con
@@ -378,7 +382,7 @@ Todo lo de esta tabla se midió salvo lo marcado.
 | | Injerto único (c) | `checkout`/`cherry-pick` por ruta (b) | npm (a) |
 | --- | --- | --- | --- |
 | Máquina | 0.13-0.26 s | `checkout` 0.011 s; `cherry-pick` 0.145 s | no se publicó |
-| Primer coste | 65-90 conflictos (70 en el caso principal), 684 hunks; +159 ficheros nuevos | 0 (se elige la ruta) | extraer 13 ficheros a un paquete nuevo y publicarlo |
+| Primer coste | 65-90 conflictos (70 en el caso principal), 684 hunks sin driver; +159 ficheros nuevos | 0 (se elige la ruta) | extraer 13 ficheros a un paquete nuevo y publicarlo |
 | Pisado en silencio | 70 con `--theirs`; 0 con `--ours`, pero entonces no se actualiza nada | 0 si se hacen las dos comprobaciones de (b1) | no aplica |
 | Siguiente actualización | 0 conflictos (`--theirs`), 11 (`--ours`) para 10 commits; `merge` normal | por cada commit, conflictos de contexto de la divergencia acumulada | bump de versión + redeploy en cada site |
 | Cubre la divergencia real | solo si se resuelve a mano los 70, y entonces es trabajo humano | solo lo elegido | no: 72 de 95 ficheros comunes difieren (censo del 18-sep) |
