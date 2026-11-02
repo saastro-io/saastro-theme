@@ -1,13 +1,13 @@
 {
-  "_nota": "Fuente ÚNICA de los proveedores de medición/anuncios. La leen src/lib/tracking.ts (build) y scripts/studio-contract-check.mjs (invariante 8e). `pattern` es el formato del id y NO está contrastado contra la documentación de cada proveedor: SIN VERIFICAR; un id que no lo cumple se descarta con aviso en el build, nunca se inyecta en una URL o un script. `category`: analytics | marketing | any (any = carga con cualquiera de las dos; hoy solo GTM).",
+  "_nota": "Fuente ÚNICA de los proveedores de medición/anuncios. La leen src/lib/tracking.ts (build) y scripts/studio-contract-check.mjs (invariante 8e). `pattern` es el formato del id y NO está contrastado contra la documentación de cada proveedor: SIN VERIFICAR; un id que no lo cumple se descarta con aviso en el build, nunca se inyecta en una URL o un script. `category`: analytics | marketing | any (any = carga con cualquiera de las dos; hoy solo GTM). `cookies`: las cookies PROPIAS del site (first-party) que el proveedor deja y que se BORRAN al retirar el consentimiento (src/lib/tracker-cookies.ts). Las de dominios del proveedor (clarity.ms, linkedin.com, etc.) no se pueden borrar desde el site y no figuran. Medidas en Chrome el 2-nov-2026: `_ga`, `_ga_<id>`, `_clck`, `_clsk`; el resto, de memoria: SIN VERIFICAR.",
   "providers": [
-    { "key": "ga4", "label": "Google Analytics 4", "category": "analytics", "pattern": "^G-[A-Z0-9]{6,12}$", "marker": "tracking-ga4", "legacy": ["analytics", "googleAnalytics", "id"] },
-    { "key": "gtm", "label": "Google Tag Manager", "category": "any", "pattern": "^GTM-[A-Z0-9]{4,10}$", "marker": "tracking-gtm", "legacy": ["analytics", "googleTagManager", "id"] },
-    { "key": "googleAds", "label": "Google Ads", "category": "marketing", "pattern": "^AW-[0-9]{8,12}$", "marker": "tracking-google-ads" },
-    { "key": "metaPixel", "label": "Meta Pixel", "category": "marketing", "pattern": "^[0-9]{10,20}$", "marker": "tracking-meta" },
-    { "key": "tiktokPixel", "label": "TikTok Pixel", "category": "marketing", "pattern": "^[A-Z0-9]{15,25}$", "marker": "tracking-tiktok" },
-    { "key": "linkedinPartnerId", "label": "LinkedIn Insight Tag", "category": "marketing", "pattern": "^[0-9]{5,10}$", "marker": "tracking-linkedin" },
-    { "key": "clarity", "label": "Microsoft Clarity", "category": "analytics", "pattern": "^[a-z0-9]{8,12}$", "marker": "tracking-clarity" }
+    {"key": "ga4", "label": "Google Analytics 4", "category": "analytics", "pattern": "^G-[A-Z0-9]{6,12}$", "marker": "tracking-ga4", "legacy": ["analytics", "googleAnalytics", "id"], "cookies": {"exact": ["_ga", "_gid", "_gat"], "prefix": ["_ga_", "_gat_"]}},
+    {"key": "gtm", "label": "Google Tag Manager", "category": "any", "pattern": "^GTM-[A-Z0-9]{4,10}$", "marker": "tracking-gtm", "legacy": ["analytics", "googleTagManager", "id"], "cookies": {"exact": [], "prefix": []}},
+    {"key": "googleAds", "label": "Google Ads", "category": "marketing", "pattern": "^AW-[0-9]{8,12}$", "marker": "tracking-google-ads", "cookies": {"exact": [], "prefix": ["_gcl_", "_gac_"]}},
+    {"key": "metaPixel", "label": "Meta Pixel", "category": "marketing", "pattern": "^[0-9]{10,20}$", "marker": "tracking-meta", "cookies": {"exact": ["_fbp", "_fbc"], "prefix": []}},
+    {"key": "tiktokPixel", "label": "TikTok Pixel", "category": "marketing", "pattern": "^[A-Z0-9]{15,25}$", "marker": "tracking-tiktok", "cookies": {"exact": ["_ttp", "_tt_enable_cookie", "_ttclid"], "prefix": []}},
+    {"key": "linkedinPartnerId", "label": "LinkedIn Insight Tag", "category": "marketing", "pattern": "^[0-9]{5,10}$", "marker": "tracking-linkedin", "cookies": {"exact": [], "prefix": []}},
+    {"key": "clarity", "label": "Microsoft Clarity", "category": "analytics", "pattern": "^[a-z0-9]{8,12}$", "marker": "tracking-clarity", "cookies": {"exact": ["_clck", "_clsk"], "prefix": []}}
   ],
   "googleAdsConversionLabelPattern": "^[A-Za-z0-9_-]{10,40}$"
 }

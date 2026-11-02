@@ -76,3 +76,15 @@ export function resolvePrefs(
 ): ConsentPrefs {
   return { ...input, marketing: showMarketing && input.marketing === true }
 }
+
+/** Qué categorías pasan de concedidas a retiradas (para borrar sus cookies). */
+export function revokedCategories(
+  previous: Pick<ConsentPrefs, 'analytics' | 'marketing'> | null,
+  next: Pick<ConsentPrefs, 'analytics' | 'marketing'>,
+): Array<'analytics' | 'marketing'> {
+  if (!previous) return []
+  const out: Array<'analytics' | 'marketing'> = []
+  if (previous.analytics && !next.analytics) out.push('analytics')
+  if (previous.marketing && !next.marketing) out.push('marketing')
+  return out
+}
