@@ -24,6 +24,9 @@
  *   consent="required"  waits until localStorage['gen-consent'] === 'granted'
  *                       (re-checked on each navigation; dispatch a
  *                       `gen:consent-granted` window event to start same-tab).
+ *                       Además la cookie `cookie_consent` debe CUBRIR los
+ *                       proveedores encendidos (`trackingKeys`): misma regla que
+ *                       Analytics.astro (consentCovers, src/lib/cookies.ts).
  */
 export interface Props {
   /** Gen workspace id = the SAASTRO Platform team id (public). */
@@ -34,6 +37,9 @@ export interface Props {
   endpoint?: string;
   /** "none" (cookieless, immediate) | "required" (gated on gen-consent). */
   consent?: 'none' | 'required';
+  /** Claves de los proveedores de tracking encendidos (resolveTracking). Con
+   *  consent="required" el consentimiento guardado debe cubrirlas todas. */
+  trackingKeys?: string[];
 }
 
 const {
@@ -41,6 +47,7 @@ const {
   vertical = 'default',
   endpoint = 'https://gen.saastro.io',
   consent = 'none',
+  trackingKeys = [],
 } = Astro.props;
 // Host propio del site (`SITE_URL`): se mide aunque cuelgue de *.saastro.io.
 const ownHost = Astro.site?.hostname ?? '';
@@ -54,6 +61,7 @@ const ownHost = Astro.site?.hostname ?? '';
     data-gen-endpoint={endpoint}
     data-gen-consent={consent}
     data-gen-own-host={ownHost}
+    data-gen-keys={JSON.stringify(trackingKeys)}
   >
     (function () {
       try {
@@ -66,6 +74,9 @@ const ownHost = Astro.site?.hostname ?? '';
         var endpoint = (cfg.genEndpoint || 'https://gen.saastro.io').replace(/\/+$/, '');
         var consentMode = cfg.genConsent || 'none';
         var ownHost = cfg.genOwnHost || '';
+        var KEYS = [];
+        try { KEYS = JSON.parse(cfg.genKeys || '[]'); } catch (e) { KEYS = []; }
+        if (!Array.isArray(KEYS)) KEYS = [];
 
         // Never track editor previews / local dev — the Studio preview proxy
         // serves the site under a *.saastro.io origin, and localhost is dev.
@@ -80,10 +91,29 @@ const ownHost = Astro.site?.hostname ?? '';
         )
           return;
 
+        // REPLICA de consentCovers (src/lib/cookies.ts) sobre la cookie del banner:
+        // un consentimiento que no cubre los proveedores de hoy no vale, aunque
+        // `gen-consent` siga en 'granted' (el banner lo retira al montar, pero
+        // esta carga ya empezó). Analytics.test.ts ejecuta este código
+        // contra la función pura.
+        function cookieCovers() {
+          try {
+            var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
+            if (!match) return false;
+            var c = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+            if (!c || typeof c !== 'object') return false;
+            if (KEYS.length === 0) return true;
+            if (!Array.isArray(c.providers)) return false;
+            return KEYS.every(function (k) { return c.providers.indexOf(k) !== -1; });
+          } catch (e) {
+            return false;
+          }
+        }
+
         function consentOk() {
           if (consentMode !== 'required') return true;
           try {
-            return localStorage.getItem('gen-consent') === 'granted';
+            return localStorage.getItem('gen-consent') === 'granted' && cookieCovers();
           } catch (e) {
             return false;
           }

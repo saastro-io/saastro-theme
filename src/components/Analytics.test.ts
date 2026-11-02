@@ -211,3 +211,52 @@ describe('versión del consentimiento: el inline NO diverge de consentCovers', (
     expect(ejecutar(c, [GA4, CLARITY]).scripts).toEqual([]);
   });
 });
+
+describe('GenTracking (consent="required") aplica la MISMA regla', () => {
+  const gen = readFileSync(new URL('./GenTracking.astro', import.meta.url), 'utf8');
+  const GEN = gen.match(/<script[^>]*is:inline[^>]*>([\s\S]*?)<\/script>/)![1];
+
+  function arrancaGen(cookie: string, keys: string[], granted = true) {
+    const enviados: string[] = [];
+    const doc = {
+      cookie,
+      readyState: 'complete',
+      currentScript: { dataset: { genWorkspace: 'ws_1', genConsent: 'required', genKeys: JSON.stringify(keys) } },
+      getElementsByTagName: () => [],
+      addEventListener: () => {},
+    };
+    const win: Record<string, unknown> = { addEventListener: () => {} };
+    win.window = win;
+    runInNewContext(GEN, {
+      window: win, document: doc, JSON, Date, Array, Object, String, Math, URLSearchParams, Blob,
+      encodeURIComponent, decodeURIComponent,
+      location: { hostname: 'sitio.example', href: 'https://sitio.example/', pathname: '/', search: '' },
+      localStorage: { getItem: () => (granted ? 'granted' : null) },
+      sessionStorage: { getItem: () => 'vid', setItem: () => {} },
+      navigator: { sendBeacon: (u: string) => { enviados.push(u); return true; } },
+    });
+    return enviados.length > 0;
+  }
+
+  it('arranca <=> gen-consent granted Y la función pura dice que cubre (misma matriz que el inline de Analytics)', () => {
+    for (const ps of CONJUNTOS_GEN) for (const g of GUARDADOS_GEN) {
+      const c = cookieGen(g);
+      const k = ps.map((p) => p.key);
+      expect(arrancaGen(c, k), `${JSON.stringify(k)} vs ${JSON.stringify(g)}`).toBe(consentCovers(parseConsent(c), k));
+    }
+  });
+
+  it('sin cookie no arranca aunque gen-consent siga granted; sin granted no arranca aunque cubra', () => {
+    expect(arrancaGen('', ['ga4'])).toBe(false);
+    expect(arrancaGen(ck({ analytics: true, providers: ['ga4'] }), ['ga4'], false)).toBe(false);
+  });
+
+  it('cookie antigua sin providers + proveedor encendido: no arranca; con providers que cubre: sí', () => {
+    expect(arrancaGen(ck({ analytics: true, providers: undefined }), ['ga4'])).toBe(false);
+    expect(arrancaGen(ck({ analytics: true, providers: ['ga4'] }), ['ga4'])).toBe(true);
+  });
+});
+const CONJUNTOS_GEN: P[][] = [[], [GA4], [GA4, CLARITY], [GA4, CLARITY, META], [GTM]];
+const GUARDADOS_GEN: Array<string[] | 'ausente' | 'cadena'> = ['ausente', 'cadena', [], ['ga4'], ['ga4', 'clarity'], ['ga4', 'clarity', 'metaPixel'], ['gtm']];
+const cookieGen = (g: (typeof GUARDADOS_GEN)[number]) =>
+  ck({ analytics: true, marketing: true, providers: g === 'ausente' ? undefined : g === 'cadena' ? 'ga4' : g });

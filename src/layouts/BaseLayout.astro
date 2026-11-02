@@ -218,7 +218,7 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
         on form submits. Off unless settings.gen.workspaceId is set (the Hub's
         per-site "Gen tracking" toggle writes it). */}
     {genWorkspaceId && (
-      <GenTracking workspaceId={genWorkspaceId} vertical={genVertical} consent={genConsent} />
+      <GenTracking workspaceId={genWorkspaceId} vertical={genVertical} consent={genConsent} trackingKeys={tracking.providers.map((p) => p.key)} />
     )}
   </head>
 
