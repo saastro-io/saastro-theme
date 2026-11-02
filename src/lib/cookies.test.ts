@@ -8,13 +8,13 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { consentRevoked, parseConsent, resolvePrefs, setConsent } from './cookies';
+import { bannerAlMontar, consentCovers, consentRevoked, parseConsent, resolvePrefs, setConsent } from './cookies';
 
 function escribirCon(protocol: string): string {
   const doc = { cookie: '' };
   vi.stubGlobal('document', doc);
   vi.stubGlobal('location', { protocol });
-  setConsent({ analytics: false, marketing: false, personalization: false });
+  setConsent({ analytics: false, marketing: false, personalization: false }, []);
   return doc.cookie;
 }
 
@@ -49,7 +49,7 @@ describe('categoría marketing', () => {
     const doc = { cookie: '' };
     vi.stubGlobal('document', doc);
     vi.stubGlobal('location', { protocol: 'https:' });
-    setConsent({ analytics: false, marketing: true, personalization: false });
+    setConsent({ analytics: false, marketing: true, personalization: false }, []);
     expect(parseConsent(doc.cookie.split(';')[0])).toMatchObject({ analytics: false, marketing: true });
   });
 
@@ -100,5 +100,75 @@ describe('resolvePrefs (lo que guarda cada botón)', () => {
   });
   it('un marketing ausente o no booleano cuenta como no', () => {
     expect(resolvePrefs({ analytics: true, personalization: true }, true).marketing).toBe(false);
+  });
+});
+
+describe('consentCovers (versión del consentimiento por proveedor)', () => {
+  it('sin consentimiento nunca cubre', () => {
+    expect(consentCovers(null, [])).toBe(false);
+    expect(consentCovers(undefined, ['ga4'])).toBe(false);
+  });
+  it('sin proveedores encendidos cualquier consentimiento vale, con o sin `providers`', () => {
+    expect(consentCovers({}, [])).toBe(true);
+    expect(consentCovers({ providers: [] }, [])).toBe(true);
+  });
+  it('cookie anterior (sin `providers`) con algún proveedor encendido NO vale', () => {
+    expect(consentCovers({}, ['ga4'])).toBe(false);
+  });
+  it('`providers` que no es lista cuenta como ausente', () => {
+    expect(consentCovers({ providers: 'ga4' }, ['ga4'])).toBe(false);
+    expect(consentCovers({ providers: null }, ['ga4'])).toBe(false);
+  });
+  it('vale solo si TODO proveedor encendido ahora está guardado', () => {
+    expect(consentCovers({ providers: ['ga4', 'clarity'] }, ['ga4', 'clarity'])).toBe(true);
+    expect(consentCovers({ providers: ['ga4'] }, ['ga4', 'clarity'])).toBe(false);
+    expect(consentCovers({ providers: [] }, ['clarity'])).toBe(false);
+  });
+  it('apagar un proveedor no invalida lo guardado', () => {
+    expect(consentCovers({ providers: ['ga4', 'clarity'] }, ['ga4'])).toBe(true);
+  });
+});
+
+describe('providers en la cookie', () => {
+  function guardar(providers: string[]): string {
+    const doc = { cookie: '' };
+    vi.stubGlobal('document', doc);
+    vi.stubGlobal('location', { protocol: 'https:' });
+    setConsent({ analytics: true, marketing: false, personalization: false }, providers);
+    return doc.cookie.split(';')[0];
+  }
+  it('setConsent guarda los proveedores (sin duplicados, ordenados) y parseConsent los devuelve', () => {
+    const c = parseConsent(guardar(['clarity', 'ga4', 'clarity']));
+    expect(c?.providers).toEqual(['clarity', 'ga4']);
+  });
+  it('lista vacía se conserva como vacía (consintió sin proveedores), no como ausente', () => {
+    expect(parseConsent(guardar([]))?.providers).toEqual([]);
+  });
+  it('una cookie sin `providers` o con basura se lee SIN providers', () => {
+    const ck = (o: object) => 'cookie_consent=' + encodeURIComponent(JSON.stringify(o));
+    expect(parseConsent(ck({ analytics: true }))).not.toHaveProperty('providers');
+    expect(parseConsent(ck({ analytics: true, providers: 'ga4' }))).not.toHaveProperty('providers');
+  });
+});
+
+describe('bannerAlMontar', () => {
+  const base = { essential: true as const, analytics: true, marketing: false, personalization: true, timestamp: 't' };
+  it('sin cookie: visible y sin espejo', () => {
+    expect(bannerAlMontar(null, ['ga4'])).toEqual({ visible: true, mirrorAnalytics: null, prefill: null });
+  });
+  it('consentimiento que cubre: oculto y el espejo sigue la elección', () => {
+    const r = bannerAlMontar({ ...base, providers: ['ga4'] }, ['ga4']);
+    expect(r.visible).toBe(false);
+    expect(r.mirrorAnalytics).toBe(true);
+  });
+  it('consentimiento que NO cubre: visible, elección precargada y el espejo se RETIRA (no sigue concediendo)', () => {
+    const r = bannerAlMontar({ ...base, providers: ['ga4'] }, ['ga4', 'clarity']);
+    expect(r.visible).toBe(true);
+    expect(r.mirrorAnalytics).toBe('retirar');
+    expect(r.prefill).toEqual({ analytics: true, marketing: false, personalization: true });
+  });
+  it('cookie antigua sin providers con proveedor encendido: visible; sin proveedor: oculto', () => {
+    expect(bannerAlMontar(base, ['ga4']).visible).toBe(true);
+    expect(bannerAlMontar(base, []).visible).toBe(false);
   });
 });

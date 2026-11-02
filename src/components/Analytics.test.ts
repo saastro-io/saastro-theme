@@ -8,6 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
+import { consentCovers, parseConsent } from '../lib/cookies';
 
 const fuente = readFileSync(new URL('./Analytics.astro', import.meta.url), 'utf8');
 const CODIGO = fuente.match(/<script is:inline[^>]*>([\s\S]*?)<\/script>/)![1];
@@ -49,7 +50,9 @@ function ejecutar(cookie: string, providers: P[], adsLabel = '') {
     track: (n: string, d?: object) => (win.saastroTrack as (n: string, d?: object) => string[])(n, d),
   };
 }
-const ck = (o: object) => 'cookie_consent=' + encodeURIComponent(JSON.stringify(o));
+// Por defecto la cookie lleva TODOS los proveedores del catálogo (consentimiento
+// vigente); una prueba de versión pasa `providers` explícito (o `undefined`).
+const ck = (o: object) => 'cookie_consent=' + encodeURIComponent(JSON.stringify({ providers: TODOS.map((p) => p.key), ...o }));
 const SOLO_ANALYTICS = ck({ analytics: true, marketing: false });
 const SOLO_MARKETING = ck({ analytics: false, marketing: true });
 const TODO = ck({ analytics: true, marketing: true });
@@ -161,5 +164,50 @@ describe('saastroTrack (conversión)', () => {
     (r.win.fbq as unknown) = (...a: unknown[]) => llamadas.push(a);
     r.track('click_whatsapp', { event_id: 'z' });
     expect(llamadas).toContainEqual(['trackCustom', 'click_whatsapp', {}, { eventID: 'z' }]);
+  });
+});
+
+describe('versión del consentimiento: el inline NO diverge de consentCovers', () => {
+  const claves = (ps: P[]) => ps.map((p) => p.key);
+  const CONJUNTOS: P[][] = [[], [GA4], [GA4, CLARITY], [GA4, CLARITY, META], [GTM], [META]];
+  const GUARDADOS: Array<string[] | 'ausente' | 'cadena' | 'mezcla'> = [
+    'ausente', 'cadena', 'mezcla', [], ['ga4'], ['clarity'], ['ga4', 'clarity'], ['ga4', 'clarity', 'metaPixel'], ['gtm'], ['metaPixel'],
+  ];
+  const cookie = (g: (typeof GUARDADOS)[number]) => {
+    const base: Record<string, unknown> = { analytics: true, marketing: true, providers: undefined };
+    if (g === 'cadena') base.providers = 'ga4';
+    else if (g === 'mezcla') base.providers = ['ga4', 1];
+    else if (g !== 'ausente') base.providers = g;
+    return ck(base);
+  };
+
+  it('para cada combinación carga algo SII la función pura dice que cubre', () => {
+    let casos = 0;
+    for (const ps of CONJUNTOS) for (const g of GUARDADOS) {
+      const c = cookie(g);
+      const cubre = consentCovers(parseConsent(c), claves(ps));
+      const cargo = ejecutar(c, ps).scripts.length > 0;
+      // Con proveedores encendidos y consentimiento total, cargar <=> cubre.
+      expect(cargo, `${JSON.stringify(claves(ps))} vs ${JSON.stringify(g)}`).toBe(ps.length > 0 && cubre);
+      casos++;
+    }
+    expect(casos).toBe(CONJUNTOS.length * GUARDADOS.length);
+  });
+
+  it('cookie antigua sin providers + proveedor encendido: no carga NADA ni concede Consent Mode', () => {
+    const r = ejecutar(ck({ analytics: true, marketing: true, providers: undefined }), [GA4, CLARITY]);
+    expect(r.scripts).toEqual([]);
+    expect(r.dl().filter((a) => a[1] === 'update')).toEqual([]);
+  });
+
+  it('cookie con providers que cubre: carga', () => {
+    const r = ejecutar(ck({ analytics: true, marketing: false, providers: ['clarity', 'ga4'] }), [GA4, CLARITY]);
+    expect(r.scripts.length).toBe(2);
+  });
+
+  it('añadir un proveedor invalida lo guardado', () => {
+    const c = ck({ analytics: true, marketing: false, providers: ['ga4'] });
+    expect(ejecutar(c, [GA4]).scripts.length).toBe(1);
+    expect(ejecutar(c, [GA4, CLARITY]).scripts).toEqual([]);
   });
 });
