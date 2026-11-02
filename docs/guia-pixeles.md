@@ -70,6 +70,75 @@ prefiera ponerlos en su panel de despliegue). Los nombres salen del catálogo:
 
 **`theme.saastro.io` (Cloudflare → Workers → `saastro-theme` → Settings → Variables and Secrets / Build → Variables):** `PUBLIC_TRACKING_GA4`, `PUBLIC_TRACKING_CLARITY`, `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS` y `PUBLIC_WHATSAPP_NUMBER`. Deben estar puestas **antes** de desplegar un build que traiga esta versión, o el theme vivo deja de medir y de mostrar WhatsApp. Se pone el valor de cada cuenta; no se copia en este repo.
 
+## Configuración efectiva (para el Hub)
+
+`settings.yaml` solo dice una parte de lo que mide un site: las variables de build `PUBLIC_TRACKING_*` GANAN sobre él y no están en el repo. Para que el Hub sepa qué ids están **realmente activos** y de dónde vienen (sin leer solo settings ni rascar el HTML), cada build publica `/saastro-tracking.json`: un fichero estático generado en el build, en la raíz del site (`https://<dominio>/saastro-tracking.json`).
+
+- **Sale de la misma resolución que el cargador.** Lo escribe `resolveTracking` (`src/lib/tracking.ts`), la función que usan `BaseLayout` y `SiteLayout` para decidir qué carga; no hay una segunda precedencia. Refleja el **site** (sin props de `BaseLayout`, sin override de landing).
+- **Determinista:** sin fecha ni hora; proveedores ordenados por `key`; mismo settings y mismas variables, mismos bytes. Cambia solo al volver a construir y desplegar.
+- **Público, sin secretos:** los ids ya están en el HTML servido. Un id inválido **no se repite**: solo se da el motivo. No lleva WhatsApp, rutas ni el frontmatter de las landings. No está en el sitemap.
+- **El Hub debe leerlo del site DESPLEGADO** (no del repo ni de su propio settings): es lo único que ve las variables del despliegue. Es lo que mide el último build, no lo que hay guardado en el panel del despliegue: si alguien cambia una variable y no reconstruye, el fichero sigue diciendo lo anterior (igual que el HTML).
+- Sin cabeceras CORS: se lee desde servidor, no desde el navegador de otra web.
+
+Campos por proveedor del catálogo (`providers[]`, todos presentes aunque estén apagados):
+
+| Campo | Qué es |
+|---|---|
+| `key`, `label` | Clave del catálogo y nombre legible |
+| `category` | `analytics` · `marketing` · `any` (GTM: carga con cualquiera de las dos) · `none` (exento de consentimiento) |
+| `ids` | Ids ya validados, sin duplicados, en el orden escrito. `[]` si está apagado |
+| `source` | De dónde sale: `variable` (`PUBLIC_TRACKING_*`) · `settings` (`tracking.<clave>`) · `legacy` (ruta vieja `analytics.*`) · `none` (nadie lo fija) |
+| `envVar` | Nombre de la variable que lo fijaría (derivado del catálogo), esté o no puesta |
+| `consentRequired` | `false` solo para un proveedor exento (hoy Cloudflare Web Analytics) |
+| `perLanding` | ¿Puede una landing sobrescribirlo? `false` en los del site y en los exentos |
+| `invalid` | **Solo si procede:** lista de motivos por los que se descartó un valor: `formato`, `no-cadena` (YAML lo leyó como número/booleano) o `tope` (más ids de los que admite). Nunca el valor |
+
+Cómo leerlo: `source: "variable"` = **fijado por variable de build**. Para ese aviso el Hub usa `source` y `envVar` («este id lo fija `PUBLIC_TRACKING_GA4` en el despliegue; editarlo en settings no tendrá efecto»). Una variable inválida sale como `source: "variable"`, `ids: []` e `invalid: ["formato"]`: el proveedor queda apagado y **no** cae a settings. `source: "none"` con `ids: []` es apagado. `schema` solo cambia si se rompe el contrato; añadir campos no lo cambia.
+
+Ejemplo (fixtures falsos; recortado a tres proveedores). GA4 por variable, Clarity por settings y Meta con un valor descartado:
+
+```json
+{
+  "schema": 1,
+  "siteUrl": "https://example.test",
+  "providers": [
+    {
+      "key": "clarity",
+      "label": "Microsoft Clarity",
+      "category": "analytics",
+      "ids": ["testaaaa01"],
+      "source": "settings",
+      "envVar": "PUBLIC_TRACKING_CLARITY",
+      "consentRequired": true,
+      "perLanding": false
+    },
+    {
+      "key": "ga4",
+      "label": "Google Analytics 4",
+      "category": "analytics",
+      "ids": ["G-TESTAAAA01"],
+      "source": "variable",
+      "envVar": "PUBLIC_TRACKING_GA4",
+      "consentRequired": true,
+      "perLanding": true
+    },
+    {
+      "key": "metaPixel",
+      "label": "Meta Pixel",
+      "category": "marketing",
+      "ids": [],
+      "source": "settings",
+      "envVar": "PUBLIC_TRACKING_META_PIXEL",
+      "consentRequired": true,
+      "perLanding": true,
+      "invalid": ["formato"]
+    }
+  ]
+}
+```
+
+(El fichero real lista los ocho proveedores, con `ids` expandido a una línea por id.) No incluye la etiqueta de conversión de Google Ads ni las props de `BaseLayout`.
+
 ## Una propiedad por negocio, un flujo por web (GA4)
 
 GA4 se organiza en **cuenta → propiedad → flujo de datos**. Recomendación:
