@@ -33,6 +33,16 @@ src/components/ValuesGrid.astro merge=ours
 src/components/CompareTable.astro merge=ours
 src/components/CtaBanner.astro merge=ours
 
+# Config del site: sus ids de medición (`tracking:`), su `forms.siteId` del Hub, su
+# nombre. El Hub ESCRIBE aquí los ids de cada site (tarjeta Tracking), incluidos los de
+# theme.saastro.io en el repo del theme: sin esta línea un `git merge upstream/main`
+# los copiaría a los descendientes que no hubiesen tocado esas claves y medirían bajo la
+# cuenta del theme. Efecto contrario, a saber: las CLAVES NUEVAS que el theme añada a
+# este fichero no llegan solas; el site las copia a mano (un bloque `tracking:` ausente
+# significa todo apagado, así que no rompe nada). Mismo requisito que i18n: el driver
+# `ours` se define en el checkout del site (ver arriba).
+src/data/settings.yaml merge=ours
+
 # Contenido: el contrato de Studio es el DOM construido de ESTE contenido. Pero
 # guarda también los hashes de arquitectura de ficheros de infra: tras el
 # merge, el site lo regenera con `pnpm studio:contract:update` y revisa el diff.
