@@ -52,14 +52,14 @@ tracking:
   # (ancla <div data-legal="tracking-…"></div>, ver docs/legal-marketing.md) o
   # `pnpm studio:check` se pone rojo. Un id con formato inválido se descarta con
   # aviso en el build. Si ga4/gtm están aquí, ganan a analytics.googleAnalytics/…
-  ga4: ""               # G-XXXXXXXXXX
-  gtm: ""               # GTM-XXXXXXX
-  googleAds: ""         # AW-123456789
-  googleAdsConversionLabel: ""   # etiqueta de la conversión «lead» (solo con googleAds)
-  metaPixel: ""         # id numérico del Pixel
-  tiktokPixel: ""       # id del Pixel de TikTok
+  ga4: "G-B2MVN4RSSH" # G-XXXXXXXXXX
+  gtm: "" # GTM-XXXXXXX
+  googleAds: "" # AW-123456789
+  googleAdsConversionLabel: "" # etiqueta de la conversión «lead» (solo con googleAds)
+  metaPixel: "" # id numérico del Pixel
+  tiktokPixel: "" # id del Pixel de TikTok
   linkedinPartnerId: "" # Partner ID del Insight Tag
-  clarity: ""           # id del proyecto de Microsoft Clarity
+  clarity: "z7a7k9iubl" # id del proyecto de Microsoft Clarity
 
 forms:
   # Saastro Hub form integration. `siteId` is the Hub site this template is
