@@ -121,8 +121,30 @@ export interface AdsConversion {
   label: string;
 }
 
+/** De dónde sale el id efectivo de un proveedor a NIVEL DE SITE (sin landing):
+ *  `variable` = `PUBLIC_TRACKING_*` · `settings` = `settings.tracking.<clave>` ·
+ *  `legacy` = la ruta vieja `analytics.*` · `prop` = props de BaseLayout (compat; el
+ *  fichero público no las ve, así que no las emite) · `none` = nadie lo fija. */
+export type TrackingSource = 'variable' | 'settings' | 'legacy' | 'prop' | 'none';
+
+/** Por qué se descartó (algo de) el valor del site/variable. Sin eco del valor. */
+export type InvalidReason = 'formato' | 'no-cadena' | 'tope';
+
+/** Estado EFECTIVO de un proveedor a nivel de site, calculado por la MISMA pasada de
+ *  `resolveTracking` que decide qué carga (no hay una segunda precedencia). Hay una entrada
+ *  por proveedor del catálogo, esté encendido o no. Ignora la landing: es el site. */
+export interface ProviderReport {
+  key: string;
+  ids: string[];
+  source: TrackingSource;
+  /** Motivos de descarte (únicos, orden estable). Vacío si el valor era válido. */
+  invalid: InvalidReason[];
+}
+
 export interface ResolvedTracking {
   providers: EnabledProvider[];
+  /** Una entrada por proveedor del catálogo (orden del catálogo), con su origen. */
+  report: ProviderReport[];
   /** Etiqueta de conversión de Google Ads (`AW-…/<label>`), si es válida (la primera, compat). */
   googleAdsConversionLabel: string;
   /** Conversiones de Google Ads por cuenta: la etiqueta i-ésima va con el id i-ésimo
@@ -256,12 +278,14 @@ export function resolveTracking(
   opts: ResolveOptions = {},
 ): ResolvedTracking {
   const vacio: ResolvedTracking = {
-    providers: [], googleAdsConversionLabel: '', googleAdsConversions: [], consentKeys: [], showMarketing: false, rejected: [],
+    providers: [], report: PROVIDERS.map((d) => ({ key: d.key, ids: [], source: 'none' as const, invalid: [] })),
+    googleAdsConversionLabel: '', googleAdsConversions: [], consentKeys: [], showMarketing: false, rejected: [],
   };
   if (opts.noindex) return vacio;
   const env: Record<string, unknown> = opts.env ?? (import.meta.env as Record<string, unknown>);
 
   const providers: EnabledProvider[] = [];
+  const report: ProviderReport[] = [];
   const rejected: RejectedId[] = [];
   let adsSite: Parsed | undefined;
   let adsLanding: Parsed | undefined;
@@ -295,17 +319,31 @@ export function resolveTracking(
     // `null` = el YAML trae algo que no es una cadena (p. ej. un id numérico sin
     // comillas): se avisa en vez de apagar el proveedor en silencio.
     let site: Parsed = { ids: [], posiciones: [] };
+    let source: TrackingSource = 'none';
+    const descartesAntes = rejected.length;
     if (!(override ?? '').trim() && delEnv !== '') {
+      source = 'variable';
       // Variable de build NO vacía: gana y va SOLA. Inválida = proveedor apagado + aviso;
       // nunca cae a settings (reencendería el id que la variable venía a sustituir).
       if (delEnv === null) rejected.push(rechazo(def.key, 'formato', 'env'));
       else site = parsear(def, delEnv, 'env', rejected);
     } else if ((propio === null && !(override ?? '').trim()) || (propio === '' && legado === null && !(override ?? '').trim())) {
       rejected.push({ key: def.key, reason: 'no-cadena' });
+      source = propio === null ? 'settings' : 'legacy';
     } else {
       const valor = (override ?? '').trim() || propio || legado || '';
-      if (valor) site = parsear(def, valor, 'site', rejected);
+      if (valor) {
+        source = (override ?? '').trim() ? 'prop' : propio ? 'settings' : 'legacy';
+        site = parsear(def, valor, 'site', rejected);
+      }
     }
+    // Descartes del VALOR DEL SITE de este proveedor (aún sin la landing, que se anota después).
+    const invalid = [...new Set(
+      rejected.slice(descartesAntes)
+        .filter((r) => r.key === def.key && (r.reason === 'formato' || r.reason === 'no-cadena' || r.reason === 'tope'))
+        .map((r) => r.reason as InvalidReason),
+    )].sort();
+    report.push({ key: def.key, ids: [...site.ids], source, invalid });
 
     // Lo que trae la landing para ESTE proveedor.
     let ids = site.ids;
@@ -371,6 +409,7 @@ export function resolveTracking(
 
   return {
     providers,
+    report,
     googleAdsConversionLabel: googleAdsConversions[0]?.label ?? '',
     googleAdsConversions,
     consentKeys: providers.filter((p) => p.category !== 'none').map((p) => p.key),
