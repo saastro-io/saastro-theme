@@ -61,6 +61,18 @@ const ownHost = Astro.site?.hostname ?? '';
 {providers.length > 0 && (
   <script is:inline define:vars={{ providers, adsConv, ownHost }}>
     (function () {
+      // FIRMA de lo que esta página enciende. Con ClientRouter (navegación sin recargar) este
+      // script se vuelve a ejecutar al llegar a otra página; si la firma cambia (una landing con
+      // override de píxeles <-> el resto del site) los trackers ya cargados NO se pueden descargar
+      // y el listener del script anterior seguiría vivo: el override de una página pasaría a la
+      // otra. Se recarga la página nueva (una sola vez: tras recargar no hay firma previa).
+      // Con la misma firma (todo el site sin landings) no pasa nada.
+      var sig = JSON.stringify([providers.map(function (p) { return [p.key, p.ids]; }), adsConv]);
+      if (window.__saastroTrackSig !== undefined && window.__saastroTrackSig !== sig) {
+        location.reload();
+        return;
+      }
+      window.__saastroTrackSig = sig;
       var CAT = {};
       var IDS = {};
       providers.forEach(function (p) { CAT[p.key] = p.category; IDS[p.key] = p.ids; });
@@ -299,5 +311,13 @@ const ownHost = Astro.site?.hostname ?? '';
         start();
       }
     })();
+  </script>
+)}
+{providers.length === 0 && (
+  <script is:inline>
+    // Página sin proveedores (otra sin píxeles, o la vista previa): si venimos SIN recargar de una
+    // página que SÍ los cargó (p. ej. una landing con override), sus trackers, su listener de
+    // consentimiento y su `saastroTrack` siguen vivos. Misma regla que la firma de arriba: se recarga.
+    if (window.__saastroTrackSig !== undefined) location.reload();
   </script>
 )}

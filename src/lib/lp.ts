@@ -44,6 +44,10 @@ export interface LandingData {
   chrome: 'completo' | 'minimo';
   /** Texto del CTA fijo móvil. */
   cta?: string;
+  /** Override de píxeles de la landing (sin validar; lo valida `resolveTracking`). */
+  tracking?: Record<string, unknown>;
+  /** `add` (suma, por defecto) | `replace` (sustituye por proveedor). Sin validar. */
+  trackingMode?: string;
 }
 
 /**

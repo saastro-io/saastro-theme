@@ -44,6 +44,8 @@ export interface ProviderDef {
   maxIds?: number;
   /** Solo con `category: 'none'`: por qué no pide consentimiento. */
   exemptReason?: string;
+  /** `false` = del SITE: una landing no lo puede sobrescribir (Cloudflare, Clarity). */
+  perLanding?: boolean;
 }
 
 export interface EnabledProvider {
@@ -59,10 +61,34 @@ export interface RejectedId {
   key: string;
   /** 'formato': no cumple el patrón. 'no-cadena': YAML lo leyó como número/booleano
    *  (un id sin comillas, o `true`/`false`; los de 15+ dígitos pierden precisión): hay que entrecomillarlo.
-   *  'tope': sobran ids sobre `maxIds` (se usan los primeros). */
-  reason: 'formato' | 'no-cadena' | 'tope';
+   *  'tope': sobran ids sobre `maxIds` (se usan los primeros).
+   *  Solo de una landing: 'clave' (no es una clave sobrescribible por landing) y
+   *  'modo' (`trackingMode` no es `add` ni `replace`; se usa `add`) y 'sin-cuenta'
+   *  (etiqueta de conversión en la landing sin `googleAds` propio en la landing: no se usa). */
+  reason: 'formato' | 'no-cadena' | 'tope' | 'clave' | 'modo' | 'sin-cuenta';
   /** Solo con 'tope': cuántos ids se usan. */
   max?: number;
+  /** De dónde viene el valor: los ajustes del site (por defecto) o el frontmatter de la landing. */
+  origen?: 'site' | 'landing';
+}
+
+/** Mensaje de build para un id descartado (BaseLayout lo escribe con console.warn). */
+export function describeRejected(r: RejectedId): string {
+  const donde = r.origen === 'landing' ? `landing.tracking.${r.key}` : `settings.tracking.${r.key}`;
+  switch (r.reason) {
+    case 'no-cadena':
+      return `[tracking] ${donde}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`;
+    case 'tope':
+      return `[tracking] ${donde}: hay más ids de los que admite (máximo ${r.max}) — se usan los ${r.max} primeros y el resto se DESCARTA`;
+    case 'clave':
+      return `[tracking] ${donde}: no se puede sobrescribir por landing (o no existe) — IGNORADO`;
+    case 'sin-cuenta':
+      return `[tracking] ${donde}: la etiqueta se empareja con las cuentas googleAds DE LA LANDING y la landing no trae ninguna — IGNORADA`;
+    case 'modo':
+      return `[tracking] landing.trackingMode: valor no válido (solo add o replace) — se usa add`;
+    default:
+      return `[tracking] ${donde}: id con formato inválido — DESCARTADO (no se inyecta nada)`;
+  }
 }
 
 /** Conversión de Google Ads: etiqueta y la cuenta `AW-…` a la que pertenece. */
@@ -110,10 +136,84 @@ function leer(obj: unknown, ruta: readonly string[]): string | null {
   return typeof cur === 'string' ? cur.trim() : null;
 }
 
+export type TrackingMode = 'add' | 'replace';
+
+/** Override de píxeles de UNA landing (frontmatter `tracking:` + `trackingMode:`).
+ *  Llega sin validar (el esquema solo exige la forma): lo valida `resolveTracking`,
+ *  con las mismas reglas que `settings.tracking`. */
+export interface LandingTracking {
+  tracking?: unknown;
+  mode?: unknown;
+}
+
 export interface ResolveOptions {
   noindex?: boolean;
   /** `ga4`/`gtm` pasados por props a BaseLayout (compat). */
   overrides?: { googleAnalyticsId?: string; googleTagManagerId?: string };
+  /** Override de la landing que se está sirviendo. Se resuelve POR PETICIÓN y no se
+   *  guarda en ningún sitio: la función no tiene estado entre llamadas. */
+  landing?: LandingTracking;
+}
+
+/** Claves que una landing puede sobrescribir: los proveedores del catálogo que no
+ *  son del site, más la etiqueta de conversión de Google Ads. */
+export const LANDING_KEYS: readonly string[] = [
+  ...PROVIDERS.filter((d) => d.perLanding !== false && !isExempt(d)).map((d) => d.key),
+  'googleAdsConversionLabel',
+];
+
+interface Parsed {
+  ids: string[];
+  /** Posición de cada id en el valor escrito (los huecos cuentan: `a,,b`). */
+  posiciones: number[];
+}
+
+/** Un descarte; `origen` solo se anota si viene de una landing (los del site no cambian de forma). */
+function rechazo(key: string, reason: RejectedId['reason'], origen: 'site' | 'landing', max?: number): RejectedId {
+  return { key, reason, ...(max !== undefined ? { max } : {}), ...(origen === 'landing' ? { origen } : {}) };
+}
+
+/** Parte, recorta, valida con el patrón del proveedor, quita repetidos y aplica el tope. */
+function parsear(def: ProviderDef, valor: string, origen: 'site' | 'landing', rejected: RejectedId[]): Parsed {
+  const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
+  const ids: string[] = [];
+  const posiciones: number[] = [];
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- el patrón sale del catálogo del propio repo (tracking-providers.json), nunca de la landing ni del visitante; lo que se evalúa contra él es el id, con patrones anclados y acotados
+  const re = new RegExp(def.pattern);
+  valor.split(',').forEach((crudo, i) => {
+    const id = crudo.trim();
+    if (id === '') return;
+    if (!re.test(id)) { rejected.push(rechazo(def.key, 'formato', origen)); return; }
+    if (ids.includes(id)) return;
+    ids.push(id);
+    posiciones.push(i);
+  });
+  if (ids.length > tope) {
+    rejected.push(rechazo(def.key, 'tope', origen, tope));
+    ids.length = tope;
+    posiciones.length = tope;
+  }
+  return { ids, posiciones };
+}
+
+/** Empareja una lista de etiquetas con las cuentas `AW-…` por POSICIÓN en el valor escrito.
+ *  Una etiqueta inválida se descarta con aviso; una sin cuenta no significa nada. */
+function emparejarEtiquetas(
+  etiquetaCruda: string | null,
+  ads: Parsed | undefined,
+  origen: 'site' | 'landing',
+  rejected: RejectedId[],
+): AdsConversion[] {
+  if (etiquetaCruda === null) rejected.push(rechazo('googleAdsConversionLabel', 'no-cadena', origen));
+  const reEtiqueta = new RegExp(catalogo.googleAdsConversionLabelPattern);
+  const out: AdsConversion[] = [];
+  (etiquetaCruda ?? '').split(',').map((x) => x.trim()).forEach((l, i) => {
+    if (l === '') return;
+    if (!reEtiqueta.test(l)) { rejected.push(rechazo('googleAdsConversionLabel', 'formato', origen)); return; }
+    const k = ads ? ads.posiciones.indexOf(i) : -1;
+    if (ads && k !== -1 && !out.some((c) => c.id === ads.ids[k])) out.push({ id: ads.ids[k], label: l });
+  });
+  return out;
 }
 
 export function resolveTracking(
@@ -127,7 +227,26 @@ export function resolveTracking(
 
   const providers: EnabledProvider[] = [];
   const rejected: RejectedId[] = [];
-  let adsPos: number[] = [];
+  let adsSite: Parsed | undefined;
+  let adsLanding: Parsed | undefined;
+
+  // Override de la landing. Una clave que no se puede sobrescribir se ignora con aviso
+  // (nunca se aplica). El modo desconocido cae a `add`, el que no quita nada.
+  const landingRaw = opts.landing?.tracking;
+  const landingObj = landingRaw !== null && typeof landingRaw === 'object' && !Array.isArray(landingRaw) ? landingRaw : undefined;
+  if (landingRaw != null && !landingObj) rejected.push({ key: 'tracking', reason: 'clave', origen: 'landing' });
+  let modo: TrackingMode = 'add';
+  const modoCrudo = opts.landing?.mode;
+  if (modoCrudo != null && modoCrudo !== '') {
+    const m = typeof modoCrudo === 'string' ? modoCrudo.trim().toLowerCase() : '';
+    if (m === 'add' || m === 'replace') modo = m;
+    else rejected.push({ key: 'trackingMode', reason: 'modo', origen: 'landing' });
+  }
+  if (landingObj) {
+    for (const k of Object.keys(landingObj)) {
+      if (!LANDING_KEYS.includes(k)) rejected.push({ key: k, reason: 'clave', origen: 'landing' });
+    }
+  }
 
   for (const def of PROVIDERS) {
     const override =
@@ -138,52 +257,70 @@ export function resolveTracking(
     const legado = def.legacy ? leer(settings, def.legacy) : '';
     // `null` = el YAML trae algo que no es una cadena (p. ej. un id numérico sin
     // comillas): se avisa en vez de apagar el proveedor en silencio.
+    let site: Parsed = { ids: [], posiciones: [] };
     if ((propio === null && !(override ?? '').trim()) || (propio === '' && legado === null && !(override ?? '').trim())) {
       rejected.push({ key: def.key, reason: 'no-cadena' });
-      continue;
+    } else {
+      const valor = (override ?? '').trim() || propio || legado || '';
+      if (valor) site = parsear(def, valor, 'site', rejected);
     }
-    const valor = (override ?? '').trim() || propio || legado || '';
-    if (!valor) continue;
-    const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
-    const ids: string[] = [];
-    const posiciones: number[] = []; // posición en el valor escrito (para emparejar etiquetas de conversión; los huecos cuentan)
-    const re = new RegExp(def.pattern);
-    valor.split(',').forEach((crudo, i) => {
-      const id = crudo.trim();
-      if (id === '') return;
-      if (!re.test(id)) { rejected.push({ key: def.key, reason: 'formato' }); return; }
-      if (ids.includes(id)) return;
-      ids.push(id);
-      posiciones.push(i);
-    });
-    if (ids.length > tope) {
-      rejected.push({ key: def.key, reason: 'tope', max: tope });
-      ids.length = tope;
-      posiciones.length = tope;
+
+    // Lo que trae la landing para ESTE proveedor.
+    let ids = site.ids;
+    let posicionesSite = site.posiciones;
+    const puede = def.perLanding !== false && !isExempt(def);
+    const lv = puede && landingObj ? leer(landingObj, [def.key]) : '';
+    if (lv === null) {
+      // Un valor que no es cadena (id numérico sin comillas). En `replace` la landing pidió
+      // sustituir y no se puede cumplir: el proveedor se APAGA en esa landing (jamás hereda
+      // el píxel del site: sus visitas irían a una audiencia que no es la de la campaña).
+      rejected.push({ key: def.key, reason: 'no-cadena', origen: 'landing' });
+      if (modo === 'replace') { ids = []; posicionesSite = []; }
+    } else if (lv) {
+      const landing = parsear(def, lv, 'landing', rejected);
+      if (def.key === 'googleAds') adsLanding = landing;
+      if (modo === 'replace') {
+        ids = landing.ids; // puede quedar vacío si todos eran inválidos: apagado, ver arriba
+        posicionesSite = []; // las cuentas del site ya no están: sus etiquetas no se emparejan con nada
+      } else {
+        const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
+        const suma = [...site.ids];
+        for (const id of landing.ids) if (!suma.includes(id)) suma.push(id);
+        if (suma.length > tope) {
+          rejected.push({ key: def.key, reason: 'tope', max: tope, origen: 'landing' });
+          suma.length = tope;
+        }
+        ids = suma;
+      }
     }
+
     if (ids.length === 0) continue;
     // Una `none` SIN motivo no es exención: falla cerrado, como analytics (pide consentimiento).
     providers.push({ key: def.key, id: ids[0], ids, category: def.category === 'none' && !isExempt(def) ? 'analytics' : def.category });
-    if (def.key === 'googleAds') adsPos = posiciones;
+    if (def.key === 'googleAds') adsSite = { ids: site.ids, posiciones: posicionesSite };
   }
 
-  const etiqueta = leer(settings.tracking, ['googleAdsConversionLabel']);
-  if (etiqueta === null) rejected.push({ key: 'googleAdsConversionLabel', reason: 'no-cadena' });
-  // Una etiqueta por cuenta, en el mismo orden que los ids de googleAds (puede haber
-  // huecos: `a,,b`). Una etiqueta inválida se descarta con aviso; una sin cuenta de
-  // Google Ads no significa nada.
-  const reEtiqueta = new RegExp(catalogo.googleAdsConversionLabelPattern);
-  const etiquetas = (etiqueta ?? '').split(',').map((x) => x.trim());
+  // Etiquetas de conversión: las del site con las cuentas del site, las de la landing con las
+  // cuentas de la landing (misma regla de emparejar por posición). Si coinciden en una cuenta
+  // gana la de la landing (la más específica).
+  const etiquetaSite = leer(settings.tracking, ['googleAdsConversionLabel']);
+  const delSite = emparejarEtiquetas(etiquetaSite, adsSite, 'site', rejected);
+  let delLanding: AdsConversion[] = [];
+  if (landingObj) {
+    const lv = leer(landingObj, ['googleAdsConversionLabel']);
+    if (lv !== '') {
+      delLanding = emparejarEtiquetas(lv, adsLanding, 'landing', rejected);
+      if (lv !== null && !adsLanding) rejected.push({ key: 'googleAdsConversionLabel', reason: 'sin-cuenta', origen: 'landing' });
+    }
+  }
   const ads = providers.find((p) => p.key === 'googleAds');
   const googleAdsConversions: AdsConversion[] = [];
-  etiquetas.forEach((l, i) => {
-    if (l === '') return;
-    if (!reEtiqueta.test(l)) { rejected.push({ key: 'googleAdsConversionLabel', reason: 'formato' }); return; }
-    const k = adsPos.indexOf(i);
-    if (ads && k !== -1 && !googleAdsConversions.some((c) => c.id === ads.ids[k])) {
-      googleAdsConversions.push({ id: ads.ids[k], label: l });
-    }
-  });
+  for (const c of [...delSite, ...delLanding]) {
+    if (!ads || !ads.ids.includes(c.id)) continue;
+    const i = googleAdsConversions.findIndex((x) => x.id === c.id);
+    if (i === -1) googleAdsConversions.push(c);
+    else if (delLanding.includes(c)) googleAdsConversions[i] = c;
+  }
 
   return {
     providers,

@@ -15,7 +15,8 @@ sección del proveedor que enciendas al markdown de la política de cookies
 **Por qué existe.** Encender un proveedor hace que el navegador del visitante
 hable con un tercero. El invariante **`tracking-legal`** (8e) de
 `pnpm studio:check` cierra ese hueco: por cada proveedor encendido en
-`src/data/settings.yaml`, la política enlazada por el banner debe contener su
+`src/data/settings.yaml` **o en el frontmatter `tracking:` de cualquier landing**
+(`src/content/lp/*.md`, publicada o borrador), la política enlazada por el banner debe contener su
 ancla; si falta, la CI se pone roja y te manda aquí. Es un marcador **por
 proveedor** porque «usamos cookies de terceros» no dice cuáles. El inverso (la
 política declara uno que está apagado) es un aviso, no un fallo. Mecanismo y

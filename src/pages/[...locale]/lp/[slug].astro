@@ -100,6 +100,7 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   indexable={landing.indexable}
   alternates={false}
   chrome={landing.chrome}
+  landingTracking={{ tracking: landing.tracking, mode: landing.trackingMode }}
 >
   {/* Medición render-vs-JS. Va aquí y no en BaseLayout a propósito: solo estas
       landings son `prerender = false`, y el contador del HTML depende de un

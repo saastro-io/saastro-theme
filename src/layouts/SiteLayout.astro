@@ -53,6 +53,9 @@ const {
 const { showMarketing, consentKeys } = resolveTracking(settings, {
   noindex: baseProps.noindex,
   overrides: baseProps.analytics,
+  // MISMA lista que BaseLayout (que recibe `landingTracking` dentro de baseProps): el
+  // banner y el cargador tienen que coincidir o el consentimiento se pide sobre otra versión.
+  landing: baseProps.landingTracking,
 });
 const basePropsWithDefaults = { ...baseProps };
 

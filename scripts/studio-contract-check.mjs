@@ -224,7 +224,11 @@ function measureFlagOn() {
 // El catálogo (clave, id válido, marcador) es src/lib/tracking-providers.json, la
 // MISMA fuente que usa el build: no hay dos listas que se desincronicen.
 //
-// LÍMITE CONOCIDO: este checker solo conoce settings.yaml. La prop `analytics` de
+// LANDINGS: además de settings.yaml se lee el frontmatter `tracking:` de CUALQUIER
+// landing (src/content/lp/*.md, publicada o borrador; ver docs/guia-pixeles.md). Un
+// proveedor encendido solo en una landing exige su ancla igual que uno del site.
+//
+// LÍMITE CONOCIDO: este checker solo conoce settings.yaml y las landings. La prop `analytics` de
 // BaseLayout (googleAnalyticsId / googleTagManagerId) tiene prioridad en el build
 // (resolveTracking) pero un checker que corre fuera de Astro no la ve: un site
 // que pase un id por esa prop con settings vacíos carga GA4/GTM y 8e no exige su
@@ -243,36 +247,69 @@ const TRACKING_CATALOG = JSON.parse(
 const trackingExento = (def) =>
   def.category === 'none' && typeof def.exemptReason === 'string' && def.exemptReason.trim() !== ''
 
-/** Proveedores encendidos (con algún id de formato válido) según settings.yaml. Los
- *  exentos de consentimiento no se devuelven: no hay ancla que exigir por ellos. */
-function trackingEnabled() {
-  const path = join(ROOT, 'src', 'data', 'settings.yaml')
-  if (!existsSync(path)) return []
-  let s
-  try {
-    s = parseYaml(readFileSync(path, 'utf8'))
-  } catch {
-    return [] // settings ilegible: 8e no opina (otros invariantes ya fallarán)
-  }
-  // Solo propiedades PROPIAS (nunca las del prototipo: __proto__, constructor…).
+/** Proveedores encendidos según settings.yaml Y según el frontmatter de CUALQUIER landing
+ *  (src/content/lp/*.md, publicada o borrador: una landing puede publicarse sin tocar el
+ *  checker, y un borrador con un píxel sin ancla no debe llegar a publicarse). Devuelve
+ *  Map<def, orígenes[]>. Los exentos de consentimiento no se devuelven: no hay ancla que
+ *  exigir por ellos; los `perLanding: false` (Clarity, Cloudflare) no se leen de una landing
+ *  porque `resolveTracking` los ignora allí. Se cuenta CADA proveedor con algún id de formato
+ *  válido, en `add` o en `replace`: ambos modos lo encienden en esa landing. */
+function trackingEnabledPorOrigen() {
   const propio = (o, k) =>
     o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined
-  const leer = (ruta) => {
-    const cur = ruta.reduce((acc, k) => propio(acc, k), s)
-    return typeof cur === 'string' ? cur.trim() : ''
-  }
-  const on = []
-  for (const def of TRACKING_CATALOG) {
-    if (trackingExento(def)) continue
-    const valor = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
-    // El valor puede ser una lista separada por comas (como en resolveTracking): basta UN
-    // id con formato válido para que cargue. Los inválidos NO cargan (se descartan):
-    // si no queda ninguno, no hay tratamiento.
+  const on = new Map()
+  const marca = (def, origen) => on.set(def, [...(on.get(def) ?? []), origen])
+  // El valor puede ser una lista separada por comas (como en resolveTracking): basta UN
+  // id con formato válido para que cargue. Los inválidos NO cargan (se descartan).
+  const valido = (def, valor) => {
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- patrón del catálogo del repo, no de entrada externa
     const re = new RegExp(def.pattern)
-    if (valor.split(',').some((id) => re.test(id.trim()))) on.push(def)
+    return valor.split(',').some((id) => re.test(id.trim()))
+  }
+
+  const path = join(ROOT, 'src', 'data', 'settings.yaml')
+  if (existsSync(path)) {
+    let s
+    try {
+      s = parseYaml(readFileSync(path, 'utf8'))
+    } catch {
+      s = undefined // settings ilegible: 8e no opina de settings (otros invariantes ya fallarán)
+    }
+    if (s !== undefined) {
+      const leer = (ruta) => {
+        const cur = ruta.reduce((acc, k) => propio(acc, k), s)
+        return typeof cur === 'string' ? cur.trim() : ''
+      }
+      for (const def of TRACKING_CATALOG) {
+        if (trackingExento(def)) continue
+        const valor = leer(['tracking', def.key]) || (def.legacy ? leer(def.legacy) : '')
+        if (valido(def, valor)) marca(def, 'settings.yaml')
+      }
+    }
+  }
+
+  const lpDir = join(ROOT, 'src', 'content', 'lp')
+  if (existsSync(lpDir)) {
+    for (const f of readdirSync(lpDir).filter((n) => n.endsWith('.md')).sort()) {
+      let fm
+      try {
+        const m = readFileSync(join(lpDir, f), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---/)
+        fm = m ? parseYaml(m[1]) : undefined
+      } catch {
+        continue // frontmatter ilegible: el build de contenido ya falla
+      }
+      const t = propio(fm, 'tracking')
+      for (const def of TRACKING_CATALOG) {
+        if (trackingExento(def) || def.perLanding === false) continue
+        const v = propio(t, def.key)
+        if (typeof v === 'string' && valido(def, v.trim())) marca(def, `la landing ${f}`)
+      }
+    }
   }
   return on
 }
+
+const trackingEnabled = () => [...trackingEnabledPorOrigen().keys()]
 
 // Invariantes que recorren páginas de contenido: con 0 páginas medidas no son
 // aplicables y se enumeran uno a uno (invariante 15).
@@ -1467,14 +1504,15 @@ async function main() {
 
         // 8e — tracking-legal: por cada píxel encendido, la política lo nombra.
         // Un marcador por proveedor: «usamos cookies de terceros» no dice cuáles.
-        const trackingOn = trackingEnabled()
+        const trackingPorOrigen = trackingEnabledPorOrigen()
+        const trackingOn = [...trackingPorOrigen.keys()]
         trackingMeasured = true
         const onMarkers = new Set(trackingOn.map((d) => d.marker))
         for (const def of trackingOn) {
           if (!legalMarkers.has(def.marker)) {
             fail('tracking-legal', policyKey, `data-legal="${def.marker}"`,
-              `el site tiene ENCENDIDO ${def.label} (settings.yaml) y esta política de cookies NO lo declara`,
-              `RGPD: ${def.label} manda datos del visitante a un tercero (y puede fijar cookies o identificadores) solo tras el consentimiento, pero la política debe NOMBRARLO. Copia la sección de ${def.label} de ${TRACKING_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${def.marker}"></div>) al markdown de la política, en TODOS los locales, con el texto que apruebe JC. Si no querías ${def.label}, vacía su id en settings.tracking`)
+              `el site tiene ENCENDIDO ${def.label} (${[...new Set(trackingPorOrigen.get(def))].join(', ')}) y esta política de cookies NO lo declara`,
+              `RGPD: ${def.label} manda datos del visitante a un tercero (y puede fijar cookies o identificadores) solo tras el consentimiento, pero la política debe NOMBRARLO. Copia la sección de ${def.label} de ${TRACKING_LEGAL_SNIPPET} (incluye el ancla <div data-legal="${def.marker}"></div>) al markdown de la política, en TODOS los locales, con el texto que apruebe JC. Si no querías ${def.label}, vacía su id en settings.tracking o en el tracking: de la landing`)
           }
         }
         for (const def of TRACKING_CATALOG) {

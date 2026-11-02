@@ -21,7 +21,7 @@ el formato exacto de cada id y las cookies que deja es
    es Cloudflare Web Analytics (categoría `none`, su sección está más abajo): carga
    sin esperar al banner, por una exención escrita con su motivo en el catálogo.
 3. **Encender un proveedor exige nombrarlo en la política de cookies**
-   (ancla `data-legal="tracking-<proveedor>"`, ver `docs/legal-marketing.md`). Si
+   (ancla `data-legal="tracking-<proveedor>"`, ver `docs/legal-marketing.md`), también si solo lo enciende una landing. Si
    no, `pnpm studio:check` se pone rojo. El texto lo aprueba el responsable del site.
    El proveedor exento no exige ancla (excepción explícita del catálogo).
 
@@ -224,54 +224,103 @@ por comas** (el Hub solo sabe escribir cadenas): `ga4: "G-AAAAAAAAAA,G-BBBBBBBBB
   simulado, y GA4 con dos ids se midió en un navegador. Los efectos en los paneles de
   cada proveedor con varios ids reales **no** están comprobados.
 
-## Diseño propuesto (NO implementado): override de tracking por landing
+## Override de píxeles por landing
 
-> Es el diseño del siguiente PR. Hoy ninguna landing puede cambiar los píxeles: son
-> los del site. Aquí solo se fija la forma para discutirla antes de escribir código.
-
-**Para qué:** una landing de campaña necesita su propio píxel de Meta o su propia
-cuenta y etiqueta de Google Ads sin tocar los del resto del site.
-
-**Forma** (frontmatter de la landing, solo cadenas, como todo lo que escribe el Hub):
+Una landing de campaña puede traer sus propios píxeles (su Meta, su cuenta y etiqueta
+de Google Ads…) sin tocar los del resto del site. Se escribe en el **frontmatter** de
+la landing, `src/content/lp/<slug>.md`, y solo afecta a `/lp/<slug>`.
 
 ```yaml
+---
+title: "Campaña de otoño"
+form: "contacto"
+# … resto de campos de la landing …
+trackingMode: add            # add (por defecto) | replace
 tracking:
-  mode: add            # add (por defecto) | replace
   metaPixel: "1234567890123"
   googleAds: "AW-123456789"
   googleAdsConversionLabel: "AbCdEfGhIj_k"
+---
 ```
 
-- Las claves son las del catálogo (`ga4`, `gtm`, `googleAds`, `googleAdsConversionLabel`,
-  `metaPixel`, `tiktokPixel`, `linkedinPartnerId`, `clarity`) y los valores admiten
-  listas, con la **misma** validación, el mismo tope y los mismos avisos que en
-  `settings.tracking`. Una clave desconocida se descarta con aviso. Cloudflare Web
-  Analytics **no** se puede sobrescribir por landing (es del site).
-- **`mode: add` (suma):** los ids de la landing se añaden a los del site, sin
-  repetir y con el tope de 5 sobre la **suma**. La etiqueta de conversión se
-  empareja por posición con la lista **ya sumada**.
-- **`mode: replace` (sustituye):** para cada clave presente, los ids de la landing
-  **reemplazan** a los del site; una clave presente y **vacía** (`""`) apaga ese
-  proveedor en esa landing; una clave ausente hereda la del site.
-- `noindex` (vista previa) lo sigue apagando todo.
+**Contrato exacto (lo que la interfaz del Hub tiene que escribir):**
 
-**Lo que hay que resolver en el PR (decisiones, no huecos):**
+- **Ruta:** el frontmatter de `src/content/lp/<slug>.md`. Dos claves de primer nivel:
+  `tracking` (un mapa) y `trackingMode` (una cadena). Ambas opcionales; sin ellas la
+  landing usa los píxeles del site, como siempre.
+- **Claves de `tracking`** (las del catálogo): `metaPixel`, `tiktokPixel`,
+  `linkedinPartnerId`, `googleAds`, `googleAdsConversionLabel`, `ga4`, `gtm`.
+  `cloudflareWebAnalytics` y `clarity` **son del site** y no se pueden sobrescribir
+  (se ignoran con aviso). Cualquier otra clave se ignora con aviso.
+- **Valores:** **siempre cadenas entrecomilladas**; un valor puede ser una lista de
+  ids separados por comas (`"G-AAAAAAAAAA,G-BBBBBBBBBB"`). Un id numérico sin comillas
+  es un número para YAML y se descarta. Un campo sin rellenar se escribe **omitiendo
+  la clave** (o `""`: es lo mismo).
+- **`trackingMode`:** `add` o `replace` (mayúsculas y espacios no importan). Otro
+  valor = `add` con aviso.
+- La clave `tracking:` va **anidada**, no aplanada (`tracking_metaPixel` no se lee).
+  El esquema (`src/content.config.ts`) solo exige la forma; **los valores no rompen el
+  build**: un id malo se descarta con aviso en el log del servidor y nunca se inyecta.
+- Misma validación por id que en `settings.tracking` (patrón del catálogo, repetidos
+  fuera, tope de 5 por proveedor). Una vista previa de borrador (`?preview=`, que es
+  `noindex`) sigue apagándolo **todo**.
 
-1. **Consentimiento.** Si la landing enciende un proveedor que el site no tiene, la
-   versión del consentimiento (`consentKeys`) es distinta en esa página: quien ya
-   consintió en el resto del site vería el banner de nuevo **solo ahí**. Es lo
-   correcto (no consintió ese tratamiento) y debe quedar probado.
-2. **Invariante `tracking-legal` (8e).** Hoy solo lee `settings.yaml`. Con overrides
-   tendrá que leer también el frontmatter de las landings **publicadas**; si no, un
-   proveedor encendido solo en una landing no exigiría ancla. Sin ese cambio el
-   override no se puede activar.
-3. **Dónde se resuelve.** Una función pura nueva (`resolveTracking(settings, { noindex,
-   landing })`) con tests en `src/lib`, y `BaseLayout`/`SiteLayout` pasando el
-   frontmatter. El esquema de la colección vive en `src/content.config.ts`, que está
-   en la lista de ficheros de arquitectura (`studio:contract:update`).
-4. **El Hub.** Hay que comprobar que su editor de landings preserva un bloque
-   `tracking:` anidado (hoy solo escribe cadenas planas); si no, el modo y las claves
-   se aplanan a `tracking_mode`, `tracking_metaPixel`… y hay que fijarlo antes.
+**Qué hace cada modo**
+
+| | `add` (por defecto) | `replace` |
+|---|---|---|
+| Un proveedor que la landing trae | sus ids se **suman** a los del site (sin repetir; el tope de 5 cuenta la suma) | sus ids **sustituyen** a los del site para ese proveedor |
+| Un proveedor que la landing no trae | el del site | el del site |
+| Un proveedor que el site no tiene | se enciende solo en la landing | igual |
+| Todo lo que trae la landing es inválido (o no es cadena) | no quita nada | el proveedor queda **apagado** en esa landing, con aviso. Nunca hereda el píxel del site: sus visitas irían a una audiencia que no es la de la campaña |
+| Clave en blanco (`""`) | no hace nada | **hereda** el del site. No se puede apagar un proveedor desde una landing con un campo vacío: así un editor que escribe todos los campos no borra los píxeles del site sin querer |
+
+**Etiqueta de conversión de Google Ads.** La de la landing se empareja por posición
+con las cuentas `googleAds` **de la landing** (misma regla que en el site: `,Etiqueta2`
+deja la primera cuenta sin conversión). La del site sigue con las cuentas del site.
+Si las dos nombran la misma cuenta gana la de la landing. Una etiqueta en la landing
+sin `googleAds` propio en la landing **no sirve** (no se empareja con las cuentas del site)
+y el log del servidor lo avisa. En `replace` de `googleAds`
+las cuentas del site desaparecen y sus etiquetas también; una cuenta de la landing sin
+etiqueta propia **no** hereda la del site.
+
+**Consentimiento: el override no crea excepciones.** Cada proveedor mantiene su
+categoría y su puerta. La versión del consentimiento de **esa página** es la unión de
+los proveedores efectivos del site y de la landing: quien consintió en el site y entra
+en una landing que enciende un proveedor que no vio **vuelve a ver el banner solo ahí**
+y no se carga nada hasta que acepte. El banner y el cargador usan la misma lista (se
+mide en un navegador). Lo que se consiente en la landing vale después en el site (la
+lista guardada es un superconjunto). Añadir otro id a un proveedor que el site ya tiene
+no cambia la versión: el consentimiento es por proveedor.
+
+**Invariante `tracking-legal` (8e).** Además de `settings.yaml`, lee el frontmatter de
+**cualquier** landing de `src/content/lp/*.md` (publicada o borrador). Un proveedor
+encendido solo en una landing exige su ancla en la política exactamente igual que uno
+del site (`pnpm studio:check` se pone rojo y nombra la landing). Una landing no se
+publica sin que la política lo declare. Cuenta en `add` y en `replace`, y con que haya
+un solo id de formato válido.
+
+**Conversiones.** `window.saastroTrack` y `generate_lead` envían a los ids **efectivos
+de esa página** (los del site más los de la landing, o solo los de la landing en
+`replace`). La resolución es **por petición**, sin estado entre páginas.
+
+**Límites conocidos**
+
+- **Navegación sin recargar.** Un píxel ya cargado no se puede descargar. Si el
+  visitante pasa, sin recargar, de una landing con override a otra página con una lista
+  distinta de píxeles (o al revés), el cargador **recarga la página nueva** una vez
+  (firma de proveedores e ids distinta) para que el override no viaje a la otra página.
+  Si la página siguiente **no tiene ningún proveedor**, también recarga (un guarda mínimo
+  que se emite en ese caso). Medido en un navegador.
+- **`/lp/gracias`** es una página aparte, **sin override**: lo que se defina allí por URL
+  (conversiones de LinkedIn, por ejemplo) usa los píxeles del site. El evento de lead de
+  los píxeles de la landing sale en la propia landing, al enviar el formulario.
+- Un proveedor que **solo** enciende una landing hay que declararlo en la política
+  (texto de JC) antes de publicarla; el checker lo exige.
+- **Vista de las claves (`consentKeys`):** solo cuentan los proveedores que piden
+  consentimiento; Cloudflare Web Analytics, exento, no se toca desde una landing.
+- Los efectos en los paneles de cada proveedor **no** están comprobados: sí que las
+  peticiones salen a los ids esperados (ver la medición del PR).
 
 ---
 
