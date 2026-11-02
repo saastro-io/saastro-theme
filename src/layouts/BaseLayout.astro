@@ -19,7 +19,7 @@ import { i18nConfig, defaultLocale } from '../i18n/config';
 import { getHreflangEntries, stripLocalePrefix } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
-import { resolveTracking } from '../lib/tracking';
+import { resolveTracking, describeRejected, type LandingTracking } from '../lib/tracking';
 
 const settings = getSettings();
 
@@ -42,6 +42,10 @@ export interface Props {
     googleAnalyticsId?: string;
     googleTagManagerId?: string;
   };
+  /** Override de píxeles de la landing que se sirve (frontmatter `tracking:` +
+   *  `trackingMode:`). SiteLayout lo recibe por esta misma prop y lo pasa a SU
+   *  `resolveTracking` con las mismas opciones: banner y cargador ven la MISMA lista. */
+  landingTracking?: LandingTracking;
 }
 
 // Use locale from middleware if i18n is enabled, fallback to prop
@@ -59,6 +63,7 @@ const {
   alternates = true,
   googleSiteVerificationId,
   analytics = {},
+  landingTracking,
 } = Astro.props;
 
 const resolvedGoogleSiteVerificationId =
@@ -68,16 +73,9 @@ const resolvedGoogleSiteVerificationId =
 const tracking = resolveTracking(settings, {
   noindex,
   overrides: { googleAnalyticsId: analytics.googleAnalyticsId, googleTagManagerId: analytics.googleTagManagerId },
+  landing: landingTracking,
 });
-for (const r of tracking.rejected) {
-  console.warn(
-    r.reason === 'no-cadena'
-      ? `[tracking] settings.tracking.${r.key}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`
-      : r.reason === 'tope'
-        ? `[tracking] settings.tracking.${r.key}: hay más ids de los que admite (máximo ${r.max}) — se usan los ${r.max} primeros y el resto se DESCARTA`
-        : `[tracking] settings.tracking.${r.key}: id con formato inválido — DESCARTADO (no se inyecta nada)`,
-  );
-}
+for (const r of tracking.rejected) console.warn(describeRejected(r));
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
 // y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga
