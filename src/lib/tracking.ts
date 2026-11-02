@@ -225,8 +225,6 @@ export function resolveTracking(
   const rejected: RejectedId[] = [];
   let adsSite: Parsed | undefined;
   let adsLanding: Parsed | undefined;
-  // En `replace`, si la landing trae `googleAds`, las cuentas del site ya no están y sus etiquetas tampoco valen.
-  let adsDelSiteSustituido = false;
 
   // Override de la landing. Una clave que no se puede sobrescribir se ignora con aviso
   // (nunca se aplica). El modo desconocido cae a `add`, el que no quita nada.
@@ -273,14 +271,13 @@ export function resolveTracking(
       // sustituir y no se puede cumplir: el proveedor se APAGA en esa landing (jamás hereda
       // el píxel del site: sus visitas irían a una audiencia que no es la de la campaña).
       rejected.push({ key: def.key, reason: 'no-cadena', origen: 'landing' });
-      if (modo === 'replace') { ids = []; posicionesSite = []; if (def.key === 'googleAds') adsDelSiteSustituido = true; }
+      if (modo === 'replace') { ids = []; posicionesSite = []; }
     } else if (lv) {
       const landing = parsear(def, lv, 'landing', rejected);
       if (def.key === 'googleAds') adsLanding = landing;
       if (modo === 'replace') {
         ids = landing.ids; // puede quedar vacío si todos eran inválidos: apagado, ver arriba
-        posicionesSite = [];
-        if (def.key === 'googleAds') adsDelSiteSustituido = true;
+        posicionesSite = []; // las cuentas del site ya no están: sus etiquetas no se emparejan con nada
       } else {
         const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
         const suma = [...site.ids];
@@ -311,7 +308,7 @@ export function resolveTracking(
   }
   const ads = providers.find((p) => p.key === 'googleAds');
   const googleAdsConversions: AdsConversion[] = [];
-  for (const c of [...(adsDelSiteSustituido ? [] : delSite), ...delLanding]) {
+  for (const c of [...delSite, ...delLanding]) {
     if (!ads || !ads.ids.includes(c.id)) continue;
     const i = googleAdsConversions.findIndex((x) => x.id === c.id);
     if (i === -1) googleAdsConversions.push(c);
