@@ -49,6 +49,25 @@ export const SECURITY_HEADERS: Record<string, string> = {
   // necesita `script-src`, que la mida y la ponga él.
   'Content-Security-Policy': "frame-ancestors 'self'",
 
+  // CSP completa en MODO INFORME (Report-Only): NO bloquea nada, solo hace que
+  // el navegador apunte en consola lo que bloquearía. Es la fase de medida
+  // antes de promover una CSP real; la de arriba (`frame-ancestors`) sigue
+  // siendo la que se aplica. Va en UNA línea a propósito: el lector `leerTs` de
+  // scripts/lib/cabeceras.mjs no entiende concatenaciones y la comparación con
+  // `public/_headers` es byte a byte.
+  //  - Hosts: los medidos en producción con consentimiento dado (gtag, GA
+  //    `region1`, Clarity, beacon de Cloudflare) y, medidos en un preview local
+  //    con consentimiento, `a.clarity.ms` (collect), `c.clarity.ms` y
+  //    `c.bing.com` (c.gif, redirección de sincronización de Clarity), más Turnstile (lo cargan los
+  //    formularios de @saastro/forms) y submit/gen (leídos del código).
+  //  - `'unsafe-inline'` en script-src: el theme tiene scripts `is:inline` con
+  //    `define:vars` (consentimiento, analítica, beacon) cuyo contenido cambia
+  //    por site, así que no hay hashes estables que fijar. Mientras sea
+  //    Report-Only no abre nada; al promoverla habrá que pasar a nonces.
+  //  - Sin `report-uri`/`report-to`: todavía no hay endpoint de recogida. Hasta
+  //    que lo haya solo se ven las violaciones en la consola del navegador.
+  'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://static.cloudflareinsights.com https://challenges.cloudflare.com; connect-src 'self' https://region1.google-analytics.com https://a.clarity.ms https://www.clarity.ms https://scripts.clarity.ms https://s.clarity.ms https://b.clarity.ms https://cloudflareinsights.com https://challenges.cloudflare.com https://submit.saastro.io https://gen.saastro.io; img-src 'self' data: https://c.clarity.ms https://c.bing.com https://www.clarity.ms https://s.clarity.ms https://b.clarity.ms https://region1.google-analytics.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'",
+
   // Nada de cámara, micrófono ni geolocalización: la plantilla no los usa. El
   // site que necesite uno lo abre aquí, y sabiendo por qué.
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',

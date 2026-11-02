@@ -19,7 +19,7 @@
  *
  * y exige en cada una TODAS las cabeceras del bloque `/*` de `public/_headers`,
  * con el mismo valor. Antes de arrancar comprueba que `_headers` y
- * `src/lib/security-headers.ts` declaran el suelo de cinco y dicen lo mismo
+ * `src/lib/security-headers.ts` declaran el suelo de seis y dicen lo mismo
  * (nombre y valor): el mismo check cubre la paridad y que el middleware las
  * aplica.
  *
@@ -65,7 +65,7 @@ if (nombres.length === 0) {
   process.exit(2)
 }
 
-// Antes de arrancar nada, las dos listas: el suelo de cinco en cada una, y que
+// Antes de arrancar nada, las dos listas: el suelo de seis en cada una, y que
 // digan lo mismo (nombre y valor). Así este check comprueba él solo que la
 // lista del middleware coincide con la de `_headers`, además de que se aplica.
 const delWorker = leerTs(fs.readFileSync(RUTA_TS, 'utf8'))

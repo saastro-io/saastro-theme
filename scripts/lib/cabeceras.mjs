@@ -19,12 +19,14 @@ export const RUTA_TS = 'src/lib/security-headers.ts'
 export const IGNORADAS = new Set(['strict-transport-security'])
 
 /**
- * El SUELO: las cinco que la plantilla sirve hoy. Sin él, borrar una cabecera
+ * El SUELO: las seis que la plantilla sirve hoy (cinco más la CSP en modo
+ * informe). Sin él, borrar una cabecera
  * de las DOS listas a la vez dejaría los checks en verde (siguen cuadrando).
  * Quitar una de aquí es una decisión, no una edición: se hace a propósito.
  */
 export const CABECERAS_MINIMAS = [
   'content-security-policy',
+  'content-security-policy-report-only',
   'permissions-policy',
   'referrer-policy',
   'x-content-type-options',
