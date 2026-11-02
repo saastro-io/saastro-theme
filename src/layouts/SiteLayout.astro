@@ -50,7 +50,7 @@ const {
 
 // Los ids de medición los resuelve BaseLayout; aquí solo hace falta saber si el
 // banner debe ofrecer «marketing» (hay algún píxel de anuncios encendido).
-const { showMarketing, providers: trackingProviders } = resolveTracking(settings, {
+const { showMarketing, consentKeys } = resolveTracking(settings, {
   noindex: baseProps.noindex,
   overrides: baseProps.analytics,
 });
@@ -178,7 +178,7 @@ const footerLinks = [
     cookiesPolicyHref={lp(cookiesPolicyHref)}
     translations={cookieT}
     showMarketing={showMarketing}
-    trackingKeys={trackingProviders.map((p) => p.key)}
+    trackingKeys={consentKeys}
     client:idle
   />
 

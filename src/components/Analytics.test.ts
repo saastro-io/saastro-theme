@@ -13,26 +13,44 @@ import { consentCovers, parseConsent } from '../lib/cookies';
 const fuente = readFileSync(new URL('./Analytics.astro', import.meta.url), 'utf8');
 const CODIGO = fuente.match(/<script is:inline[^>]*>([\s\S]*?)<\/script>/)![1];
 
-type P = { key: string; id: string; category: 'analytics' | 'marketing' | 'any' };
-const GA4: P = { key: 'ga4', id: 'G-TEST123456', category: 'analytics' };
-const GTM: P = { key: 'gtm', id: 'GTM-TEST123', category: 'any' };
-const ADS: P = { key: 'googleAds', id: 'AW-123456789', category: 'marketing' };
-const META: P = { key: 'metaPixel', id: '1234567890123', category: 'marketing' };
-const TIKTOK: P = { key: 'tiktokPixel', id: 'ABCDEFGHIJ12345', category: 'marketing' };
-const LINKEDIN: P = { key: 'linkedinPartnerId', id: '1234567', category: 'marketing' };
-const CLARITY: P = { key: 'clarity', id: 'abcdefgh12', category: 'analytics' };
+type P = { key: string; id: string; ids: string[]; category: 'analytics' | 'marketing' | 'any' | 'none' };
+const mk = (key: string, category: P['category'], ...ids: string[]): P => ({ key, id: ids[0], ids, category });
+const GA4 = mk('ga4', 'analytics', 'G-TEST123456');
+const GTM = mk('gtm', 'any', 'GTM-TEST123');
+const ADS = mk('googleAds', 'marketing', 'AW-123456789');
+const META = mk('metaPixel', 'marketing', '1234567890123');
+const TIKTOK = mk('tiktokPixel', 'marketing', 'ABCDEFGHIJ12345');
+const LINKEDIN = mk('linkedinPartnerId', 'marketing', '1234567');
+const CLARITY = mk('clarity', 'analytics', 'abcdefgh12');
+const CF_TOKEN = 'c0ffee00c0ffee00c0ffee00c0ffee00';
+const CF = mk('cloudflareWebAnalytics', 'none', CF_TOKEN);
 const TODOS = [GA4, GTM, ADS, META, TIKTOK, LINKEDIN, CLARITY];
 
-function ejecutar(cookie: string, providers: P[], adsLabel = '') {
+interface Scr { src?: string; defer?: boolean; attrs: Record<string, string>; onload?: () => void }
+interface Opciones {
+  host?: string;
+  ownHost?: string;
+  /** Conversiones de Google Ads por cuenta (por defecto: `adsLabel` con la primera cuenta). */
+  adsConv?: Array<{ id: string; label: string }>;
+}
+
+function ejecutar(cookie: string, providers: P[], adsLabel = '', opts: Opciones = {}) {
+  const { host = 'sitio.example', ownHost = '' } = opts;
   const scripts: string[] = [];
+  const elementos: Scr[] = [];
+  const llamadasHistorial: unknown[][] = [];
   const oyentes: Record<string, (e: unknown) => void> = {};
-  const insert = (s: { src: string }) => scripts.push(s.src);
+  const insert = (s: Scr) => { scripts.push(s.src ?? ''); elementos.push(s); };
   const doc = {
     cookie,
     readyState: 'complete',
     head: { appendChild: insert },
     getElementsByTagName: () => [{ parentNode: { insertBefore: insert } }],
-    createElement: () => ({}),
+    createElement: () => {
+      const e: Scr & { setAttribute?: (k: string, v: string) => void } = { attrs: {} };
+      e.setAttribute = (k, v) => { e.attrs[k] = v; };
+      return e;
+    },
     addEventListener: () => {},
   };
   const win: Record<string, unknown> = {
@@ -40,12 +58,23 @@ function ejecutar(cookie: string, providers: P[], adsLabel = '') {
     addEventListener: (n: string, f: (e: unknown) => void) => { oyentes[n] = f; },
   };
   win.window = win;
-  runInNewContext(CODIGO, { providers, adsLabel, window: win, document: doc, encodeURIComponent, decodeURIComponent, JSON, Date, Array, Object });
+  const historial = {
+    pushState: (...a: unknown[]) => { llamadasHistorial.push(['pushState', ...a]); },
+    replaceState: (...a: unknown[]) => { llamadasHistorial.push(['replaceState', ...a]); },
+  };
+  const location = { hostname: host, href: `https://${host}/pagina`, origin: `https://${host}` };
+  // Sin `adsConv` explícito, la etiqueta de la prueba se asocia a la primera cuenta de Google Ads.
+  const ads = providers.find((p) => p.key === 'googleAds');
+  const adsConv = opts.adsConv ?? (adsLabel && ads ? [{ id: ads.ids[0], label: adsLabel }] : []);
+  runInNewContext(CODIGO, {
+    providers, adsConv, ownHost, window: win, document: doc, location, history: historial, URL,
+    encodeURIComponent, decodeURIComponent, JSON, Date, Array, Object,
+  });
   // gtag empuja objetos `arguments` (→ array); GTM empuja objetos planos (se dejan tal cual).
   const dl = () =>
     (win.dataLayer as any[]).map((a) => (Object.prototype.toString.call(a) === '[object Arguments]' ? Array.from(a) : a));
   return {
-    scripts, win, dl,
+    scripts, win, dl, elementos, historial, llamadasHistorial,
     evento: (d: unknown) => oyentes['cookie-consent-updated']({ detail: d }),
     track: (n: string, d?: object) => (win.saastroTrack as (n: string, d?: object) => string[])(n, d),
   };
@@ -164,6 +193,166 @@ describe('saastroTrack (conversión)', () => {
     (r.win.fbq as unknown) = (...a: unknown[]) => llamadas.push(a);
     r.track('click_whatsapp', { event_id: 'z' });
     expect(llamadas).toContainEqual(['trackCustom', 'click_whatsapp', {}, { eventID: 'z' }]);
+  });
+});
+
+describe('Cloudflare Web Analytics: exento de consentimiento, mismo cargador, mismo bloqueo de hosts', () => {
+  const beacon = (r: { elementos: Scr[] }) => r.elementos.filter((e) => (e.src ?? '').includes('cloudflareinsights.com'));
+
+  it('SIN consentimiento carga el beacon y NINGÚN otro proveedor', () => {
+    const r = ejecutar('', [...TODOS, CF]);
+    expect(r.scripts).toEqual(['https://static.cloudflareinsights.com/beacon.min.js']);
+    const [b] = beacon(r);
+    expect(b.defer).toBe(true);
+    expect(JSON.parse(b.attrs['data-cf-beacon'])).toEqual({ token: CF_TOKEN });
+  });
+
+  it('con consentimiento rechazado tampoco carga nada más; con consentimiento total, el beacon sale UNA vez', () => {
+    expect(ejecutar(ck({ analytics: false, marketing: false }), [...TODOS, CF]).scripts).toEqual([
+      'https://static.cloudflareinsights.com/beacon.min.js',
+    ]);
+    const r = ejecutar(TODO, [...TODOS, CF]);
+    expect(beacon(r)).toHaveLength(1);
+    r.evento({ analytics: true, marketing: true });
+    expect(beacon(r)).toHaveLength(1);
+  });
+
+  it('un evento de consentimiento posterior no vuelve a cargarlo', () => {
+    const r = ejecutar('', [GA4, CF]);
+    r.evento({ analytics: true, marketing: false });
+    expect(beacon(r)).toHaveLength(1);
+    expect(r.scripts.filter((s) => s.includes('gtag/js'))).toHaveLength(1);
+  });
+
+  const HOSTS: Array<[string, string, boolean]> = [
+    ['localhost', '', false],
+    ['127.0.0.1', '', false],
+    ['preview.saastro.io', 'theme.saastro.io', false],
+    ['theme.saastro.io', '', false], // sin host propio: *.saastro.io bloqueado
+    ['x.saastro.test', '', false],
+    ['foo.local', '', false],
+    ['theme.saastro.io', 'theme.saastro.io', true], // host propio de la flota: se mide
+    ['www.cliente.com', '', true],
+  ];
+  it.each(HOSTS)('host %s (propio %j) -> carga=%s', (host, ownHost, carga) => {
+    expect(beacon(ejecutar('', [CF], '', { host, ownHost })).length).toBe(carga ? 1 : 0);
+  });
+
+  it('la exención la da la categoría del catálogo, no el nombre: «cloudflareWebAnalytics» con otra categoría NO carga sin consentimiento', () => {
+    const noExento = mk('cloudflareWebAnalytics', 'analytics', CF_TOKEN);
+    expect(beacon(ejecutar('', [noExento]))).toHaveLength(0);
+  });
+
+  it('NO marca trackersLoaded (revocar el consentimiento no recarga la página por él)', () => {
+    expect(ejecutar('', [CF]).win.trackersLoaded).toBeUndefined();
+    expect(ejecutar(TODO, [CF]).win.trackersLoaded).toBeUndefined();
+  });
+
+  it('NO es un destino de saastroTrack y no toca el dataLayer', () => {
+    const r = ejecutar(TODO, [CF]);
+    expect(r.track('generate_lead', { event_id: 'e' })).toEqual([]);
+    expect(r.dl()).toEqual([]);
+  });
+
+  it('NO cuenta en la versión del consentimiento: una cookie que cubre los demás sigue valiendo', () => {
+    // Si CF entrara en KEYS, esta cookie (sin 'cloudflareWebAnalytics') dejaría de cubrir y GA4 no cargaría.
+    const c = ck({ analytics: true, marketing: false, providers: ['ga4'] });
+    const r = ejecutar(c, [GA4, CF]);
+    expect(r.scripts.some((s) => s.includes('gtag/js?id=G-TEST123456'))).toBe(true);
+    expect(beacon(r)).toHaveLength(1);
+  });
+
+  it('shim: normaliza URLs del mismo origen a ruta relativa y deja pasar lo demás', () => {
+    const r = ejecutar('', [CF]);
+    beacon(r)[0].onload!();
+    const h = r.historial as { pushState: (...a: unknown[]) => void; replaceState: (...a: unknown[]) => void };
+    h.pushState({ n: 1 }, '', 'https://sitio.example/otra?x=1#ancla');
+    h.replaceState(null, '', '/ya-relativa');
+    h.pushState(null, '', 'https://otro.example/fuera');
+    h.pushState(null, '', undefined);
+    expect(r.llamadasHistorial).toEqual([
+      ['pushState', { n: 1 }, '', '/otra?x=1#ancla'],
+      ['replaceState', null, '', '/ya-relativa'],
+      ['pushState', null, '', 'https://otro.example/fuera'],
+      ['pushState', null, '', undefined],
+    ]);
+  });
+});
+
+describe('varios ids por proveedor', () => {
+  const dosGA = mk('ga4', 'analytics', 'G-AAAAAA0001', 'G-BBBBBB0002');
+
+  it('GA4 con dos ids: UN gtag.js (con el primero) y un config por id', () => {
+    const r = ejecutar(SOLO_ANALYTICS, [dosGA]);
+    expect(r.scripts.filter((s) => s.includes('gtag/js'))).toEqual(['https://www.googletagmanager.com/gtag/js?id=G-AAAAAA0001']);
+    expect(r.dl().filter((a) => a[0] === 'config').map((a) => a[1])).toEqual(['G-AAAAAA0001', 'G-BBBBBB0002']);
+  });
+
+  it('GA4 (2 ids) + Google Ads (2 cuentas) comparten UN gtag.js y suman 4 config', () => {
+    const dosAds = mk('googleAds', 'marketing', 'AW-111111111', 'AW-222222222');
+    const r = ejecutar(TODO, [dosGA, dosAds]);
+    expect(r.scripts.filter((s) => s.includes('gtag/js'))).toHaveLength(1);
+    expect(r.dl().filter((a) => a[0] === 'config').map((a) => a[1]).sort()).toEqual(
+      ['AW-111111111', 'AW-222222222', 'G-AAAAAA0001', 'G-BBBBBB0002'],
+    );
+  });
+
+  it('GTM con dos contenedores: un gtm.js y un gtm.start por contenedor', () => {
+    const r = ejecutar(SOLO_MARKETING, [mk('gtm', 'any', 'GTM-AAAA111', 'GTM-BBBB222')]);
+    expect(r.scripts.filter((s) => s.includes('gtm.js'))).toEqual([
+      'https://www.googletagmanager.com/gtm.js?id=GTM-AAAA111',
+      'https://www.googletagmanager.com/gtm.js?id=GTM-BBBB222',
+    ]);
+    expect(r.dl().filter((a) => a.event === 'gtm.js')).toHaveLength(2);
+  });
+
+  it('Meta con dos píxeles: un fbevents.js, un init por id y UN solo PageView', () => {
+    const r = ejecutar(SOLO_MARKETING, [mk('metaPixel', 'marketing', '1111111111', '2222222222')]);
+    expect(r.scripts.filter((s) => s.includes('fbevents.js'))).toHaveLength(1);
+    const cola = ((r.win.fbq as { queue: unknown[] }).queue).map((a) => Array.from(a as ArrayLike<unknown>));
+    expect(cola).toEqual([['init', '1111111111'], ['init', '2222222222'], ['track', 'PageView']]);
+  });
+
+  it('TikTok con dos píxeles: un load por id (dos sdkid) y UNA sola page()', () => {
+    const r = ejecutar(SOLO_MARKETING, [mk('tiktokPixel', 'marketing', 'AAAAAAAAAA11111', 'BBBBBBBBBB22222')]);
+    expect(r.scripts.filter((s) => s.includes('sdkid='))).toEqual([
+      'https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=AAAAAAAAAA11111&lib=ttq',
+      'https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=BBBBBBBBBB22222&lib=ttq',
+    ]);
+    const cola = (r.win.ttq as unknown[][]).filter((x) => x[0] === 'page');
+    expect(cola).toHaveLength(1);
+  });
+
+  it('LinkedIn con dos partner ids: ambos en la lista y la etiqueta una vez', () => {
+    const r = ejecutar(SOLO_MARKETING, [mk('linkedinPartnerId', 'marketing', '1234567', '7654321')]);
+    expect(r.win._linkedin_data_partner_ids).toEqual(['1234567', '7654321']);
+    expect(r.scripts.filter((s) => s.includes('licdn.com'))).toHaveLength(1);
+  });
+
+  it('Clarity usa UN solo proyecto aunque llegue una lista', () => {
+    const r = ejecutar(SOLO_ANALYTICS, [mk('clarity', 'analytics', 'abcdefgh12', 'zzzzzzzz99')]);
+    expect(r.scripts.filter((s) => s.includes('clarity.ms'))).toEqual(['https://www.clarity.ms/tag/abcdefgh12']);
+  });
+
+  it('saastroTrack: la conversión de Google Ads sale a cada cuenta con SU etiqueta; Meta recibe un solo Lead', () => {
+    const dosAds = mk('googleAds', 'marketing', 'AW-111111111', 'AW-222222222');
+    const dosMeta = mk('metaPixel', 'marketing', '1111111111', '2222222222');
+    const r = ejecutar(TODO, [dosGA, dosAds, dosMeta], '', {
+      adsConv: [{ id: 'AW-111111111', label: 'LabelUno_11' }, { id: 'AW-222222222', label: 'LabelDos_22' }],
+    });
+    const sent = r.track('generate_lead', { event_id: 'abc' });
+    expect(sent.sort()).toEqual(['ga4', 'googleAds', 'metaPixel']);
+    const conv = r.dl().filter((a) => a[0] === 'event' && a[1] === 'conversion').map((a) => a[2].send_to);
+    expect(conv).toEqual(['AW-111111111/LabelUno_11', 'AW-222222222/LabelDos_22']);
+    // GA4: UN event sin send_to (gtag lo reparte a todos los config).
+    expect(r.dl().filter((a) => a[0] === 'event' && a[1] === 'generate_lead')).toHaveLength(1);
+    const cola = ((r.win.fbq as { queue: unknown[] }).queue).map((a) => Array.from(a as ArrayLike<unknown>));
+    expect(cola.filter((a) => a[0] === 'track' && a[1] === 'Lead')).toHaveLength(1);
+  });
+
+  it('sin conversiones configuradas no se emite conversion de Google Ads', () => {
+    const r = ejecutar(SOLO_MARKETING, [mk('googleAds', 'marketing', 'AW-111111111', 'AW-222222222')], '', { adsConv: [] });
+    expect(r.track('generate_lead')).toEqual([]);
   });
 });
 

@@ -20,7 +20,10 @@ ancla; si falta, la CI se pone roja y te manda aquí. Es un marcador **por
 proveedor** porque «usamos cookies de terceros» no dice cuáles. El inverso (la
 política declara uno que está apagado) es un aviso, no un fallo. Mecanismo y
 razón del ancla explícita: `legal-gen-tracking.md`; por qué se pregunta a
-settings y no al DOM: `legal-render-ratio.md`.
+settings y no al DOM: `legal-render-ratio.md`. **Excepción explícita:** un
+proveedor del catálogo `src/lib/tracking-providers.json` con `category: "none"` y
+un `exemptReason` escrito (hoy solo Cloudflare Web Analytics) no exige ancla; ver
+la última sección.
 
 ## Qué es común a todos (auditado sobre el código)
 
@@ -29,7 +32,8 @@ Auditado en `src/components/Analytics.astro`, `src/lib/tracking.ts`,
 
 | | |
 |---|---|
-| **Cuándo se carga** | Solo tras el consentimiento del banner. Sin consentimiento, ninguna petición al proveedor. En una vista previa de un borrador (`noindex`) no se carga nada. |
+| **Cuándo se carga** | Solo tras el consentimiento del banner. Sin consentimiento, ninguna petición al proveedor. En una vista previa de un borrador (`noindex`) no se carga nada. **Única excepción: Cloudflare Web Analytics** (proveedor exento, ver su sección al final). |
+| **Varios ids** | Un proveedor puede llevar varios ids separados por comas (`tracking.ga4: "G-AAAA…,G-BBBB…"`, máximo 5; Clarity y Cloudflare, 1). El proveedor sigue siendo UNO: el ancla de abajo cubre todos sus ids y el consentimiento es único por proveedor. Al declarar un proveedor con varios ids conviene que el texto lo diga (varias propiedades o cuentas del responsable). |
 | **Categoría** | `analytics`: GA4, Clarity. `marketing`: Google Ads, Meta, TikTok, LinkedIn. GTM carga con `analytics` **o** `marketing`. |
 | **Retirar el consentimiento** | El banner recarga la página si había un tracker vivo; al arrancar sin consentimiento ya no se inyecta. |
 | **Consent Mode v2 (Google)** | Antes de cargar nada de Google se declara todo denegado (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`); al aceptar se actualiza por categoría. |
@@ -75,3 +79,28 @@ con el Partner ID del site. *[Texto final: JC.]*
 Categoría `analytics`. Carga `https://www.clarity.ms/tag/<id>`. Clarity registra
 sesiones del visitante (interacciones en la página). *[Texto final: JC. Contrastar
 qué datos graba y cómo enmascara campos de formulario.]*
+
+## Cloudflare Web Analytics (exento de consentimiento, SIN ancla `data-legal`)
+
+> **Esto no es texto legal.** Es el registro técnico de una excepción que ya existía
+> en el código y que ahora está escrita en el catálogo. Si hay que nombrar a
+> Cloudflare en la política, el texto lo redacta y lo aprueba JC.
+
+- **Qué hace el código:** carga `https://static.cloudflareinsights.com/beacon.min.js`
+  **sin esperar al banner** y con el token de `tracking.cloudflareWebAnalytics` (o,
+  como respaldo, `analytics.cloudflareWebAnalytics.token`). No carga en una vista
+  previa de borrador ni en `localhost`, `127.0.0.1`, `*.saastro.test`, `*.local` ni
+  en `*.saastro.io` salvo el host propio del site.
+- **Por qué está exento (decisión técnica anterior al catálogo, tal cual la dejó
+  el theme):** el beacon no escribe nada en el dispositivo del visitante ni lo
+  identifica. **No está verificado aquí contra la documentación vigente de
+  Cloudflare**, y si deja de ser cierto la exención cae. El motivo literal vive en
+  `exemptReason`, en el catálogo.
+- **Qué NO hace por ser exento:** no entra en la versión del consentimiento (no
+  vuelve a preguntar a quien ya consintió), no marca que haya un tracker vivo (retirar
+  el consentimiento no recarga por él) y no recibe los eventos de conversión.
+- **Qué hace el checker:** el invariante `tracking-legal` (8e) **no exige** su ancla.
+  La exención exige las DOS cosas en el catálogo (`category: "none"` y un
+  `exemptReason` no vacío); si falta el motivo, el proveedor se trata como uno que
+  pide ancla. Si JC decide nombrarlo igualmente, no hay ancla ni marcador previstos:
+  habría que añadirlos al catálogo a propósito.

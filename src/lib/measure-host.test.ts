@@ -38,10 +38,10 @@ function condicionInline(fuente: string, ancla: RegExp): (h: string, ownHost: st
 }
 
 describe('copias inline de la condición', () => {
-  const base = leer('src/layouts/BaseLayout.astro');
+  const analytics = leer('src/components/Analytics.astro');
   const gen = leer('src/components/GenTracking.astro');
   const copias: Array<[string, (h: string, o: string) => boolean]> = [
-    ['BaseLayout', condicionInline(base, /const blocked =\s*([\s\S]*?)\n\s*if \(!blocked\)/)],
+    ['Analytics (Cloudflare Web Analytics)', condicionInline(analytics, /var blocked =\s*([\s\S]*?);\s*if \(blocked\) return;/)],
     ['GenTracking', condicionInline(gen, /var h = location\.hostname;\s*if \(([\s\S]*?)\)\s*return;/)],
   ];
   for (const [nombre, fn] of copias) {

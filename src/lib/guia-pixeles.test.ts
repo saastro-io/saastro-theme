@@ -22,6 +22,7 @@ const ETIQUETA_CATEGORIA: Record<string, RegExp> = {
   analytics: /categoría `analytics`(?! \*\*o\*\*)/,
   marketing: /categoría `marketing`/,
   any: /categoría `analytics` \*\*o\*\* `marketing`/,
+  none: /categoría `none` \(exento de consentimiento\)/,
 };
 
 describe('docs/guia-pixeles.md ↔ tracking-providers.json', () => {
@@ -46,6 +47,21 @@ describe('docs/guia-pixeles.md ↔ tracking-providers.json', () => {
   it('dice que en el settings.yaml del theme solo van los ids de theme.saastro.io (y que los de un cliente nunca)', () => {
     expect(guia).toMatch(/solo van los ids de `theme\.saastro\.io`/);
     expect(guia).toMatch(/\*\*nunca\*\* se ponen ahí/);
+  });
+  it('documenta la excepción de consentimiento y que el exento no exige ancla (sin inventar texto legal)', () => {
+    expect(guia).toMatch(/Nada carga sin consentimiento, salvo el proveedor exento/);
+    expect(guia).toMatch(/no exige ancla/);
+    const legal = readFileSync(new URL('docs/legal-marketing.md', raiz), 'utf8');
+    expect(legal).toMatch(/Cloudflare Web Analytics \(exento de consentimiento/);
+    expect(legal).toMatch(/Esto no es texto legal/);
+  });
+  it('documenta los varios ids (tope, Clarity) y el override por landing como diseño NO implementado', () => {
+    expect(guia).toMatch(/separados\s+por comas/);
+    expect(guia).toMatch(/tope de 5/);
+    expect(guia).toMatch(/Clarity[^\n]*un solo proyecto por página/i);
+    expect(guia).toMatch(/Diseño propuesto \(NO implementado\): override de tracking por landing/);
+    expect(guia).toMatch(/mode: add/);
+    expect(guia).toMatch(/replace/);
   });
   it('no afirma que Consent Mode limite TODAS las etiquetas de un contenedor GTM', () => {
     expect(guia).not.toMatch(/Consent Mode limita lo que cada etiqueta puede hacer/);

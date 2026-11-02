@@ -4,7 +4,7 @@
  * lo apague todo y que el banner solo ofrezca «marketing» si hay algo detrás.
  */
 import { describe, expect, it } from 'vitest';
-import { PROVIDERS, resolveTracking } from './tracking';
+import { PROVIDERS, isExempt, resolveTracking } from './tracking';
 
 const base = { analytics: { googleAnalytics: { id: '' }, googleTagManager: { id: '' } } };
 
@@ -79,8 +79,10 @@ describe('resolveTracking', () => {
     expect(r.providers).toEqual([]);
   });
 
-  it('todos los patrones del catálogo compilan y cada proveedor tiene marcador único', () => {
+  it('todos los patrones del catálogo compilan y cada proveedor que pide consentimiento tiene marcador único', () => {
     for (const p of PROVIDERS) expect(() => new RegExp(p.pattern)).not.toThrow();
-    expect(new Set(PROVIDERS.map((p) => p.marker)).size).toBe(PROVIDERS.length);
+    const conMarcador = PROVIDERS.filter((p) => !isExempt(p));
+    expect(conMarcador.every((p) => typeof p.marker === 'string' && p.marker !== '')).toBe(true);
+    expect(new Set(conMarcador.map((p) => p.marker)).size).toBe(conMarcador.length);
   });
 });
