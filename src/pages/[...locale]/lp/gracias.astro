@@ -1,6 +1,8 @@
 ---
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getSettings } from '../../../lib/settings';
+import { defaultLocale } from '../../../i18n/config';
+import { lpLocaleFromParam, pickByLocale } from '../../../lib/lp-locale';
 
 // Página de gracias de las landings de pago. A donde llega el visitante cuando el
 // formulario se ha enviado BIEN (LandingForm → onLeadSuccess).
@@ -21,7 +23,11 @@ import { getSettings } from '../../../lib/settings';
 // desde el Studio todavía.
 export const prerender = false;
 
-const lang = Astro.locals.lang ?? 'es';
+// Un prefijo que no es un idioma declarado no es una página: 404 (no home).
+if (!lpLocaleFromParam(Astro.params.locale).ok) {
+  return new Response(null, { status: 404 });
+}
+const lang = Astro.locals.lang ?? defaultLocale;
 const lp = Astro.locals.localePath;
 const siteName = Astro.locals.t?.meta?.siteName ?? getSettings().site.name;
 
@@ -37,7 +43,7 @@ const COPY: Record<string, { title: string; body: string; back: string }> = {
     back: 'Back to home',
   },
 };
-const copy = COPY[lang] ?? COPY.en;
+const copy = pickByLocale(COPY, lang);
 
 Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
 Astro.response.headers.set('Cache-Control', 'no-store');
