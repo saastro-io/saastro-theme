@@ -265,7 +265,7 @@ This repo is a **GitHub Template repository**. To start a new client site:
 2. In the **Saastro Hub**, open the workspace → **New site → "Connect existing"** and pick the new repo.
 3. Open the site's **Setup** page. The Studio instrumentation (config, i18n, marked components) travels with the template, so there is nothing to install or auto-mark.
 4. Set `SITE_URL` to the real domain and the **deploy target** (a Cloudflare Workers project, see [Deploy](#deploy-to-cloudflare)).
-5. **Clean what the template inherits before publishing.** The repo is also the theme's own showcase site, so a new site starts with the theme's measurement ids, WhatsApp number, home page, sample posts and generic legal texts. Passing the Studio checks does not mean these are clean. The exact list, with where each one is changed and which ones the Hub rewrites by itself, is in [docs/nuevo-site-checklist.md](docs/nuevo-site-checklist.md).
+5. **Clean what the template inherits before publishing.** The repo is also the theme's own showcase site, so a new site starts with the theme's home page, sample posts and generic legal texts (the measurement ids and the WhatsApp number now ship empty; `theme.saastro.io` gets its own through build variables). Passing the Studio checks does not mean these are clean. The exact list, with where each one is changed and which ones the Hub rewrites by itself, is in [docs/nuevo-site-checklist.md](docs/nuevo-site-checklist.md).
 
 ## Content Collections
 
@@ -318,7 +318,7 @@ The `ApplyColorMode` inline script runs before paint — no FOUC. It checks `loc
 
 ## Analytics
 
-Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off). `Analytics.astro` reads them; there is nothing to pass as props.
+Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off; the template ships them empty) or in build variables `PUBLIC_TRACKING_<KEY>` (`PUBLIC_TRACKING_GA4`, `PUBLIC_TRACKING_CLARITY`, `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS`, `PUBLIC_TRACKING_META_PIXEL`, …: the key in UPPER_SNAKE_CASE; full list in [docs/guia-pixeles.md](docs/guia-pixeles.md#variables-de-build-las-pone-el-despliegue)). A non-empty variable wins over `settings.yaml`; an invalid one is dropped with a build warning and does NOT fall back to settings. They are not secrets (they end up in the served HTML) and are read at build time. The floating WhatsApp widget mounts only with a number: `PUBLIC_WHATSAPP_NUMBER` or the i18n key `whatsapp.number` (empty in the template). `Analytics.astro` reads the resolved ids; there is nothing to pass as props.
 
 | Key | Provider | Waits for consent |
 |---|---|---|

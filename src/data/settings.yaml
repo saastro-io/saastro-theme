@@ -1,7 +1,8 @@
 # Theme-only site config, read at build time by src/lib/settings.ts.
 # NOTE: el aprovisionamiento del Hub reescribe solo `forms.siteId` y el bloque `gen`.
-# NO limpia `tracking.*` ni el token de Cloudflare Web Analytics: en un site nuevo
-# desde plantilla hay que vaciarlos a mano (docs/nuevo-site-checklist.md). El token de
+# La plantilla sale con `tracking.*` y el token de Cloudflare Web Analytics VACÍOS: un site nuevo
+# no mide hasta que se pongan (a mano, con la tarjeta de píxeles del Hub o con variables de build
+# `PUBLIC_TRACKING_*`, que GANAN a este fichero; docs/guia-pixeles.md). theme.saastro.io usa variables. El token de
 # Cloudflare va en `tracking.cloudflareWebAnalytics`; la ruta vieja
 # `analytics.cloudflareWebAnalytics.token` se sigue leyendo de respaldo y la nueva gana.
 # El resto es config de build del propio site (SEO, analytics, forms wiring). Editable
@@ -45,7 +46,7 @@ analytics:
     # CF Web Analytics beacon TOKEN (Hub → Audiencia gives you the site token).
     # This is the client-side beacon token — NOT the Hub's GraphQL "site tag".
     # Empty = disabled. Host-blocked in the Studio preview + local dev.
-    token: "ef7e6c6ac93b49ec815bffe7d0f37e14"
+    token: ""
 
 tracking:
   # Píxeles de medición y anuncios. Vacío = apagado. Todos (salvo Cloudflare Web
@@ -55,14 +56,14 @@ tracking:
   # (ancla <div data-legal="tracking-…"></div>, ver docs/legal-marketing.md) o
   # `pnpm studio:check` se pone rojo. Un id con formato inválido se descarta con
   # aviso en el build. Si ga4/gtm están aquí, ganan a analytics.googleAnalytics/…
-  ga4: "G-B2MVN4RSSH" # G-XXXXXXXXXX
+  ga4: "" # G-XXXXXXXXXX
   gtm: "" # GTM-XXXXXXX
   googleAds: "" # AW-123456789
   googleAdsConversionLabel: "" # etiqueta de la conversión «lead» (solo con googleAds)
   metaPixel: "" # id numérico del Pixel
   tiktokPixel: "" # id del Pixel de TikTok
   linkedinPartnerId: "" # Partner ID del Insight Tag
-  clarity: "z7a7k9iubl" # id del proyecto de Microsoft Clarity
+  clarity: "" # id del proyecto de Microsoft Clarity
   # Cloudflare Web Analytics: EXENTO de consentimiento (el catálogo lo dice con su motivo).
   # Si está vacío se lee analytics.cloudflareWebAnalytics.token (ruta vieja); si hay
   # valor aquí, gana. 32 caracteres hexadecimales.

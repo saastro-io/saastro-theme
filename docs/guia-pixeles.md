@@ -2,7 +2,8 @@
 
 Para quien monta un site y necesita el id de un proveedor de medición o anuncios.
 Cada proveedor es una clave de `tracking:` en `src/data/settings.yaml` (o un campo
-de la tarjeta **Tracking** del Hub, que escribe esa misma clave). El catálogo con
+de la tarjeta **Tracking** del Hub, que escribe esa misma clave en un site ya creado; o
+una variable de build `PUBLIC_TRACKING_*`, ver «Variables de build»). El catálogo con
 el formato exacto de cada id y las cookies que deja es
 `src/lib/tracking-providers.json`.
 
@@ -31,13 +32,43 @@ se descarta: entrecomíllalo.
 
 ## Dónde se pone
 
-- **En el Hub:** Site → Settings → tarjeta **Tracking**. Vacío = apagado.
+- **En el Hub:** Site → Settings → tarjeta **Tracking** (escribe `tracking.*` en el `settings.yaml` de un site YA creado). Vacío = apagado. El aprovisionamiento de un site nuevo NO escribe `tracking.*`: solo `forms.siteId` y el bloque `gen`.
 - **A mano:** `src/data/settings.yaml`, bloque `tracking:`.
-- **En el `settings.yaml` del propio theme solo van los ids de `theme.saastro.io`**
-  (los escribe el Hub). Los ids de un cliente o de otro site **nunca** se ponen ahí.
+- **Con variables de build** (`PUBLIC_TRACKING_*`, ver abajo): es lo que usa el site vivo `theme.saastro.io`, para que el repo-plantilla pueda salir sin ids.
+- **El `settings.yaml` del theme va SIN ids de medición**: el repo es también la plantilla y
+  un site nuevo copia `main` tal cual. Los ids de `theme.saastro.io` viven en las variables de
+  build de su despliegue. Los ids de un cliente o de otro site **nunca** se ponen en el repo del theme.
   Los descendientes se protegen con `merge=ours` (ver el `.gitattributes`): un site que
   ya editó su `settings.yaml` conserva el suyo al traer el theme. Revisa ese diff en el
   primer merge de cada site.
+
+## Variables de build (las pone el despliegue)
+
+Para los sites cuyo `settings.yaml` no debe llevar los ids (el theme vivo, o cualquier site que
+prefiera ponerlos en su panel de despliegue). Los nombres salen del catálogo:
+`PUBLIC_TRACKING_` + la clave en MAYÚSCULAS_Y_GUION_BAJO. Lista exacta:
+
+| Variable | Qué hace | Sustituye a |
+|---|---|---|
+| `PUBLIC_TRACKING_GA4` | Google Analytics 4 | `tracking.ga4` |
+| `PUBLIC_TRACKING_GTM` | Google Tag Manager | `tracking.gtm` |
+| `PUBLIC_TRACKING_GOOGLE_ADS` | Google Ads | `tracking.googleAds` |
+| `PUBLIC_TRACKING_GOOGLE_ADS_CONVERSION_LABEL` | Etiqueta de conversión de Google Ads | `tracking.googleAdsConversionLabel` |
+| `PUBLIC_TRACKING_META_PIXEL` | Meta Pixel | `tracking.metaPixel` |
+| `PUBLIC_TRACKING_TIKTOK_PIXEL` | TikTok Pixel | `tracking.tiktokPixel` |
+| `PUBLIC_TRACKING_LINKEDIN_PARTNER_ID` | LinkedIn Insight Tag | `tracking.linkedinPartnerId` |
+| `PUBLIC_TRACKING_CLARITY` | Microsoft Clarity | `tracking.clarity` |
+| `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS` | Cloudflare Web Analytics (token del beacon) | `tracking.cloudflareWebAnalytics` y la ruta vieja `analytics.cloudflareWebAnalytics.token` |
+| `PUBLIC_WHATSAPP_NUMBER` | Número del widget de WhatsApp | la clave i18n `whatsapp.number` |
+
+- **No son secretos.** Todas empiezan por `PUBLIC_`: Vite las escribe en el HTML y el JS servidos (un id de GA4, de Clarity o el token del beacon de Cloudflare se ven en el código fuente de cualquier web). No metas nada privado en una variable `PUBLIC_*`.
+- **Se leen al CONSTRUIR** (`import.meta.env`, sustituido en el build, también en las rutas SSR del Worker). Cambiar una variable exige **volver a construir y desplegar**; no basta con guardarla.
+- **Variable no vacía = gana y va SOLA.** Sustituye a `settings.tracking.<clave>` y a la ruta legacy (no se suman ids). Las props `analytics` de `BaseLayout`, si un site las usa, siguen por encima.
+- **Vacía o sin definir = se usa `settings.yaml`**, como siempre.
+- **Un valor inválido en la variable se DESCARTA con un aviso en el build y NO cae a `settings.yaml`.** Quien pone la variable quiere sustituir; caer a settings reencendería en silencio justo el id que la variable venía a quitar (en la plantilla, el de otra cuenta). El proveedor queda apagado. Mismas validaciones que en settings: patrón por proveedor, varios ids separados por comas, tope del catálogo.
+- **WhatsApp:** `PUBLIC_WHATSAPP_NUMBER` acepta `+34 600 000 000` o `34600000000`; se normaliza a solo dígitos (8 a 15, con indicativo de país). Si es inválido, el widget no se monta (y no se usa la clave i18n). Sin variable, se usa `whatsapp.number` de `es.json`/`en.json`; sin número, el widget no se monta.
+
+**`theme.saastro.io` (Cloudflare → Workers → `saastro-theme` → Settings → Variables and Secrets / Build → Variables):** `PUBLIC_TRACKING_GA4`, `PUBLIC_TRACKING_CLARITY`, `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS` y `PUBLIC_WHATSAPP_NUMBER`. Deben estar puestas **antes** de desplegar un build que traiga esta versión, o el theme vivo deja de medir y de mostrar WhatsApp. Se pone el valor de cada cuenta; no se copia en este repo.
 
 ## Una propiedad por negocio, un flujo por web (GA4)
 
@@ -78,7 +109,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
 
 ## Microsoft Clarity · `clarity` · categoría `analytics`
 
-- **Id:** 10 caracteres en minúscula y dígitos (patrón `^[a-z0-9]{8,12}$`), p. ej. `z7a7k9iubl`.
+- **Id:** 10 caracteres en minúscula y dígitos (patrón `^[a-z0-9]{8,12}$`), p. ej. `testaaaa01` (ficticio).
 - **Cuenta necesaria:** Microsoft, Google o Facebook (SIN VERIFICAR: lo que ofrece el inicio de sesión). Gratis.
 - **Cookies propias del site:** `_clck`, `_clsk` (medidas). Clarity también usa
   cookies de su propio dominio (`clarity.ms`) que el site **no puede borrar**.
@@ -160,7 +191,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
 - **Id:** el *token del beacon*, 32 caracteres hexadecimales (patrón `^[0-9a-fA-F]{32}$`).
   No es el *site tag* de la API GraphQL: es el token que va en `data-cf-beacon`.
 - **Cuenta necesaria:** una cuenta de Cloudflare. Gratis.
-- **Dónde se pone:** `tracking.cloudflareWebAnalytics`. La ruta antigua
+- **Dónde se pone:** `tracking.cloudflareWebAnalytics` o la variable de build `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS` (gana a las dos rutas de settings). La ruta antigua
   `analytics.cloudflareWebAnalytics.token` **se sigue leyendo** como respaldo (hay
   descendientes y el Hub la escribe todavía); si existen las dos, **gana
   `tracking.cloudflareWebAnalytics`**, aunque su valor sea inválido (entonces se
@@ -292,6 +323,8 @@ y no se carga nada hasta que acepte. El banner y el cargador usan la misma lista
 mide en un navegador). Lo que se consiente en la landing vale después en el site (la
 lista guardada es un superconjunto). Añadir otro id a un proveedor que el site ya tiene
 no cambia la versión: el consentimiento es por proveedor.
+
+**Invariante `tracking-legal` (8e): límite con las variables de build.** El checker lee `settings.yaml` y las landings, **no** las `PUBLIC_TRACKING_*`. Medido (2-nov-2026): con GA4 y Clarity encendidos solo por variable, `pnpm studio:check` sigue avisando «la política DECLARA GA4/Clarity pero el site NO lo tiene encendido» (aviso inverso, falso para ese despliegue). Por el código (`trackingEnabledPorOrigen`, NO medido con un caso), el efecto contrario también existe: un proveedor encendido solo por variable **sin ancla en la política pasa en verde**. La CI de GitHub no tiene esas variables (viven en el build de Cloudflare), así que no podría verlas aunque las leyera. Quien las use debe comprobar a mano que la política nombra cada proveedor (`docs/legal-marketing.md`). Para `theme.saastro.io` las cuatro previstas están cubiertas por las anclas actuales (GA4 y Clarity) o exentas (Cloudflare).
 
 **Invariante `tracking-legal` (8e).** Además de `settings.yaml`, lee el frontmatter de
 **cualquier** landing de `src/content/lp/*.md` (publicada o borrador). Un proveedor

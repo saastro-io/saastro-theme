@@ -43,8 +43,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "blog/dark-mode-implementation/index.html": {
@@ -73,8 +72,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "blog/getting-started/index.html": {
@@ -103,8 +101,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "blog/index.html": {
@@ -133,8 +130,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/about/index.html": {
@@ -167,8 +163,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/blog/dark-mode-implementation/index.html": {
@@ -197,8 +192,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/blog/getting-started/index.html": {
@@ -227,8 +221,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/blog/index.html": {
@@ -257,8 +250,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/index.html": {
@@ -467,8 +459,7 @@
           "items[5].label",
           "items[5].value"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/legal/cookies/index.html": {
@@ -497,8 +488,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/legal/privacy/index.html": {
@@ -527,8 +517,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/legal/terms/index.html": {
@@ -557,8 +546,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "es/lp/gracias/index.html": {
@@ -587,8 +575,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "index.html": {
@@ -797,8 +784,7 @@
           "items[5].label",
           "items[5].value"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "legal/cookies/index.html": {
@@ -827,8 +813,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "legal/privacy/index.html": {
@@ -857,8 +842,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "legal/terms/index.html": {
@@ -887,8 +871,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     },
     "lp/gracias/index.html": {
@@ -917,8 +900,7 @@
           "menu[2]",
           "menu[2].title"
         ],
-        "toggle_theme": [],
-        "whatsapp": []
+        "toggle_theme": []
       }
     }
   },
@@ -958,7 +940,7 @@
     "saastrocms.config.ts": "sha256:24b6495895d4c2ef8bac2895e6658857029196e5aa888d9225fe849650250e3a",
     "scripts/lib/default-locale.mjs": "sha256:0e83b15a49275027c725e45c7b5b0c10e36c3ea0a73b7f7c3d273dabfd236397",
     "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
-    "scripts/studio-contract-check.mjs": "sha256:7a531d1ffb410b3bae10c4feb496787add72ec2da5c8031d2f7a493de1ab8bcc",
+    "scripts/studio-contract-check.mjs": "sha256:176fbff9bfba09c7f252908e8cde2eb7e3c927ad30a25aef008e171d79611950",
     "src/content.config.ts": "sha256:6f1ee13126a0a97df04034050bb3ea978e15f158c1e17e2af61cdff094058b69",
     "src/env.d.ts": "sha256:bb1e41a6a461c5abc2adc3c4dd8fa81fc9f39e4d18cc93220f76c476739fa169",
     "src/i18n/config.ts": "sha256:7f7d8c3669c2dc6c7c1a9dec8e6b8c2859be382eec0330e5328f83e88e69d45f",
