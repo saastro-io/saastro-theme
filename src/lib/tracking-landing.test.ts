@@ -278,6 +278,14 @@ describe('etiqueta de conversión de Google Ads', () => {
     expect(r.googleAdsConversionLabel).toBe('');
   });
 
+  it('replace con la MISMA cuenta y sin etiqueta propia: no hereda la etiqueta del site', () => {
+    const r = resolveTracking(site({ googleAds: AW_A, googleAdsConversionLabel: 'LabelAAAAAA' }), {
+      landing: { tracking: { googleAds: AW_A }, mode: 'replace' },
+    });
+    expect(ids(r, 'googleAds')).toEqual([AW_A]);
+    expect(conv(r)).toEqual([]);
+  });
+
   it('replace con cuenta y etiqueta de la landing: solo sale la de la landing', () => {
     const r = resolveTracking(site({ googleAds: AW_A, googleAdsConversionLabel: 'LabelAAAAAA' }), {
       landing: { tracking: { googleAds: AW_B, googleAdsConversionLabel: 'LabelBBBBBB' }, mode: 'replace' },
