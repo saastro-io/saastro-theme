@@ -8,21 +8,16 @@
  * leen de aquí; sus props siguen valiendo como override.
  */
 import type { ImageMetadata } from 'astro';
-import { i18nConfig } from '../i18n/config';
 import { getSettings } from './settings';
 
 /** `meta.siteName` del locale (editable en el Hub) → `settings.site.name` → 'Saastro'. */
 export function resolveSiteName(locals: App.Locals): string {
-  return (
-    (i18nConfig.enabled ? locals.t?.meta?.siteName : undefined) ??
-    getSettings().site.name ??
-    'Saastro'
-  );
+  return locals.t?.meta?.siteName ?? getSettings().site.name ?? 'Saastro';
 }
 
 /** `nav.contact` del locale → 'Contact'. Mismo criterio que resolveSiteName. */
 export function resolveContactLabel(locals: App.Locals): string {
-  return (i18nConfig.enabled ? locals.t?.nav?.contact : undefined) ?? 'Contact';
+  return locals.t?.nav?.contact ?? 'Contact';
 }
 
 // Glob y no import: un site que borre uno de los dos logos sigue construyendo

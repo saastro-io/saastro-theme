@@ -93,7 +93,7 @@ import { createServer } from 'node:net'
 import { extname, join, relative } from 'node:path'
 import { parse } from 'node-html-parser'
 import { parse as parseYaml } from 'yaml'
-import { resolveDefaultLocale } from './lib/default-locale.mjs'
+import { resolveDefaultLocale, resolveDeclaredLocales } from './lib/default-locale.mjs'
 import { hojasI18n, huerfanas } from './lib/i18n-consumo.mjs'
 
 const ROOT = process.cwd()
@@ -473,7 +473,12 @@ if (!existsSync(join(ROOT, 'dist'))) {
   process.exit(1)
 }
 
-const localeFiles = readdirSync(I18N_DIR).filter((f) => f.endsWith('.json'))
+// Solo cuentan los idiomas DECLARADOS en src/i18n/config.ts: un `<loc>.json` de un idioma
+// que ya no se declara no se carga en el build y no debe contar como idioma del site.
+const DECLARED = resolveDeclaredLocales(ROOT)
+const localeFiles = readdirSync(I18N_DIR)
+  .filter((f) => f.endsWith('.json'))
+  .filter((f) => !DECLARED || DECLARED.includes(f.replace(/\.json$/, '')))
 const translations = Object.fromEntries(
   localeFiles.map((f) => [
     f.replace(/\.json$/, ''),

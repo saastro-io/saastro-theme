@@ -187,7 +187,7 @@ export const i18nConfig = {
 };
 ```
 
-Keep the `i18n` block in `astro.config.mjs` (`routing: 'manual'`) in sync — it's the signal the Saastro Hub reads to detect locales.
+`astro.config.mjs` (Astro `i18n`, sitemap, Studio) derives its locales from this file: there is no second list to keep in sync. Full guide: `docs/idiomas.md`.
 
 ### How it works
 
@@ -198,14 +198,15 @@ Keep the `i18n` block in `astro.config.mjs` (`routing: 'manual'`) in sync — it
 
 ### Without i18n
 
-Set `enabled: false`. Pages work as plain static pages. No middleware, no translation JSON. The SiteLayout uses hardcoded English defaults. The locale selector disappears from the Header.
+Use a single locale (`locales: ['es']`) or set `enabled: false` (= base locale only). No prefixed routes, no locale selector, no hreflang. The middleware still fills `Astro.locals`. See `docs/idiomas.md`.
 
 ### Adding a locale
 
-1. Add the locale to `config.ts` (locales array + label) and to the `i18n` block in `astro.config.mjs`
-2. Create `translations/{locale}.json` (copy from `en.json`)
-3. Import it in `utils.ts` and add to `translationMap`
-4. Add locale subfolder to `content/legal/{locale}/` for legal pages
+1. Add the locale to `config.ts` (`locales` + `localeLabels`)
+2. Create `translations/{locale}.json` (copy from `en.json`) — the build fails if it is missing
+3. Add its 404 text to `src/lib/not-found.ts` and the locale to `saastrocms.config.ts`
+4. Add locale subfolder to `src/content/legal/{locale}/` for legal pages
+5. `pnpm studio:contract:update`
 
 ### Content collections with i18n
 
