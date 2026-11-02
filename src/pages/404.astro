@@ -2,17 +2,23 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { defaultLocale } from '@/i18n/config';
+import { localePath } from '@/i18n/utils';
+import { notFoundCopy } from '@/lib/not-found';
+
+// El idioma sale de la URL pedida (middleware → locals.lang): `/es/no-existe`
+// sirve el 404 en español, `/no-existe` en el idioma por defecto.
+const lang = Astro.locals.lang ?? defaultLocale;
+const copy = notFoundCopy[lang] ?? notFoundCopy[defaultLocale];
 ---
 
-<BaseLayout title="Page not found">
+<BaseLayout title={copy.title}>
   <div class="flex min-h-screen flex-col items-center justify-center px-4 text-center">
     <p class="text-sm font-medium text-muted-foreground">404</p>
-    <h1 class="mt-2 text-3xl font-bold tracking-tight">Page not found</h1>
-    <p class="mt-2 text-muted-foreground">
-      Sorry, we couldn't find the page you're looking for.
-    </p>
+    <h1 class="mt-2 text-3xl font-bold tracking-tight">{copy.heading}</h1>
+    <p class="mt-2 text-muted-foreground">{copy.body}</p>
     <div class="mt-6">
-      <a href="/" class={cn(buttonVariants())}>Go back home</a>
+      <a href={localePath(lang, '/')} class={cn(buttonVariants())}>{copy.home}</a>
     </div>
   </div>
 </BaseLayout>

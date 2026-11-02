@@ -7,6 +7,7 @@ import icon from 'astro-icon';
 import { defineConfig, envField } from 'astro/config';
 import saastroStudio from '@saastro/studio';
 import { fileURLToPath } from 'node:url';
+import { sitemapIncludes } from './src/lib/sitemap-filter.ts';
 
 // Strips the saastro:studio-* meta tags from prod HTML responses. Registered
 // 'pre' and BEFORE saastroStudio so it wraps Studio's own injector middleware
@@ -134,6 +135,8 @@ export default defineConfig({
     // enumerates every page automatically; the i18n option emits hreflang
     // alternates (EN at the root, ES prefixed).
     sitemap({
+      // Fuera las rutas internas (`/__render/`…): responden 404. Ver sitemap-filter.ts.
+      filter: sitemapIncludes,
       i18n: {
         defaultLocale: 'en',
         locales: { en: 'en', es: 'es' },
