@@ -2,8 +2,9 @@
 # infraestructura sí, contenido no). Qué es cada cosa y por qué, en CLAUDE.md
 # («Qué trae un descendiente del theme»).
 #
-# Las rutas marcadas `merge=ours` son CONTENIDO DE EJEMPLO: copy, i18n, las
-# secciones de la portada y el contrato de Studio que se deriva de ellas. Un
+# Las rutas marcadas `merge=ours` son CONTENIDO DE EJEMPLO (copy, i18n, las
+# secciones de la portada y el contrato de Studio que se deriva de ellas) y, desde
+# #114, la config del site `src/data/settings.yaml` (ver su bloque más abajo). Un
 # site que ya las reescribió se queda con su versión cuando las dos ramas las
 # han tocado; si solo las tocó el theme, entra la del theme como siempre.
 #
@@ -34,13 +35,17 @@ src/components/CompareTable.astro merge=ours
 src/components/CtaBanner.astro merge=ours
 
 # Config del site: sus ids de medición (`tracking:`), su `forms.siteId` del Hub, su
-# nombre. El Hub ESCRIBE aquí los ids de cada site (tarjeta Tracking), incluidos los de
-# theme.saastro.io en el repo del theme: sin esta línea un `git merge upstream/main`
-# los copiaría a los descendientes que no hubiesen tocado esas claves y medirían bajo la
-# cuenta del theme. Efecto contrario, a saber: las CLAVES NUEVAS que el theme añada a
-# este fichero no llegan solas; el site las copia a mano (un bloque `tracking:` ausente
-# significa todo apagado, así que no rompe nada). Mismo requisito que i18n: el driver
-# `ours` se define en el checkout del site (ver arriba).
+# nombre. NO es contenido de ejemplo, pero comparte el mecanismo. El Hub ESCRIBE aquí
+# los ids de cada site, incluidos los de theme.saastro.io en el repo del theme.
+#
+# Qué hace y qué NO: el driver `ours` solo se invoca cuando las DOS ramas han cambiado
+# el fichero desde la base. Un site que ya lo editó (su nombre, su `forms.siteId`…) se
+# queda con el suyo, ids incluidos; un site que NUNCA lo editó recibiría tal cual lo que
+# traiga el theme. Medido el 2-nov-2026 en los 11 `settings.yaml` de sites localizados:
+# los 11 difieren de la plantilla (`site.name` o `forms.siteId`), ninguno está sin tocar.
+# Las CLAVES NUEVAS que el theme añada a este fichero no llegan solas a quien lo editó:
+# las copia a mano (un bloque `tracking:` ausente significa todo apagado, no rompe nada).
+# Mismo requisito que i18n: el driver `ours` se define en el checkout del site (ver arriba).
 src/data/settings.yaml merge=ours
 
 # Contenido: el contrato de Studio es el DOM construido de ESTE contenido. Pero

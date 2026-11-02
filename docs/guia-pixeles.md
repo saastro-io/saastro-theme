@@ -30,8 +30,11 @@ se descarta: entrecomíllalo.
 
 - **En el Hub:** Site → Settings → tarjeta **Tracking**. Vacío = apagado.
 - **A mano:** `src/data/settings.yaml`, bloque `tracking:`.
-- **No** en el `settings.yaml` del propio **theme** (la plantilla): lo heredarían
-  los descendientes. Ahí van vacíos.
+- **En el `settings.yaml` del propio theme solo van los ids de `theme.saastro.io`**
+  (los escribe el Hub). Los ids de un cliente o de otro site **nunca** se ponen ahí.
+  Los descendientes se protegen con `merge=ours` (ver el `.gitattributes`): un site que
+  ya editó su `settings.yaml` conserva el suyo al traer el theme. Revisa ese diff en el
+  primer merge de cada site.
 
 ## Una propiedad por negocio, un flujo por web (GA4)
 
@@ -73,7 +76,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
 ## Microsoft Clarity · `clarity` · categoría `analytics`
 
 - **Id:** 10 caracteres en minúscula y dígitos (patrón `^[a-z0-9]{8,12}$`), p. ej. `z7a7k9iubl`.
-- **Cuenta necesaria:** Microsoft, Google o Facebook. Gratis.
+- **Cuenta necesaria:** Microsoft, Google o Facebook (SIN VERIFICAR: lo que ofrece el inicio de sesión). Gratis.
 - **Cookies propias del site:** `_clck`, `_clsk` (medidas). Clarity también usa
   cookies de su propio dominio (`clarity.ms`) que el site **no puede borrar**.
 - **Qué hace:** graba sesiones (interacciones en la página). Es el proveedor más
@@ -91,7 +94,12 @@ su propia propiedad o cuenta**, no en la del que las construye.
 - **Id:** `GTM-XXXXXXX` (patrón `^GTM-[A-Z0-9]{4,10}$`).
 - **Ojo:** lo que hace un contenedor depende de las etiquetas que tenga dentro, y
   **no se ven desde este repositorio**. La política debe describirlas. Carga con
-  cualquiera de las dos categorías; Consent Mode limita lo que cada etiqueta puede hacer.
+  cualquiera de las dos categorías. **Consent Mode solo gobierna las etiquetas de
+  Google que lo respetan** (`analytics_storage`, `ad_storage`, `ad_user_data`,
+  `ad_personalization`): una etiqueta HTML personalizada o de un tercero dentro del
+  contenedor **no** lo respeta por sí sola y puede dispararse con solo analítica
+  concedida. Hay que configurarlas con los activadores de consentimiento de GTM y
+  describirlas en la política.
 - **Dónde (SIN VERIFICAR):** <https://tagmanager.google.com> → cuenta → contenedor →
   el id `GTM-…` aparece arriba a la derecha.
 - **Documentación:** <https://support.google.com/tagmanager/answer/6103696>
@@ -105,6 +113,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
   crear una conversión de **sitio web** → el panel muestra la etiqueta de Google con
   `send_to: 'AW-XXXXXXXXX/<etiqueta>'`: la primera parte es `googleAds`, la segunda
   `googleAdsConversionLabel`.
+- **Cookies propias del site (de memoria, SIN VERIFICAR):** `_gcl_*`, `_gac_*`.
 - **Qué emite el theme:** al enviarse un formulario de landing, `generate_lead` →
   un evento `conversion` con `send_to: <AW>/<etiqueta>`.
 - **Documentación:** <https://support.google.com/google-ads/answer/6095821>
@@ -127,6 +136,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
 - **Cuenta necesaria:** TikTok Ads Manager.
 - **Dónde (SIN VERIFICAR):** <https://ads.tiktok.com> → Assets → **Events** → Web
   events → gestionar el píxel. El id aparece en la ficha.
+- **Cookies propias del site (de memoria, SIN VERIFICAR):** `_ttp`, `_tt_enable_cookie`, `_ttclid`.
 - **Qué emite el theme:** la página al cargar y `SubmitForm` al enviar el formulario,
   con `event_id`.
 - **Documentación:** <https://business-api.tiktok.com/portal/docs?id=1739585696931842>
