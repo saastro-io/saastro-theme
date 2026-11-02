@@ -22,9 +22,9 @@ Nos ayudan a entender cómo los visitantes usan nuestro sitio. Solo se cargan de
 
 <div data-legal="tracking-ga4"></div>
 
-Servicio de analítica web de Google. Mide qué páginas visitas y cómo interactúas con ellas. Se carga desde `googletagmanager.com` y envía los datos a `google-analytics.com`.
+Servicio de analítica web de Google. Mide qué páginas visitas y cómo interactúas con ellas. Se carga desde `googletagmanager.com` y envía las mediciones a servidores de Google (dominios `google-analytics.com`).
 
-- `_ga` — identifica a un visitante de forma anónima.
+- `_ga` — guarda un identificador único del visitante.
 - `_ga_` seguida del identificador de la propiedad — mantiene el estado de la sesión.
 
 Más información: [política de privacidad de Google](https://policies.google.com/privacy).
@@ -35,7 +35,7 @@ Más información: [política de privacidad de Google](https://policies.google.c
 
 Herramienta de Microsoft que registra cómo se usa el sitio: grabaciones de sesión (clics, desplazamientos y movimientos del ratón) y mapas de calor. Se carga desde `clarity.ms`.
 
-- `_clck` — identifica al visitante de forma anónima.
+- `_clck` — guarda un identificador único del visitante.
 - `_clsk` — agrupa las páginas vistas de una misma sesión.
 
 Más información: [declaración de privacidad de Microsoft](https://www.microsoft.com/privacy/privacystatement).

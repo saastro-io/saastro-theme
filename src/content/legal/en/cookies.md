@@ -24,9 +24,9 @@ These help us understand how visitors use our site. They are only loaded after y
 
 <div data-legal="tracking-ga4"></div>
 
-Google's web analytics service. It measures which pages you visit and how you interact with them. It loads from `googletagmanager.com` and sends data to `google-analytics.com`.
+Google's web analytics service. It measures which pages you visit and how you interact with them. It loads from `googletagmanager.com` and sends measurements to Google servers (`google-analytics.com` domains).
 
-- `_ga` — identifies a visitor anonymously.
+- `_ga` — stores a unique visitor identifier.
 - `_ga_` followed by the property identifier — keeps session state.
 
 More information: [Google's privacy policy](https://policies.google.com/privacy).
@@ -37,7 +37,7 @@ More information: [Google's privacy policy](https://policies.google.com/privacy)
 
 A Microsoft tool that records how the site is used: session recordings (clicks, scrolling and mouse movement) and heatmaps. It loads from `clarity.ms`.
 
-- `_clck` — identifies the visitor anonymously.
+- `_clck` — stores a unique visitor identifier.
 - `_clsk` — groups the page views of one session.
 
 More information: [Microsoft's privacy statement](https://www.microsoft.com/privacy/privacystatement).
