@@ -15,6 +15,7 @@
  *   A2  locales ['es'], base es        → un solo idioma
  *   B   base es + en                   → base distinta de en
  *   C   base es + en + fr              → tres idiomas, con un fr.json y legal/fr de PRUEBA
+ *   D   como C pero SIN fr.json        → el build debe FALLAR diciendo qué idioma y qué fichero falta
  *
  * En A, A2, B y C se corre `pnpm studio:contract:update` antes de `studio:check`:
  * el manifiesto firmado es de los idiomas del repo y cambiar de idiomas lo regenera
@@ -115,6 +116,12 @@ const ESCENARIOS = {
     preview: { '/': 200, '/fr/': 200, '/fr/legal/privacy/': 200, '/es/': 404, '/fr/no-existe': 404 },
     notFoundTexto: { '/fr/no-existe': 'Page introuvable' },
   },
+  D: {
+    nombre: 'base es + en + fr SIN fr.json (el build debe fallar)',
+    config: { enabled: true, defaultLocale: 'es', locales: ['es', 'en', 'fr'] },
+    fixtureFr: 'solo-legal',
+    buildFalla: "Falta la traducción del idioma 'fr': se esperaba src/i18n/translations/fr.json",
+  },
 };
 
 // ------------------------------------------------------------------- utils
@@ -191,10 +198,12 @@ function aplicarConfig(dir, c) {
   writeFileSync(nf, t);
 }
 
-function fixtureFr(dir) {
+function fixtureFr(dir, soloLegal = false) {
+  if (!soloLegal) {
   const en = JSON.parse(readFileSync(join(dir, 'src/i18n/translations/en.json'), 'utf8'));
   en.meta.title = `FR ${en.meta.title}`;
   writeFileSync(join(dir, 'src/i18n/translations/fr.json'), JSON.stringify(en, null, 2));
+  }
   // Solo FIXTURE de la copia: el texto legal real no se redacta aquí.
   cpSync(join(dir, 'src/content/legal/en'), join(dir, 'src/content/legal/fr'), { recursive: true });
 }
@@ -286,8 +295,15 @@ async function escenario(esc) {
   const dir = mkdtempSync(join(tmpdir(), `i18n-${esc}-`));
   copiar(dir);
   if (e.config) aplicarConfig(dir, e.config);
-  if (e.fixtureFr) fixtureFr(dir);
+  if (e.fixtureFr) fixtureFr(dir, e.fixtureFr === 'solo-legal');
 
+  if (e.buildFalla) {
+    // Escenario negativo: el build NO puede salir verde y el mensaje tiene que ser legible.
+    const bf = run(dir, 'pnpm', ['build']);
+    check(esc, 'build exit ≠ 0', bf.code !== 0, `exit ${bf.code}`);
+    check(esc, `la salida dice «${e.buildFalla}»`, bf.out.includes(e.buildFalla), bf.out.split('\n').filter((l) => /Falta|i18n/.test(l)).slice(0, 2).join(' | '));
+    return dir;
+  }
   const tc = run(dir, 'pnpm', ['typecheck']);
   check(esc, 'typecheck exit 0', tc.code === 0, tc.code ? tc.out.split('\n').filter((l) => /error/i.test(l)).slice(0, 3).join(' | ') : '');
   const b = run(dir, 'pnpm', ['build']);
