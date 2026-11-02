@@ -132,3 +132,32 @@ describe('studio-contract-check: un build sin páginas de contenido no pasa', ()
     expect(r.out).toContain('1 de contenido')
   })
 })
+
+const POR_PAGINA = [
+  'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
+  'locale-parity', 'manage-cookies', 'marca-header',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
+]
+
+describe('studio-contract-check: cada invariante no medido sale como NO APLICABLE', () => {
+  const ssr = () =>
+    fixture({
+      srcPages: ['500.astro', '[locale]/index.astro'],
+      dist: { '500.html': pagina({ css: '' }) },
+      manifest: { version: 1, pages: { '500.html': { sections: {} } } },
+    })
+
+  it('site solo SSR (solo 500.html, 0 CSS): exit ≠ 0 y cada invariante lo dice por su nombre', () => {
+    const r = check(ssr())
+    expect(r.code, r.out).not.toBe(0)
+    for (const inv of [...POR_PAGINA, 'css-tokens']) {
+      expect(r.out, `falta NO APLICABLE de ${inv}`).toMatch(new RegExp(`\\[${inv}\\][^\\n]*\\n\\s*NO APLICABLE`))
+    }
+  })
+
+  it('el motivo nombra las 0 páginas y los 0 bytes de CSS', () => {
+    const r = check(ssr())
+    expect(r.out).toMatch(/NO APLICABLE — 0 páginas de contenido medidas/)
+    expect(r.out).toMatch(/NO APLICABLE — NO SE MIDIÓ ningún CSS: 0 bytes/)
+  })
+})

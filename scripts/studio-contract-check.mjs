@@ -76,7 +76,10 @@
  *                         locale, y los logos de src/assets/brand/ que existan
  *  15. cobertura        — se midió al menos UNA página de contenido (las de error no cuentan);
  *                         si no, exit 1: sin páginas los invariantes por página no son aplicables
- *                         y no se dan por buenos. Ídem 7 con 0 bytes de CSS («no se midió»)
+ *                         y no se dan por buenos: cada invariante por página (sec-markers, field-markers,
+ *                         verbatim, img-raw, schema-scripts, locale-parity, manage-cookies, marca-header,
+ *                         cookie-policy, gen-legal, medicion-legal, tracking-legal)
+ *                         sale como «NO APLICABLE» con su motivo. Ídem 7 con 0 bytes de CSS
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
  */
@@ -253,6 +256,14 @@ function trackingEnabled() {
   }
   return on
 }
+
+// Invariantes que recorren páginas de contenido: con 0 páginas medidas no son
+// aplicables y se enumeran uno a uno (invariante 15).
+const INVARIANTES_POR_PAGINA = [
+  'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
+  'locale-parity', 'manage-cookies', 'marca-header',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
+]
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const failures = []
@@ -1105,10 +1116,17 @@ async function main() {
     if (contentKeys.length === 0) {
       fail('cobertura', '(build)', '—',
         `NO SE MIDIÓ ninguna página de contenido (modo ${mode}: ${errorKeys.length ? errorKeys.join(', ') : 'ninguna página'}). ` +
-          'Los invariantes sec-markers, field-markers, verbatim, locale-parity, manage-cookies y marca-header NO son aplicables sin páginas: no se dan por buenos',
+          'Ningún invariante por página se dio por bueno: cada uno sale abajo como NO APLICABLE',
         manifestV1
           ? 'el manifiesto es v1 y solo registra lo que dist/ prerenderiza. En un site SSR regenera con `pnpm studio:contract:update` (graba rutas v2 y el check pasa a crawl sobre el server local) y commitea el diff'
           : 'si el site es SSR, las rutas se miden en crawl: `pnpm studio:contract:update` las descubre de src/pages × locales, o fuerza `--mode=crawl`. Si el manifiesto las marca crawleable:false, el server local no las sirvió al generarlo: arréglalo antes de regenerar')
+      // Un «NO APLICABLE» por invariante, con su motivo: así el informe nombra
+      // lo que NO se comprobó en vez de callarlo dentro de un bloque global.
+      for (const inv of INVARIANTES_POR_PAGINA) {
+        fail(inv, '(build)', '—',
+          `NO APLICABLE — 0 páginas de contenido medidas (modo ${mode}): sin páginas no hay nada que contradecir y no se da por bueno`,
+          'mide las páginas en crawl (`pnpm studio:contract:update` o `--mode=crawl`)')
+      }
     }
 
     // 1 + 2 — marcadores de sección y de campo vs manifiesto
@@ -1289,7 +1307,7 @@ async function main() {
       // ausentes manda a buscar una purga de Tailwind que no ha ocurrido.
       if (allCss.trim() === '') {
         fail('css-tokens', '(css)', '—',
-          `NO SE MIDIÓ ningún CSS: 0 bytes entre ${mode === 'crawl' ? 'los .css servidos' : 'los .css de dist/'} y los <style> de ${Object.keys(pages).length} página(s)`,
+          `NO APLICABLE — NO SE MIDIÓ ningún CSS: 0 bytes entre ${mode === 'crawl' ? 'los .css servidos' : 'los .css de dist/'} y los <style> de ${Object.keys(pages).length} página(s)`,
           'en un site SSR el CSS sale del Worker, no de dist/: mídelo en crawl (`pnpm studio:contract:update` graba las rutas, o `--mode=crawl`)')
       }
       for (const req of allCss.trim() === '' ? [] : (manifest.css?.requires ?? CSS_REQUIRES)) {
@@ -1550,7 +1568,7 @@ async function main() {
       const deLocale = (loc, get) => plano(get(translations[loc]) ?? get(translations[defaultLocale]))
       // Sin NINGÚN <header> este invariante no comprobaría nada y saldría verde:
       // eso es justo lo que pasaría si el layout dejara de montar el Header.
-      if (!Object.values(pages).some((p) => p?.header)) {
+      if (contentKeys.length > 0 && !Object.values(pages).some((p) => p?.header)) {
         fail('marca-header', '(build)', '<header>', 'ninguna página construida lleva <header>: no hay marca que comprobar',
           'SiteLayout debe montar <Header>; si un site lo quita a propósito, ese cambio de arquitectura va con su propio check')
       }
