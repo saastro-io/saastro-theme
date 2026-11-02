@@ -6,9 +6,9 @@
  *
  * This shape is trimmed to exactly what the theme consumes (SEO meta, analytics,
  * favicon color, site name, forms wiring). Content is edited via i18n, structural
- * config via saastrocms.config.ts. El Hub SÍ escribe algunas claves de este
- * fichero (`forms.siteId`, `gen.*`, `analytics.cloudflareWebAnalytics.token`, y
- * el bloque `tracking`) con `setConfigPath`, que solo escribe cadenas.
+ * config via saastrocms.config.ts. El aprovisionamiento del Hub escribe solo
+ * `forms.siteId` y el bloque `gen` (con `setConfigPath`, que solo escribe
+ * cadenas); `tracking.*` y el token de Cloudflare los pone una persona.
  */
 import settingsRaw from '../data/settings.yaml?raw';
 import { parse } from 'yaml';

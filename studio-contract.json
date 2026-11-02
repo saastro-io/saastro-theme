@@ -968,7 +968,7 @@
     "src/i18n/types.ts": "sha256:00efa5a466f772b9f60626d5599d1e15903c18e216bb09f80aa1831314cea10c",
     "src/i18n/utils.ts": "sha256:37b8571e4f64611f835fc4c39b865ff77b7e9a15e7c96484dcce6b95a68c8baf",
     "src/integrations/strip-studio-meta-middleware.ts": "sha256:012405e52443b3de3775cb9575eb0d9494c28b8a7202fab3b43246733c109abe",
-    "src/lib/settings.ts": "sha256:51743e924ba5758ab372bceb0524a6835c62aca46cd0623e6a763ed55e6605b1",
+    "src/lib/settings.ts": "sha256:7746232261aa5aadc301f68b2fd079e65fc4dcec4c565b29193535fccbc6bc1d",
     "src/middleware.ts": "sha256:2dd7875cd686de5571f58d096600bab1a7a1800a9556c6ccc1f2e8f5a3be3b72"
   }
 }

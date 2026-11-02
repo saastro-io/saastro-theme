@@ -1,8 +1,11 @@
 # Theme-only site config, read at build time by src/lib/settings.ts.
-# NOTE: el Hub escribe algunas claves de este fichero (forms.siteId, gen.*,
-# analytics.cloudflareWebAnalytics.token y el bloque `tracking`); el resto es la
-# config de build del propio site (SEO, analytics, forms wiring). Editable content
-# lives in i18n (src/i18n/translations/*), structural config in saastrocms.config.ts.
+# NOTE: el aprovisionamiento del Hub reescribe solo `forms.siteId` y el bloque `gen`.
+# NO limpia `tracking.*` ni el token de Cloudflare Web Analytics: en un site nuevo
+# desde plantilla hay que vaciarlos a mano (docs/nuevo-site-checklist.md). El token de
+# Cloudflare va en `tracking.cloudflareWebAnalytics`; la ruta vieja
+# `analytics.cloudflareWebAnalytics.token` se sigue leyendo de respaldo y la nueva gana.
+# El resto es config de build del propio site (SEO, analytics, forms wiring). Editable
+# content lives in i18n (src/i18n/translations/*), structural config in saastrocms.config.ts.
 
 site:
   name: "TuMarca"
