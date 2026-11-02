@@ -43,6 +43,18 @@ minimumReleaseAgeExclude:
 # undici 7 (vía miniflare) y 8 (vía astro>unifont): GHSA-xjj6-f33q-929c,
 # GHSA-4qv8-2p9j-2685 y GHSA-f72v-6w45-q472; parches 7.30.1 y 8.12.2 (15-oct).
 # Quitar cada uno cuando su padre ya traiga la versión parcheada.
+#
+# 2-nov-2026, `pnpm audit` sin --prod (los tres solo entran por devDependencies:
+# shadcn y @tailwindcss/typography; parches de más de 7 días, pasan la cuarentena):
+# body-parser (vía shadcn > MCP sdk > express): GHSA-27r3-jxmh-p828, parche 2.4.0
+# (22-oct). express 5.3.0 pide ^2.3.0.
+# ip-address (vía shadcn > socks y express-rate-limit): GHSA-rxp7-6hxx-x8q5, parche
+# 10.7.4 (11-oct). Piden ^10.1.1 y ^10.2.0.
+# postcss-selector-parser 6 (@tailwindcss/typography lo fija EXACTO en 6.0.10):
+# GHSA-rj75-hqrm-r3gf, parche 6.1.5 (19-oct). La 7.x (vía shadcn) no está afectada.
+# Quitar cada uno cuando su padre ya traiga la versión parcheada.
+# Sin override a propósito: minimatch (parche 11.0.1 del 27-oct, no cumple la
+# cuarentena hasta el 3-nov y es salto de mayor) y deepmerge (sin parche publicado).
 overrides:
   'sharp@>=0.35.0 <0.35.5': ^0.35.5
   # Solo el de astro: uno global reescribe también el rango de peer de
@@ -50,3 +62,6 @@ overrides:
   'astro>zod': ^4.6.6
   'undici@>=7.0.0 <7.30.1': ^7.30.1
   'undici@>=8.0.0 <8.12.2': ^8.12.2
+  'body-parser@>=2.0.0 <2.4.0': ^2.4.0
+  'ip-address@<10.7.4': ^10.7.4
+  'postcss-selector-parser@>=6.0.0 <6.1.5': ^6.1.5
