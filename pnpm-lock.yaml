@@ -45,8 +45,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3(react@19.3.1)
       '@saastro/forms':
-        specifier: ^0.21.0
-        version: 0.21.0(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(date-fns@4.4.0)(react-day-picker@9.14.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)(zod@4.6.7)
+        specifier: ^0.23.0
+        version: 0.23.0(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(date-fns@4.4.0)(react-day-picker@9.14.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       astro:
         specifier: ^7.4.2
         version: 7.4.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
@@ -800,8 +800,8 @@ packages:
     peerDependencies:
       hono: ^4 || ^5.0.0-0
 
-  '@hookform/resolvers@5.9.1':
-    resolution: {integrity: sha512-7b7vsbraJxKgjVSA1Nur9tLwj539WGJUBLA7QNvXnFoT2pM5Z7G+6rlukk4B2/QrTZy6huRtH6wKeESPKuIr6w==}
+  '@hookform/resolvers@5.9.2':
+    resolution: {integrity: sha512-RtjTnZqsC38s4NKp2XO3fD8IA5uyN4tB7McQ5C6uiMPcV+WWO8F+wVa3e+BXUpH2ScgxghAlwFRMVqjT9WChAQ==}
     peerDependencies:
       '@sinclair/typebox': '>=0.25.24'
       '@standard-schema/spec': ^1.0.0
@@ -811,7 +811,7 @@ packages:
       ajv-errors: ^3.0.0
       ajv-formats: ^2.1.1
       arktype: ^2.0.0
-      ata-validator: ^1.2.0
+      ata-validator: ^1.23.0
       class-transformer: '>=0.4.0'
       class-validator: '>=0.12.0'
       computed-types: ^1.0.0
@@ -1293,9 +1293,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@saastro/forms@0.21.0':
-    resolution: {integrity: sha512-JDUaV7/2zK7GZWocdYyjg7DXURHN/VoRXeFdaF8fzpOCLRKzVNsYVVSuqcypis2GeVF8XdhCAe0Cbk40BQ9N1A==}
-    deprecated: Old build ships source maps. Upgrade to >=0.22.0.
+  '@saastro/forms@0.23.0':
+    resolution: {integrity: sha512-MSlOUAzNBgJfm2WLNAY9mSo8OpGYnXOjOzMeXL6/jSDcBG9/nEchVhk7oAC9tmQOBBOR9lgZZq9HFq/fYshjvg==}
     hasBin: true
     peerDependencies:
       date-fns: ^4.1.0
@@ -1303,7 +1302,7 @@ packages:
       react-day-picker: ^9.11.3
       react-dom: ^18.0.0 || ^19.0.0
       react-hook-form: ^7.67.0
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^4.0.0
 
   '@saastro/studio@0.13.0':
     resolution: {integrity: sha512-oxgkjZ9Qs/KP/wszfS5QJsY0qKlgO2DkbBRUG967QUi/8vw0VWjv0XBrvpxBbTsBa0uVxWwA3mKJOBrMYvSDhQ==}
@@ -4706,7 +4705,7 @@ snapshots:
     dependencies:
       hono: 4.13.13
 
-  '@hookform/resolvers@5.9.1(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)':
+  '@hookform/resolvers@5.9.2(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.91.0(@types/react@19.3.0)(react@19.3.1)
@@ -5055,9 +5054,9 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@saastro/forms@0.21.0(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(date-fns@4.4.0)(react-day-picker@9.14.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)(zod@4.6.7)':
+  '@saastro/forms@0.23.0(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(date-fns@4.4.0)(react-day-picker@9.14.0(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(react@19.3.1)(zod@4.6.7)':
     dependencies:
-      '@hookform/resolvers': 5.9.1(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
+      '@hookform/resolvers': 5.9.2(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       '@iconify/react': 6.0.3(react@19.3.1)
       class-variance-authority: 0.7.1
       clsx: 2.1.1
