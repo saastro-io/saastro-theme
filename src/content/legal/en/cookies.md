@@ -1,7 +1,7 @@
 ---
 title: Cookie Policy
 description: How we use cookies on this site.
-lastUpdated: '2026-04-15T00:00:00.000Z'
+lastUpdated: '2026-11-02T00:00:00.000Z'
 draft: true
 ---
 
@@ -18,7 +18,29 @@ These are required for the site to function correctly. They cannot be disabled.
 
 ## Analytics cookies
 
-These help us understand how visitors use our site. They are only loaded after you give consent.
+These help us understand how visitors use our site. They are only loaded after you give consent. You can withdraw it at any time (see "Managing your preferences"): when you do, they stop loading and we delete the cookies they left on this site.
+
+### Google Analytics 4
+
+<div data-legal="tracking-ga4"></div>
+
+Google's web analytics service. It measures which pages you visit and how you interact with them. It loads from `googletagmanager.com` and sends data to `google-analytics.com`.
+
+- `_ga` — identifies a visitor anonymously.
+- `_ga_` followed by the property identifier — keeps session state.
+
+More information: [Google's privacy policy](https://policies.google.com/privacy).
+
+### Microsoft Clarity
+
+<div data-legal="tracking-clarity"></div>
+
+A Microsoft tool that records how the site is used: session recordings (clicks, scrolling and mouse movement) and heatmaps. It loads from `clarity.ms`.
+
+- `_clck` — identifies the visitor anonymously.
+- `_clsk` — groups the page views of one session.
+
+More information: [Microsoft's privacy statement](https://www.microsoft.com/privacy/privacystatement).
 
 ## Personalization cookies
 
