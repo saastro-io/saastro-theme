@@ -5,6 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { defaultLocale } from '../i18n/config';
 import { lpLocaleFromParam, pickByLocale } from './lp-locale';
 
 const BASE_FR = { defaultLocale: 'fr', locales: ['fr', 'es', 'de'] as const };
@@ -15,7 +16,12 @@ describe('lpLocaleFromParam', () => {
     expect(lpLocaleFromParam(undefined, BASE_FR)).toEqual({ ok: true, lang: 'fr' });
     expect(lpLocaleFromParam('', BASE_EN)).toEqual({ ok: true, lang: 'en' });
   });
-  it('un idioma declarado es válido', () => {
+  it('el prefijo del propio idioma base es 404 (el base va sin prefijo)', () => {
+    expect(lpLocaleFromParam('fr', BASE_FR)).toEqual({ ok: false });
+    expect(lpLocaleFromParam('en', BASE_EN)).toEqual({ ok: false });
+    expect(lpLocaleFromParam('es', BASE_EN)).toEqual({ ok: true, lang: 'es' });
+  });
+  it('un idioma declarado no base es válido', () => {
     expect(lpLocaleFromParam('es', BASE_FR)).toEqual({ ok: true, lang: 'es' });
     expect(lpLocaleFromParam('de', BASE_FR)).toEqual({ ok: true, lang: 'de' });
   });
@@ -27,7 +33,8 @@ describe('lpLocaleFromParam', () => {
   });
   it('con la config real también rechaza basura y acepta el base', () => {
     expect(lpLocaleFromParam('zz')).toEqual({ ok: false });
-    expect(lpLocaleFromParam(undefined).ok).toBe(true);
+    expect(lpLocaleFromParam(defaultLocale)).toEqual({ ok: false });
+    expect(lpLocaleFromParam(undefined)).toEqual({ ok: true, lang: defaultLocale });
   });
 });
 

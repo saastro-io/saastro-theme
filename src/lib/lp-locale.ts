@@ -6,7 +6,7 @@ import { defaultLocale, locales } from '../i18n/config';
  * sin prefijo) o cualquier cosa que escriba el visitante (`/zz/lp/x`).
  *
  * Decisión pura, sin Astro, para poder probarla: el prefijo solo vale si es un
- * idioma de `locales`; si no, 404 (no se redirige a la home: eso es solo para
+ * idioma de `locales` que NO sea el base (el base va sin prefijo); si no, 404 (no se redirige a la home: eso es solo para
  * slugs). Misma regla de segmento completo que `getLocaleFromUrl`.
  */
 export function lpLocaleFromParam(
@@ -14,7 +14,10 @@ export function lpLocaleFromParam(
   cfg: { defaultLocale: string; locales: readonly string[] } = { defaultLocale, locales },
 ): { ok: true; lang: string } | { ok: false } {
   if (param === undefined || param === '') return { ok: true, lang: cfg.defaultLocale };
-  return cfg.locales.includes(param) ? { ok: true, lang: param } : { ok: false };
+  // El idioma base no lleva prefijo (como en las páginas normales): `/en/lp/x` con base en es 404.
+  return param !== cfg.defaultLocale && cfg.locales.includes(param)
+    ? { ok: true, lang: param }
+    : { ok: false };
 }
 
 /** Texto por idioma: el del idioma pedido; si no existe, el del idioma BASE; y solo
