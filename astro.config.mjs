@@ -72,6 +72,14 @@ const DEV_PORT = process.env.DEV_PORT ? Number(process.env.DEV_PORT) : undefined
 export default defineConfig({
   site: SITE_URL,
   output: 'server',
+  // CSS dentro del HTML en vez de dos `<link>` bloqueantes. Con RTT alto el
+  // `<link>` cuesta una vuelta completa antes del primer pintado (medido en la
+  // home, móvil, CPU x4, Slow 4G: LCP 1523 ms -> 855 ms en frío). Coste: el HTML
+  // pesa ~24 KB brotli más en cada vista y el CSS ya no se cachea entre páginas.
+  // Ojo en un descendiente con rutas solo-SSR: `studio-contract-check` mide el
+  // CSS en `dist/` y en los <style> de las páginas prerenderizadas; si no hay
+  // ninguna, css-tokens sale «NO APLICABLE» (usa `--mode=crawl`).
+  build: { inlineStylesheets: 'always' },
   // Astro dev-server bind port (see DEV_PORT above). Unset → Astro's default 4321.
   // The `--port` CLI flag, if ever passed, still overrides this.
   server: { port: DEV_PORT },
