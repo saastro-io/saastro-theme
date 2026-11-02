@@ -136,6 +136,7 @@ describe('studio-contract-check: un build sin páginas de contenido no pasa', ()
 const POR_PAGINA = [
   'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
   'locale-parity', 'manage-cookies', 'marca-header',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
 ]
 
 describe('studio-contract-check: cada invariante no medido sale como NO APLICABLE', () => {

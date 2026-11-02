@@ -77,7 +77,8 @@
  *  15. cobertura        — se midió al menos UNA página de contenido (las de error no cuentan);
  *                         si no, exit 1: sin páginas los invariantes por página no son aplicables
  *                         y no se dan por buenos: cada invariante por página (sec-markers, field-markers,
- *                         verbatim, img-raw, schema-scripts, locale-parity, manage-cookies, marca-header)
+ *                         verbatim, img-raw, schema-scripts, locale-parity, manage-cookies, marca-header,
+ *                         cookie-policy, gen-legal, medicion-legal, tracking-legal)
  *                         sale como «NO APLICABLE» con su motivo. Ídem 7 con 0 bytes de CSS
  *
  * Cada fallo dice: [invariante] página — sección/campo — qué pasa y qué hacer.
@@ -261,6 +262,7 @@ function trackingEnabled() {
 const INVARIANTES_POR_PAGINA = [
   'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
   'locale-parity', 'manage-cookies', 'marca-header',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
 ]
 
 // ── helpers ──────────────────────────────────────────────────────────────────
