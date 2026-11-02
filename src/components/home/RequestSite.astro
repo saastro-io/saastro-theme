@@ -4,8 +4,9 @@
  *
  * El formulario NO se dibuja aquí: es el HubForm del site (`RequestSiteForm`,
  * el mismo que abre el botón de contacto del Header). Si el site aún no está
- * conectado al Hub (`forms.siteId` vacío) se pinta `notConnected` en su lugar
- * y no se monta nada que pueda enviar.
+ * conectado al Hub (`forms.siteId` vacío) se muestra `notConnected` en su lugar
+ * y no se monta nada que pueda enviar. Con siteId, `notConnected` sigue en el
+ * HTML pero con `hidden` (lo exige el contrato Studio).
  */
 import { Icon } from 'astro-icon/components';
 import { getSettings } from '@/lib/settings';
@@ -55,11 +56,13 @@ const { siteId, contactFormSlug } = getSettings().forms;
       )}
     </div>
     <div class="ds-card form-card">
-      {siteId ? (
+      {siteId && (
         <RequestSiteForm locale={locale} siteId={siteId} formSlug={contactFormSlug} client:only="react" />
-      ) : (
-        <p class="not-connected">{notConnected}</p>
       )}
+      {/* El texto se emite SIEMPRE y se oculta con `hidden` cuando hay siteId:
+          el contrato Studio (field-markers + verbatim) exige `notConnected` en el
+          DOM, y sin esto conectar el formulario ponía studio:check en rojo. */}
+      <p class="not-connected" hidden={Boolean(siteId)}>{notConnected}</p>
     </div>
   </div>
 </section>

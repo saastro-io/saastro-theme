@@ -66,7 +66,7 @@ forms:
   # connected to (Hub → Setup shows it; copied by hand today). Leave empty until
   # connected — the contact form then shows a "configure me" placeholder instead
   # of erroring. `contactFormSlug` is the form the slide-out ContactSheet renders.
-  siteId: ""
+  siteId: "2b771188-8ef0-4d5f-be85-341aaece10ab"
   contactFormSlug: "contact"
 
 gen:
