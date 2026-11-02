@@ -28,8 +28,10 @@ De los once sites solo tres descienden del theme. Para los otros ocho
 secciones `Hero`, `AboutContent`, `Products`, `HowItWorks`, `TrustBar`,
 `StatementSection`, `ValuesGrid`, `CompareTable`, `CtaBanner`) y
 `studio-contract.json`— y la **config del site** `src/data/settings.yaml` (sus
-ids de medición, su `forms.siteId`, su nombre; no es contenido de ejemplo, ver el
-comentario del `.gitattributes`). Todo lo demás es **infra** y se mergea normal:
+ids de medición, su `forms.siteId`, su nombre; no es contenido de ejemplo para un
+descendiente ya editado, ver el comentario del `.gitattributes`. Para un site NUEVO
+creado desde la plantilla sí trae ids del propio theme que hay que vaciar:
+`docs/nuevo-site-checklist.md`). Todo lo demás es **infra** y se mergea normal:
 layouts, `lp/`, `404`/`500`/blog, `ui/`, `lib/`, middleware, `public/_headers`,
 scripts, el resto de la config y CI. Si las dos ramas tocaron un fichero de contenido, el site
 conserva el suyo; si solo lo tocó el theme, entra el del theme.
