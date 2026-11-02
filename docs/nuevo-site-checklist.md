@@ -20,4 +20,12 @@ Quién lo escribe, verificado en el Hub: el aprovisionamiento reescribe SOLO `fo
 | 12 | `SITE_URL` con el dominio real (sin él, canonical, OG, hreflang y sitemap salen con el dominio de la plantilla) | variable de build | No |
 | 13 | CTAs de ejemplo que apuntan a `ui.saastro.io` (`secondaryHref` en los bloques y en `content/pages/*`) | `content/pages/*` y bloques | No |
 
-Antes de publicar: `git grep -n "G-B2MVN4RSSH\|z7a7k9iubl\|2b771188\|34607768582\|ui.saastro.io"` no debe devolver nada (salvo en el propio theme).
+Antes de publicar, en el repo del site (se excluye `docs/`, que cita estos valores):
+
+```
+git grep -n "G-B2MVN4RSSH\|z7a7k9iubl\|2b771188\|34607768582\|ui.saastro.io" -- . ':!docs'
+```
+
+No debe devolver nada. El token de Cloudflare no se busca por valor: comprueba a ojo que `tracking.cloudflareWebAnalytics` y `analytics.cloudflareWebAnalytics.token` de `settings.yaml` están vacíos o son del cliente.
+
+Nota del punto 7: `meta.siteName` solo gana a `site.name` con i18n activo.
