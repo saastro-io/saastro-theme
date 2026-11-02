@@ -5,9 +5,19 @@
  *
  * Origen de los ids, por orden:
  *   1. `overrides` (props de BaseLayout.analytics — compat con los sites que los pasan)
- *   2. `settings.tracking.<key>`   ← lo que escribirá el Hub
- *   3. `settings.analytics.*`      ← legado (googleAnalytics.id / googleTagManager.id)
- * Vacío = apagado. `noindex` (vista previa de un borrador) apaga TODO: la URL con
+ *   2. variable de build `PUBLIC_TRACKING_<CLAVE>` (ver `envVarName`)  ← la pone el DESPLIEGUE
+ *   3. `settings.tracking.<key>`   ← lo escribe el card de píxeles del Hub en un site ya creado
+ *   4. `settings.analytics.*`      ← legado (googleAnalytics.id / googleTagManager.id / token de Cloudflare)
+ * Vacío = apagado. (El aprovisionamiento de un site nuevo NO escribe tracking.*: solo
+ * forms.siteId y el bloque gen; por eso la plantilla sale con tracking vacío.)
+ *
+ * VARIABLE DE BUILD: una `PUBLIC_TRACKING_*` NO vacía GANA sobre settings.tracking y sobre la
+ * ruta legacy (y la usa SOLA). Un valor inválido en la variable se DESCARTA con aviso y NO cae
+ * a settings: quien la pone quiere sustituir, y caer a settings reencendería en silencio el id
+ * que la variable venía a quitar (en la plantilla, el de otra cuenta). Variable vacía o sin
+ * definir = se usa settings como siempre. Los nombres se DERIVAN del catálogo
+ * (`PUBLIC_TRACKING_` + clave en MAYÚSCULAS_Y_GUION_BAJO), no se repiten a mano. No son
+ * secretos: acaban en el HTML servido. `noindex` (vista previa de un borrador) apaga TODO: la URL con
  * `?preview=<token>` viajaría a cada proveedor.
  *
  * Un id que no cumple su formato se DESCARTA y se anota en `rejected`: el valor
@@ -26,6 +36,14 @@
  */
 import catalogo from './tracking-providers.json';
 import type { SiteSettings } from './settings';
+
+/** Prefijo de las variables de build de medición. */
+export const ENV_PREFIJO_TRACKING = 'PUBLIC_TRACKING_';
+
+/** Nombre de la variable de build de una clave del catálogo: `metaPixel` → `PUBLIC_TRACKING_META_PIXEL`. */
+export function envVarName(key: string): string {
+  return ENV_PREFIJO_TRACKING + key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase();
+}
 
 export type ConsentCategory = 'analytics' | 'marketing' | 'any' | 'none';
 
@@ -68,13 +86,17 @@ export interface RejectedId {
   reason: 'formato' | 'no-cadena' | 'tope' | 'clave' | 'modo' | 'sin-cuenta';
   /** Solo con 'tope': cuántos ids se usan. */
   max?: number;
-  /** De dónde viene el valor: los ajustes del site (por defecto) o el frontmatter de la landing. */
-  origen?: 'site' | 'landing';
+  /** De dónde viene el valor: los ajustes del site (por defecto), el frontmatter de la landing o
+   *  la variable de build `PUBLIC_TRACKING_*`. */
+  origen?: 'site' | 'landing' | 'env';
 }
 
 /** Mensaje de build para un id descartado (BaseLayout lo escribe con console.warn). */
 export function describeRejected(r: RejectedId): string {
-  const donde = r.origen === 'landing' ? `landing.tracking.${r.key}` : `settings.tracking.${r.key}`;
+  const donde =
+    r.origen === 'landing' ? `landing.tracking.${r.key}`
+    : r.origen === 'env' ? `variable de build ${envVarName(r.key)}`
+    : `settings.tracking.${r.key}`;
   switch (r.reason) {
     case 'no-cadena':
       return `[tracking] ${donde}: el YAML lo lee como número o booleano, no como cadena — ENTRECOMILLA el valor. DESCARTADO`;
@@ -87,7 +109,9 @@ export function describeRejected(r: RejectedId): string {
     case 'modo':
       return `[tracking] landing.trackingMode: valor no válido (solo add o replace) — se usa add`;
     default:
-      return `[tracking] ${donde}: id con formato inválido — DESCARTADO (no se inyecta nada)`;
+      return r.origen === 'env'
+        ? `[tracking] ${donde}: id con formato inválido — DESCARTADO; el proveedor queda APAGADO y NO se usa settings.tracking.${r.key} (la variable sustituye, no complementa)`
+        : `[tracking] ${donde}: id con formato inválido — DESCARTADO (no se inyecta nada)`;
   }
 }
 
@@ -150,6 +174,9 @@ export interface ResolveOptions {
   noindex?: boolean;
   /** `ga4`/`gtm` pasados por props a BaseLayout (compat). */
   overrides?: { googleAnalyticsId?: string; googleTagManagerId?: string };
+  /** Variables de build (por defecto `import.meta.env`, que Vite sustituye al construir, también
+   *  para las rutas SSR del Worker). Inyectable para probar sin Astro. */
+  env?: Record<string, unknown>;
   /** Override de la landing que se está sirviendo. Se resuelve POR PETICIÓN y no se
    *  guarda en ningún sitio: la función no tiene estado entre llamadas. */
   landing?: LandingTracking;
@@ -169,12 +196,12 @@ interface Parsed {
 }
 
 /** Un descarte; `origen` solo se anota si viene de una landing (los del site no cambian de forma). */
-function rechazo(key: string, reason: RejectedId['reason'], origen: 'site' | 'landing', max?: number): RejectedId {
-  return { key, reason, ...(max !== undefined ? { max } : {}), ...(origen === 'landing' ? { origen } : {}) };
+function rechazo(key: string, reason: RejectedId['reason'], origen: 'site' | 'landing' | 'env', max?: number): RejectedId {
+  return { key, reason, ...(max !== undefined ? { max } : {}), ...(origen !== 'site' ? { origen } : {}) };
 }
 
 /** Parte, recorta, valida con el patrón del proveedor, quita repetidos y aplica el tope. */
-function parsear(def: ProviderDef, valor: string, origen: 'site' | 'landing', rejected: RejectedId[]): Parsed {
+function parsear(def: ProviderDef, valor: string, origen: 'site' | 'landing' | 'env', rejected: RejectedId[]): Parsed {
   const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
   const ids: string[] = [];
   const posiciones: number[] = [];
@@ -201,10 +228,10 @@ function parsear(def: ProviderDef, valor: string, origen: 'site' | 'landing', re
 function emparejarEtiquetas(
   etiquetaCruda: string | null,
   ads: Parsed | undefined,
-  origen: 'site' | 'landing',
+  origen: 'site' | 'landing' | 'env',
   rejected: RejectedId[],
 ): AdsConversion[] {
-  if (etiquetaCruda === null) rejected.push(rechazo('googleAdsConversionLabel', 'no-cadena', origen));
+  if (etiquetaCruda === null) rejected.push(rechazo('googleAdsConversionLabel', origen === 'env' ? 'formato' : 'no-cadena', origen));
   const reEtiqueta = new RegExp(catalogo.googleAdsConversionLabelPattern);
   const out: AdsConversion[] = [];
   (etiquetaCruda ?? '').split(',').map((x) => x.trim()).forEach((l, i) => {
@@ -216,6 +243,14 @@ function emparejarEtiquetas(
   return out;
 }
 
+/** Valor de una variable de build: cadena recortada; '' si no está definida o está vacía;
+ *  `null` si está definida y NO es una cadena (se descarta como formato inválido). */
+function leerEnv(env: Record<string, unknown>, key: string): string | null {
+  const v = propio(env, envVarName(key));
+  if (v == null) return '';
+  return typeof v === 'string' ? v.trim() : null;
+}
+
 export function resolveTracking(
   settings: Pick<SiteSettings, 'analytics'> & { tracking?: unknown },
   opts: ResolveOptions = {},
@@ -224,6 +259,7 @@ export function resolveTracking(
     providers: [], googleAdsConversionLabel: '', googleAdsConversions: [], consentKeys: [], showMarketing: false, rejected: [],
   };
   if (opts.noindex) return vacio;
+  const env: Record<string, unknown> = opts.env ?? (import.meta.env as Record<string, unknown>);
 
   const providers: EnabledProvider[] = [];
   const rejected: RejectedId[] = [];
@@ -255,10 +291,16 @@ export function resolveTracking(
       : undefined;
     const propio = leer(settings.tracking, [def.key]);
     const legado = def.legacy ? leer(settings, def.legacy) : '';
+    const delEnv = leerEnv(env, def.key);
     // `null` = el YAML trae algo que no es una cadena (p. ej. un id numérico sin
     // comillas): se avisa en vez de apagar el proveedor en silencio.
     let site: Parsed = { ids: [], posiciones: [] };
-    if ((propio === null && !(override ?? '').trim()) || (propio === '' && legado === null && !(override ?? '').trim())) {
+    if (!(override ?? '').trim() && delEnv !== '') {
+      // Variable de build NO vacía: gana y va SOLA. Inválida = proveedor apagado + aviso;
+      // nunca cae a settings (reencendería el id que la variable venía a sustituir).
+      if (delEnv === null) rejected.push(rechazo(def.key, 'formato', 'env'));
+      else site = parsear(def, delEnv, 'env', rejected);
+    } else if ((propio === null && !(override ?? '').trim()) || (propio === '' && legado === null && !(override ?? '').trim())) {
       rejected.push({ key: def.key, reason: 'no-cadena' });
     } else {
       const valor = (override ?? '').trim() || propio || legado || '';
@@ -303,8 +345,13 @@ export function resolveTracking(
   // Etiquetas de conversión: las del site con las cuentas del site, las de la landing con las
   // cuentas de la landing (misma regla de emparejar por posición). Si coinciden en una cuenta
   // gana la de la landing (la más específica).
-  const etiquetaSite = leer(settings.tracking, ['googleAdsConversionLabel']);
-  const delSite = emparejarEtiquetas(etiquetaSite, adsSite, 'site', rejected);
+  // La variable de build PUBLIC_TRACKING_GOOGLE_ADS_CONVERSION_LABEL, si no está vacía, sustituye a la
+  // de settings (misma regla que los ids: inválida = se descarta, no se cae a settings).
+  const etiquetaEnv = leerEnv(env, 'googleAdsConversionLabel');
+  const delSite =
+    etiquetaEnv !== ''
+      ? emparejarEtiquetas(etiquetaEnv, adsSite, 'env', rejected)
+      : emparejarEtiquetas(leer(settings.tracking, ['googleAdsConversionLabel']), adsSite, 'site', rejected);
   let delLanding: AdsConversion[] = [];
   if (landingObj) {
     const lv = leer(landingObj, ['googleAdsConversionLabel']);

@@ -134,9 +134,26 @@ const SKIP_SUBTREES = new Set(['seo', 'meta', 'metadata', 'opengraph', 'og'])
 // VERIFICADAS en cada pasada. La lista vive aquí —fichero hasheado por el
 // invariante 10— para que no crezca sin que se note. Un prefijo cubre su
 // subárbol (`lp` → `lp.*`).
+const WA_SIN_NUMERO = 'sólo se renderiza con número de WhatsApp (PUBLIC_WHATSAPP_NUMBER o whatsapp.number); la plantilla no lo trae'
+// Secciones del DOM que aparecen SOLO si el despliegue pone una variable de build (la plantilla
+// sale sin ellas y su contrato tampoco las lleva). key de sección → variable.
+const SECCIONES_CONDICIONALES = { whatsapp: 'PUBLIC_WHATSAPP_NUMBER' }
+const condicionalAvisada = new Set()
 const I18N_NO_VERIFICABLE = {
   // En modo dist las rutas on-demand no se renderizan.
   lp: 'sólo se leen en src/pages/[...locale]/lp/[slug].astro — landings SSR (prerender = false)',
+  // El widget de WhatsApp es CONDICIONAL: SiteLayout lo monta sólo si hay número (variable de
+  // build PUBLIC_WHATSAPP_NUMBER o la clave `whatsapp.number`). La plantilla sale con el número
+  // vacío, así que sus textos (prefill, name, role…) existen en el JSON pero este build no los
+  // renderiza; en un site con número SÍ se leen. Se enumeran como NO VERIFICADAS (aviso en cada
+  // pasada), no como muertas. `whatsapp.number` no entra aquí: SiteLayout lo lee SIEMPRE.
+  'whatsapp.prefill': WA_SIN_NUMERO,
+  'whatsapp.name': WA_SIN_NUMERO,
+  'whatsapp.role': WA_SIN_NUMERO,
+  'whatsapp.greeting': WA_SIN_NUMERO,
+  'whatsapp.cta': WA_SIN_NUMERO,
+  'whatsapp.ariaOpen': WA_SIN_NUMERO,
+  'whatsapp.ariaClose': WA_SIN_NUMERO,
   // `meta.title` estuvo aquí hasta el 30-sep: ninguna página lo leía porque las
   // tres que usan resolveMeta traían override. Ahora home no trae
   // `meta.pages.home.title` y hereda el global, que es lo que el panel SEO del
@@ -1239,6 +1256,17 @@ async function main() {
       }
       for (const key of got) {
         if (!(key in (entry.sections ?? {}))) {
+          // Sección CONDICIONAL: el contrato guardado es el de la plantilla (sin número de WhatsApp);
+          // un despliegue que pone PUBLIC_WHATSAPP_NUMBER añade la sección. Se avisa UNA vez, no se falla.
+          const variable = SECCIONES_CONDICIONALES[key]
+          if (variable && (process.env[variable] ?? '').trim() !== '') {
+            if (!condicionalAvisada.has(key)) {
+              condicionalAvisada.add(key)
+              warn('sec-markers', '(todas)', `sec:${key}`, `sección presente por la variable de build ${variable}, que el contrato de la plantilla no trae: NO VERIFICADA contra el manifiesto`,
+                'esperado en el despliegue que pone la variable; `pnpm studio:check` sin la variable la verifica contra el contrato')
+            }
+            continue
+          }
           fail('sec-markers', rel, `sec:${key}`, 'sección presente en el HTML pero NO registrada en el manifiesto',
             'si la sección nueva es deliberada, corre `pnpm studio:contract:update` y commitea el diff')
         }
