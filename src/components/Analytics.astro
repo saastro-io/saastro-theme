@@ -313,3 +313,11 @@ const ownHost = Astro.site?.hostname ?? '';
     })();
   </script>
 )}
+{providers.length === 0 && (
+  <script is:inline>
+    // Página sin proveedores (otra sin píxeles, o la vista previa): si venimos SIN recargar de una
+    // página que SÍ los cargó (p. ej. una landing con override), sus trackers, su listener de
+    // consentimiento y su `saastroTrack` siguen vivos. Misma regla que la firma de arriba: se recarga.
+    if (window.__saastroTrackSig !== undefined) location.reload();
+  </script>
+)}

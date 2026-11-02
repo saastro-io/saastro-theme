@@ -63,8 +63,9 @@ export interface RejectedId {
    *  (un id sin comillas, o `true`/`false`; los de 15+ dígitos pierden precisión): hay que entrecomillarlo.
    *  'tope': sobran ids sobre `maxIds` (se usan los primeros).
    *  Solo de una landing: 'clave' (no es una clave sobrescribible por landing) y
-   *  'modo' (`trackingMode` no es `add` ni `replace`; se usa `add`). */
-  reason: 'formato' | 'no-cadena' | 'tope' | 'clave' | 'modo';
+   *  'modo' (`trackingMode` no es `add` ni `replace`; se usa `add`) y 'sin-cuenta'
+   *  (etiqueta de conversión en la landing sin `googleAds` propio en la landing: no se usa). */
+  reason: 'formato' | 'no-cadena' | 'tope' | 'clave' | 'modo' | 'sin-cuenta';
   /** Solo con 'tope': cuántos ids se usan. */
   max?: number;
   /** De dónde viene el valor: los ajustes del site (por defecto) o el frontmatter de la landing. */
@@ -81,6 +82,8 @@ export function describeRejected(r: RejectedId): string {
       return `[tracking] ${donde}: hay más ids de los que admite (máximo ${r.max}) — se usan los ${r.max} primeros y el resto se DESCARTA`;
     case 'clave':
       return `[tracking] ${donde}: no se puede sobrescribir por landing (o no existe) — IGNORADO`;
+    case 'sin-cuenta':
+      return `[tracking] ${donde}: la etiqueta se empareja con las cuentas googleAds DE LA LANDING y la landing no trae ninguna — IGNORADA`;
     case 'modo':
       return `[tracking] landing.trackingMode: valor no válido (solo add o replace) — se usa add`;
     default:
@@ -305,7 +308,10 @@ export function resolveTracking(
   let delLanding: AdsConversion[] = [];
   if (landingObj) {
     const lv = leer(landingObj, ['googleAdsConversionLabel']);
-    if (lv !== '') delLanding = emparejarEtiquetas(lv, adsLanding, 'landing', rejected);
+    if (lv !== '') {
+      delLanding = emparejarEtiquetas(lv, adsLanding, 'landing', rejected);
+      if (lv !== null && !adsLanding) rejected.push({ key: 'googleAdsConversionLabel', reason: 'sin-cuenta', origen: 'landing' });
+    }
   }
   const ads = providers.find((p) => p.key === 'googleAds');
   const googleAdsConversions: AdsConversion[] = [];

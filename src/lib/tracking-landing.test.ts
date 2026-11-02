@@ -446,3 +446,49 @@ describe('navegación sin recargar (ClientRouter): el override no pasa de una p�
     expect(win.__saastroTrackSig).not.toContain(META_A);
   });
 });
+
+describe('página SIN proveedores tras una landing con ellos (sin recargar)', () => {
+  const fuente = readFileSync(new URL('../components/Analytics.astro', import.meta.url), 'utf8');
+  const [principal, guarda] = [...fuente.matchAll(/<script is:inline[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+
+  function ejecutar(codigo: string, win: Record<string, any>, recargas: { n: number }, r: ReturnType<typeof resolveTracking>) {
+    win.window = win;
+    const doc = { cookie: '', readyState: 'complete', head: { appendChild() {} }, getElementsByTagName: () => [{ parentNode: { insertBefore() {} } }], createElement: () => ({ attrs: {}, setAttribute() {} }), addEventListener: () => {} };
+    runInNewContext(codigo, {
+      providers: r.providers, adsConv: r.googleAdsConversions, ownHost: '', window: win, document: doc,
+      location: { hostname: 'sitio.example', href: 'https://sitio.example/', origin: 'https://sitio.example', reload: () => { recargas.n++; } },
+      history: { pushState() {}, replaceState() {} }, URL, encodeURIComponent, decodeURIComponent, JSON, Date, Array, Object,
+    });
+  }
+  const conLanding = resolveTracking(site({}), { landing: { tracking: { metaPixel: META_B } } });
+
+  it('existe el guarda de la página sin proveedores y se renderiza solo cuando no hay ninguno', () => {
+    expect(guarda).toBeTruthy();
+    expect(fuente).toMatch(/providers\.length === 0 && \(\s*<script is:inline>/);
+  });
+  it('tras una landing con píxeles, la página sin proveedores recarga', () => {
+    const win: Record<string, any> = { addEventListener: () => {} };
+    const rec = { n: 0 };
+    ejecutar(principal, win, rec, conLanding);
+    ejecutar(guarda, win, rec, resolveTracking(site({})));
+    expect(rec.n).toBe(1);
+  });
+  it('si nunca hubo píxeles en la ventana, no recarga (sites sin proveedores)', () => {
+    const rec = { n: 0 };
+    ejecutar(guarda, { addEventListener: () => {} }, rec, resolveTracking(site({})));
+    expect(rec.n).toBe(0);
+  });
+});
+
+describe('etiqueta de la landing sin cuenta propia', () => {
+  it('avisa (antes se perdía en silencio) y no genera conversión', () => {
+    const r = resolveTracking(site({ googleAds: AW_A }), { landing: { tracking: { googleAdsConversionLabel: 'LabelBBBBBB' } } });
+    expect(r.googleAdsConversions).toEqual([]);
+    expect(r.rejected).toContainEqual({ key: 'googleAdsConversionLabel', reason: 'sin-cuenta', origen: 'landing' });
+    expect(describeRejected({ key: 'googleAdsConversionLabel', reason: 'sin-cuenta', origen: 'landing' })).toContain('IGNORADA');
+  });
+  it('con cuenta propia en la landing no avisa', () => {
+    const r = resolveTracking(vacio, { landing: { tracking: { googleAds: AW_B, googleAdsConversionLabel: 'LabelBBBBBB' } } });
+    expect(r.rejected.some((x) => x.reason === 'sin-cuenta')).toBe(false);
+  });
+});

@@ -278,7 +278,9 @@ tracking:
 **Etiqueta de conversión de Google Ads.** La de la landing se empareja por posición
 con las cuentas `googleAds` **de la landing** (misma regla que en el site: `,Etiqueta2`
 deja la primera cuenta sin conversión). La del site sigue con las cuentas del site.
-Si las dos nombran la misma cuenta gana la de la landing. En `replace` de `googleAds`
+Si las dos nombran la misma cuenta gana la de la landing. Una etiqueta en la landing
+sin `googleAds` propio en la landing **no sirve** (no se empareja con las cuentas del site)
+y el log del servidor lo avisa. En `replace` de `googleAds`
 las cuentas del site desaparecen y sus etiquetas también; una cuenta de la landing sin
 etiqueta propia **no** hereda la del site.
 
@@ -308,7 +310,8 @@ de esa página** (los del site más los de la landing, o solo los de la landing 
   visitante pasa, sin recargar, de una landing con override a otra página con una lista
   distinta de píxeles (o al revés), el cargador **recarga la página nueva** una vez
   (firma de proveedores e ids distinta) para que el override no viaje a la otra página.
-  Medido en un navegador.
+  Si la página siguiente **no tiene ningún proveedor**, también recarga (un guarda mínimo
+  que se emite en ese caso). Medido en un navegador.
 - **`/lp/gracias`** es una página aparte, **sin override**: lo que se defina allí por URL
   (conversiones de LinkedIn, por ejemplo) usa los píxeles del site. El evento de lead de
   los píxeles de la landing sale en la propia landing, al enviar el formulario.
