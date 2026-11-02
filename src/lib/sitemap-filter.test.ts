@@ -37,3 +37,14 @@ describe('sitemap del build', () => {
     expect(locs.filter((l) => !sitemapIncludes(l))).toEqual([]);
   });
 });
+
+// El predicado solo sirve si la integración lo usa. Este test corre en CI (sin
+// build previo): falla si alguien quita el `filter` de `sitemap({...})`.
+describe('astro.config.mjs', () => {
+  it('cablea sitemapIncludes como filter de la integración de sitemap', () => {
+    const cfg = readFileSync(fileURLToPath(new URL('../../astro.config.mjs', import.meta.url)), 'utf8');
+    const call = cfg.slice(cfg.indexOf('sitemap({'));
+    expect(call.slice(0, call.indexOf('icon()'))).toMatch(/filter:\s*sitemapIncludes\b/);
+    expect(cfg).toMatch(/import \{ sitemapIncludes \} from '\.\/src\/lib\/sitemap-filter(\.ts)?'/);
+  });
+});
