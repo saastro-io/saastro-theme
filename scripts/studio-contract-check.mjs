@@ -262,6 +262,7 @@ function trackingEnabledPorOrigen() {
   // El valor puede ser una lista separada por comas (como en resolveTracking): basta UN
   // id con formato válido para que cargue. Los inválidos NO cargan (se descartan).
   const valido = (def, valor) => {
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- patrón del catálogo del repo, no de entrada externa
     const re = new RegExp(def.pattern)
     return valor.split(',').some((id) => re.test(id.trim()))
   }

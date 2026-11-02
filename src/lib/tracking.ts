@@ -175,6 +175,7 @@ function parsear(def: ProviderDef, valor: string, origen: 'site' | 'landing', re
   const tope = def.maxIds ?? MAX_IDS_POR_DEFECTO;
   const ids: string[] = [];
   const posiciones: number[] = [];
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- el patrón sale del catálogo del propio repo (tracking-providers.json), nunca de la landing ni del visitante; lo que se evalúa contra él es el id, con patrones anclados y acotados
   const re = new RegExp(def.pattern);
   valor.split(',').forEach((crudo, i) => {
     const id = crudo.trim();
