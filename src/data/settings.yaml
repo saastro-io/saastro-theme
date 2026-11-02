@@ -42,7 +42,7 @@ analytics:
     # CF Web Analytics beacon TOKEN (Hub → Audiencia gives you the site token).
     # This is the client-side beacon token — NOT the Hub's GraphQL "site tag".
     # Empty = disabled. Host-blocked in the Studio preview + local dev.
-    token: ""
+    token: "ef7e6c6ac93b49ec815bffe7d0f37e14"
 
 tracking:
   # Píxeles de medición y anuncios. Vacío = apagado. Todos esperan al consentimiento
