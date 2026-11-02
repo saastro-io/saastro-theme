@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { editableField, editableSection } from "@saastro/studio/markers"
-import { consentRevoked, getConsent, resolvePrefs, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { consentRevoked, getConsent, resolvePrefs, revokedCategories, setConsent, type ConsentPrefs } from "@/lib/cookies"
+import { aplicarLimpiezaPendiente, clearTrackerCookies, marcarLimpiezaPendiente } from "@/lib/tracker-cookies"
 import { mirrorGenConsent } from "@/lib/gen-consent"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -60,6 +61,9 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
   const [personalization, setPersonalization] = useState(false)
 
   useEffect(() => {
+    // Limpieza pendiente de una revocación que recargó la página (ver `save`).
+    aplicarLimpiezaPendiente()
+
     const consent = getConsent()
     if (!consent) setVisible(true)
     // Quien ya eligió antes de que existiera el espejo no pasa por `save`.
@@ -107,7 +111,16 @@ export function CookieBanner({ translations: t, cookiesPolicyHref, showMarketing
       // forma fiable de "descargar" esos scripts, así que si analytics pasa de
       // on→off con un tracker vivo, recargamos: al arrancar sin consentimiento,
       // los loaders gateados (Analytics.astro / beacon CF) ya no lo inyectan.
+      // Y lo que ya se guardó con ese consentimiento se borra: `_ga`, `_clck`… siguen
+      // en el navegador aunque el script ya no cargue (medido). Solo ante una
+      // revocación explícita, nunca como barrido al cargar.
+      const retiradas = revokedCategories(previous, prefs)
+      if (retiradas.length > 0) clearTrackerCookies(retiradas)
+
       if (consentRevoked(previous, prefs) && analyticsTrackerLoaded()) {
+        // El script vivo puede reescribir sus cookies antes de la recarga (medido con
+        // `_ga_<id>`): se repite la limpieza al cargar la página nueva.
+        marcarLimpiezaPendiente(retiradas)
         window.location.reload()
       }
     },
