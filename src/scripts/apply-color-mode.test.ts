@@ -16,7 +16,7 @@ function raiz(inicial: string[]) {
   };
 }
 
-function montar(tema: 'dark' | 'light') {
+function montar(tema: 'dark' | 'light', codigo = CODIGO) {
   const listeners: Record<string, (e: any) => void> = {};
   const document = {
     documentElement: raiz(tema === 'dark' ? ['dark'] : []),
@@ -24,7 +24,7 @@ function montar(tema: 'dark' | 'light') {
     addEventListener: (n: string, f: (e: any) => void) => (listeners[n] = f),
   };
   const win: Record<string, any> = { dispatchEvent: () => true, matchMedia: () => ({ matches: false }) };
-  runInNewContext(CODIGO, {
+  runInNewContext(codigo, {
     defaultTheme: 'system',
     window: win,
     document,
@@ -42,6 +42,13 @@ describe('modo oscuro con ClientRouter', () => {
     const entrante = raiz([]);
     listeners['astro:before-swap']({ newDocument: { documentElement: entrante } });
     expect(entrante.set.has('dark')).toBe(true);
+  });
+
+  it('el control puede fallar: con el evento renombrado (mutante) no queda listener', () => {
+    const mutante = CODIGO.replace("'astro:before-swap'", "'astro:otro'");
+    expect(mutante).not.toBe(CODIGO);
+    expect(montar('dark', mutante)['astro:before-swap']).toBeUndefined();
+    expect(montar('dark')['astro:before-swap']).toBeTypeOf('function');
   });
 
   it('en claro no la añade, y la quita si el entrante la traía', () => {
