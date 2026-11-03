@@ -54,9 +54,43 @@ Regla general para el contenido que crea JS al hidratar (formularios, islas `cli
 
 Depurar una página: `CRITICAL_CSS_CHECK_ONLY=/about/ node scripts/critical-css-check.mjs`.
 
+### Qué mecanismo atiende cada ruta
+
+Medido en `https://theme.saastro.io` el 2026-11-03 (`node scripts/critical-css-check.mjs --url https://theme.saastro.io`, 22 rutas, 0 hojas bloqueantes en el `<head>` en todas):
+
+| Ruta | Quién la sirve | Quién deja el crítico inline |
+| --- | --- | --- |
+| `/`, `/es/`, `/about/`, `/blog/…`, `/legal/…`, `/500` | binding `ASSETS` (HTML prerenderizado en `dist/client`) | el **build** (`astro:build:done`) |
+| `/lp/<slug>` (`/lp/gracias`), `/<locale>/p/<slug>` | el Worker (SSR) | el **middleware** `critical-css-middleware.ts` |
+| cualquier URL sin página (404, también bajo `/es/`, `/mx/`, `/_astro/…`) | el Worker: `wrangler.jsonc` no define `assets.not_found_handling` ni hay `dist/client/404.html`, así que lo que no es un fichero cae al Worker y lo pinta `src/pages/404.astro` | el **middleware**, igual que una landing |
+
+Dos cosas que conviene saber al medir un 404 a mano:
+
+- El `<link rel="stylesheet">` del 404 **sigue estando en el HTML**: está al final del `<body>`, no en el `<head>`. Contar `<link rel="stylesheet"` en todo el documento da 1 y parece que «no hay crítico»; lo que importa es cuántos hay **antes de `</head>`** (0) y cuántos bytes de `<style>` lleva (≈23 kB).
+- Si algún día se añade `assets.not_found_handling` o un `404.html` prerenderizado, el 404 pasaría a servirlo `ASSETS` sin Worker. El build lo procesaría igual (`dist/client/**/*.html`), y el control normal y `--url` lo verían: ya no dependerían del middleware.
+
+### Medir un despliegue real: `--url`
+
+El control de arriba prueba el build en local; no demuestra nada sobre lo que **está sirviendo producción** (el Worker degrada en silencio si falla el binding o el plan). Para eso:
+
+```bash
+pnpm critical-css:prod https://theme.saastro.io
+# equivale a: node scripts/critical-css-check.mjs --url https://theme.saastro.io
+# o con variable: CRITICAL_CSS_CHECK_URL=https://theme.saastro.io node scripts/critical-css-check.mjs
+```
+
+Sin navegador ni build: pide con `fetch` las sondas SSR que existen en cualquier descendiente (404 en `/` y `/es/`, `/p/<inexistente>`, `/500`, `/lp/gracias`) y cada URL del sitemap del propio despliegue. Por ruta falla si hay **hoja bloqueante antes de `</head>`**, si no hay CSS inline suficiente (< 200 B) o si falta el plan de una hoja enlazada (`<hoja>.css.plan.json`, 200 JSON). Una redirección, un no-HTML o un HTML sin CSS salen como `omitida` con su motivo, nunca como verde. Códigos: 0 ok · 1 alguna ruta sin crítico · 2 no pudo medir (ninguna ruta medible).
+
+**Cuándo**: después de cada despliegue que toque `astro.config.mjs`, `wrangler.jsonc`, `src/integrations/critical-css*` o el middleware, y cuando alguien diga que una página «no tiene crítico en producción». **No va en la CI de PR** porque el despliegue es posterior al merge. También sirve contra un local (`wrangler dev -c dist/server/wrangler.json`) para ensayar.
+
 ### Prueba de mutación (cómo se sabe que el control muerde)
 
 Reintroducir cada fallo conocido y comprobar que el control se pone rojo; está pegada en el PR que lo introdujo. Los mutantes son ediciones del fuente + rebuild, no hooks en el código de producción.
+
+Mutantes medidos para el 404 SSR (con el mutante, el control y `--url` en rojo; sin él, verde):
+
+- **A, el middleware no se registra** (`addMiddleware` no se llama): `critical-css-check` falla en `[estructura]` del 404 (`1 hoja(s) bloqueante(s) en el <head>`, 0 B inline) y `--url` marca 5 de 22 rutas (los 3 404, `/lp/gracias` y `/es/lp/gracias`; las prerenderizadas siguen ok).
+- **B, el middleware no encuentra el binding `ASSETS`** (la degradación silenciosa): mismo resultado.
 
 ## Límites reales
 
