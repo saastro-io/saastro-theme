@@ -1,7 +1,7 @@
 /**
  * pwa.ts — el web manifest es OPT-IN.
  *
- * Un `<link rel="manifest">` hace que Chrome/Edge ofrezcan «Instalar app». En una web
+ * Un enlace al manifest en el `<head>` hace que Chrome/Edge ofrezcan «Instalar app». En una web
  * normal o en una landing de anuncios eso es ruido (y el nombre/color del theme se
  * heredaban a cada descendiente). Por eso el manifest SOLO existe si el site lo activa en
  * `settings.yaml` (`pwa.enabled: true`). Apagado (por defecto): ni `<link>`, ni ruta

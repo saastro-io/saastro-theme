@@ -7,7 +7,9 @@
  *     — el bug original — rompe esto), y la ruta responde 404 sin PWA;
  *   - public/manifest.json (el estático que se enlazaba siempre) ya no existe.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { PWA_MANIFEST_PATH, buildManifest, resolvePwa } from './pwa';
 import { getSettings } from './settings';
@@ -67,17 +69,29 @@ describe('resolvePwa: encendido', () => {
 
 describe('las dos puertas (fuente)', () => {
   const layout = leer('../layouts/BaseLayout.astro');
-  it('BaseLayout emite el link SOLO tras `pwa &&`, y una vez', () => {
-    const links = layout.split('\n').filter((l) => /rel=["']manifest["']/.test(l));
+  it('BaseLayout emite el link SOLO tras `pwa &&`, y una vez (aunque se parta en varias líneas)', () => {
+    const links = layout.match(/<link\b[^>]*?\brel\s*=\s*["']?manifest\b[^>]*>/g) ?? [];
     expect(links).toHaveLength(1);
-    expect(links[0]).toMatch(/\{\s*pwa\s*&&\s*<link rel="manifest" href=\{PWA_MANIFEST_PATH\}/);
-    expect(layout).not.toMatch(/href=["']\/manifest\.json["']/);
+    expect(layout).toMatch(/\{\s*pwa\s*&&\s*<link\s+rel="manifest"\s+href=\{PWA_MANIFEST_PATH\}/);
+    expect(layout).not.toMatch(/\/manifest\.json/);
     expect(layout).toMatch(/const pwa = resolvePwa\(settings\)/);
   });
-  it('ninguna otra plantilla enlaza un manifest', () => {
-    for (const f of ['../head/Favicons.astro', '../layouts/SiteLayout.astro']) {
-      if (existsSync(new URL(f, import.meta.url))) expect(leer(f)).not.toMatch(/rel=["']manifest["']/);
-    }
+  it('NINGÚN otro fichero de src/ enlaza un manifest ni nombra el viejo manifest.json', () => {
+    const raiz = fileURLToPath(new URL('..', import.meta.url));
+    const files: string[] = [];
+    const walk = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (/\.(astro|tsx?|jsx?|mdx?|html)$/.test(e.name) && !/\.test\.[tj]sx?$/.test(e.name)) files.push(p);
+      }
+    };
+    walk(raiz);
+    expect(files.length).toBeGreaterThan(50);
+    const enlazan = files.filter((f) => /\brel\s*=\s*["']?manifest\b/.test(readFileSync(f, 'utf8'))).map((f) => relative(raiz, f));
+    expect(enlazan).toEqual(['layouts/BaseLayout.astro']);
+    const viejo = files.filter((f) => /manifest\.json/.test(readFileSync(f, 'utf8'))).map((f) => relative(raiz, f));
+    expect(viejo).toEqual([]);
   });
   it('la ruta responde 404 sin PWA y sirve application/manifest+json con PWA', () => {
     const ruta = leer('../pages/manifest.webmanifest.ts');

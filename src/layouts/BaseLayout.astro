@@ -79,9 +79,9 @@ const tracking = resolveTracking(settings, {
 for (const r of tracking.rejected) console.warn(describeRejected(r));
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
 // Web manifest OPT-IN: sin `pwa.enabled` no hay enlace al manifest (Chrome/Edge ofrecerían
-// «Instalar app»). Misma resolución que la ruta /manifest.webmanifest (src/lib/pwa.ts).
+// «Instalar app»). Misma resolución que la ruta /manifest.webmanifest (src/lib/pwa.ts), que es
+// la que avisa de los valores inválidos (una vez por build, no una por página).
 const pwa = resolvePwa(settings);
-if (pwa) for (const r of pwa.rejected) console.warn(`[pwa] ${r} inválido (se espera #rrggbb): se usa el valor por defecto.`);
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
 // y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga
 // (resolveTracking con `noindex` ya lo apaga todo, Cloudflare incluido).

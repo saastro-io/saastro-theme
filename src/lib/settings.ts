@@ -84,7 +84,7 @@ export interface SiteSettings {
   };
   /**
    * Web manifest OPT-IN (src/lib/pwa.ts). Ausente o `enabled: false` = sin
-   * `<link rel="manifest">`, sin ruta `/manifest.webmanifest` y sin «Instalar app».
+   * enlace al manifest, sin ruta `/manifest.webmanifest` y sin «Instalar app».
    * `name`/`shortName` caen a `site.name`; `themeColor` a `site.favicon.colors.theme`;
    * `backgroundColor` a #ffffff. Colores `#rrggbb`; uno inválido se descarta con aviso.
    */

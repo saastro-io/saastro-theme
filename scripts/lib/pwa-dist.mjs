@@ -9,6 +9,21 @@
  *
  * Función pura (la ejecuta scripts/pwa-check.mjs y la prueba scripts/lib/pwa-dist.test.ts).
  */
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+
+/** Lee un dist/client: los HTML y los ficheros de manifest que existan. `null` si no hay dir. */
+export function leerDist(dir) {
+  if (!existsSync(dir)) return null;
+  const walk = (d) => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));
+  const todos = walk(dir).map((f) => relative(dir, f));
+  const leer = (f) => readFileSync(join(dir, f), 'utf8');
+  return {
+    htmls: Object.fromEntries(todos.filter((f) => f.endsWith('.html')).map((f) => [f, leer(f)])),
+    files: Object.fromEntries(todos.filter((f) => f === 'manifest.webmanifest' || f === 'manifest.json').map((f) => [f, leer(f)])),
+  };
+}
+
 const LINK = /<link\b[^>]*\brel=["']?manifest["']?[^>]*>/gi;
 
 export function enabledDeSettings(pwa) {
