@@ -17,6 +17,17 @@ site:
       icon: "#00a897"
       theme: "#00a897"
 
+# Web manifest OPT-IN (src/lib/pwa.ts, docs/pwa.md). Apagado = sin <link rel="manifest">, sin
+# /manifest.webmanifest y sin «Instalar app» en Chrome/Edge: lo correcto para una web normal o una
+# landing de anuncios. Enciéndelo SOLO si el site debe ser instalable (y entonces cambia los iconos
+# de public/ por los del cliente). Vacíos: name/shortName = site.name, themeColor = el de favicon.
+pwa:
+  enabled: false
+  name: ""
+  shortName: ""
+  themeColor: ""
+  backgroundColor: ""
+
 metadata:
   # Fallback <meta description> when a page doesn't pass one. Per-page/per-locale
   # titles + descriptions come from the i18n `meta` namespace, not here.

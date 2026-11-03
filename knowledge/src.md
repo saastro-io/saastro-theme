@@ -187,7 +187,7 @@ Son de plantilla: **todo descendiente las hereda si no se arreglan aquí**.
   square-ish SVG — an icon, not a wordmark) at `public/SVG/icon.svg` and run
   `node scripts/gen-favicons.mjs`. It writes the whole set — `favicon.svg`/`.ico`,
   `favicon-16/32/48`, `apple-touch-icon`, and PWA `icon-192/512` (+ `-maskable`) — all already
-  wired in `src/head/Favicons.astro` + `public/manifest.json`. **New site onboarding: replace
+  wired in `src/head/Favicons.astro` (the web manifest is OPT-IN via `pwa.enabled` in `settings.yaml`, off by default: `docs/pwa.md`). **New site onboarding: replace
   `icon.svg` with the client's mark and re-run**, or the site ships the template's default icon
   (same class of "born with the template's identity" trap as `SITE_URL`). sharp is resolved
   from the pnpm store, so no extra dep.

@@ -44,7 +44,7 @@ Cuatro variables, en Cloudflare → Workers → `saastro-theme` → Settings →
 | 5 | Número de WhatsApp (vacío oculta el widget) | `PUBLIC_WHATSAPP_NUMBER` o `whatsapp.number` en `src/i18n/translations/es.json` y `en.json` | No |
 | 6 | Home, About, hero, features, CTA y demás textos del escaparate «Saastro Theme» | `src/i18n/translations/*.json` y `src/pages/[...locale]/index.astro` | No |
 | 7 | `meta.siteName` y `site.name` (hoy hay dos nombres; gana `meta.siteName`) | `src/i18n/translations/*.json` y `settings.yaml` | No |
-| 8 | Nombre y colores de la PWA | `public/manifest.json` | No |
+| 8 | ¿Debe ser instalable («Instalar app»)? Por defecto **no**: `pwa.enabled: false`. Si sí: `pwa.enabled: true` con nombre y colores propios, y los iconos `icon-*` de la fila 9 (docs/pwa.md) | `pwa` en `src/data/settings.yaml` | No |
 | 9 | Logos y favicons | `src/assets/brand/logo-{light,dark}.svg`, `public/favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `og-image.png` | No |
 | 10 | Entradas de blog de ejemplo (aparecen en `/blog`, RSS y sitemap) | `src/content/blog/`: borrarlas o `draft: true` | No |
 | 11 | Política de cookies, privacidad y términos: son plantilla, sin responsable del tratamiento ni datos de contacto. Requieren revisión legal antes de publicar. La política de cookies declara GA4 y Clarity; ajustarla a lo que el site encienda | `src/content/legal/**` o el Centro Legal del Hub | No. El texto lo aprueba una persona |
