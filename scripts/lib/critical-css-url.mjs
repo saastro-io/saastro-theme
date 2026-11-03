@@ -25,8 +25,9 @@ export const PLAN_SUFFIX = '.plan.json'
 const MIN_INLINE = 200
 
 /** Sondas SSR: existen en cualquier descendiente y no requieren configuración. */
+export const SONDA_404 = '/__critical-css-check-404'
 export const SONDAS = [
-  '/__critical-css-check-404',
+  SONDA_404,
   '/es/__critical-css-check-404',
   '/p/__critical-css-check-404',
   '/500',
@@ -84,8 +85,8 @@ async function rutasDelSitemap(/** @type {string} */ origen) {
       const r2 = await fetch(origen + new URL(u).pathname)
       if (r2.ok) for (const p of loc(await r2.text())) rutas.push(new URL(p).pathname)
     }
-  } catch {
-    /* sin sitemap: quedan las sondas */
+  } catch (e) {
+    console.warn(`aviso: no pude leer el sitemap de ${origen} (${/** @type {Error} */ (e).message}); solo se miden las sondas`)
   }
   return rutas
 }
@@ -144,6 +145,18 @@ export async function medirDespliegue(urlBase, opts = {}) {
       detalle: fa.length ? fa.join('; ') : `0 hojas en el head, ${v.hojas} al final, ${v.inline} B inline`,
     })
     opts.log?.(`${ruta} ${estado} ${fa.length ? 'FALLA' : 'ok'}`)
+  }
+  // El 404 es el caso que este modo existe para vigilar: si la sonda no devuelve
+  // un 404 medido (redirige, 200 catch-all, sin CSS), no se da por bueno.
+  const f404 = filas.find((f) => f.ruta === SONDA_404)
+  if (!f404 || f404.estado !== '404' || f404.resultado === 'omitida') {
+    fallos++
+    filas.push({
+      ruta: SONDA_404,
+      estado: f404?.estado ?? '-',
+      resultado: 'FALLA',
+      detalle: `la sonda de 404 no se pudo medir como un 404 con CSS (${f404 ? `${f404.estado} ${f404.resultado}: ${f404.detalle}` : 'sin respuesta'}): el caso vigilado queda sin medir`,
+    })
   }
   return { filas, fallos, medidas }
 }
