@@ -83,6 +83,19 @@ export interface SiteSettings {
     readonly consent?: 'none' | 'required';
   };
   /**
+   * Web manifest OPT-IN (src/lib/pwa.ts). Ausente o `enabled: false` = sin
+   * enlace al manifest, sin ruta `/manifest.webmanifest` y sin «Instalar app».
+   * `name`/`shortName` caen a `site.name`; `themeColor` a `site.favicon.colors.theme`;
+   * `backgroundColor` a #ffffff. Colores `#rrggbb`; uno inválido se descarta con aviso.
+   */
+  readonly pwa?: {
+    readonly enabled?: boolean;
+    readonly name?: string;
+    readonly shortName?: string;
+    readonly themeColor?: string;
+    readonly backgroundColor?: string;
+  };
+  /**
    * Medición render-vs-JS (src/lib/render-ratio.ts). `renderRatio: false` =
    * apagado, y entonces ni se emiten los pings ni existe la ruta /mx/*.gif.
    */

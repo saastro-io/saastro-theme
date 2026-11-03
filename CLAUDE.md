@@ -198,6 +198,11 @@ Las cuatro reglas duras:
 El porqué de cada una, y la nota de merge para descendientes que ya tengan sus
 propias colecciones, en `knowledge/src.md`.
 
+## Web manifest: opt-in
+
+El theme no emite manifest ni «Instalar app» salvo que el site ponga `pwa.enabled: true` en
+`settings.yaml` (por defecto apagado). Detalle, campos y portero: `docs/pwa.md`.
+
 ## Comandos y deploy
 
 - pnpm. `pnpm dev` (4930) · `pnpm build` · `pnpm preview` · `pnpm studio:check`.

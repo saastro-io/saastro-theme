@@ -19,6 +19,7 @@ import { locales, defaultLocale } from '../i18n/config';
 import { getHreflangEntries, stripLocalePrefix } from '../i18n/utils';
 import { getSettings } from '../lib/settings';
 import { resolveSiteName } from '../lib/brand';
+import { resolvePwa, PWA_MANIFEST_PATH } from '../lib/pwa';
 import { resolveTracking, describeRejected, type LandingTracking } from '../lib/tracking';
 
 const settings = getSettings();
@@ -77,6 +78,10 @@ const tracking = resolveTracking(settings, {
 });
 for (const r of tracking.rejected) console.warn(describeRejected(r));
 const themeColor = settings.site.favicon.colors.theme ?? '#00a897';
+// Web manifest OPT-IN: sin `pwa.enabled` no hay enlace al manifest (Chrome/Edge ofrecerían
+// «Instalar app»). Misma resolución que la ruta /manifest.webmanifest (src/lib/pwa.ts), que es
+// la que avisa de los valores inválidos (una vez por build, no una por página).
+const pwa = resolvePwa(settings);
 // `noindex` = vista previa de un borrador: su URL lleva un token (`?preview=`),
 // y GA, GTM, el beacon de CF y el de Gen mandan la URL completa. Ninguno carga
 // (resolveTracking con `noindex` ya lo apaga todo, Cloudflare incluido).
@@ -136,7 +141,7 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
 
     <link rel="preconnect" href="/" crossorigin />
     <meta name="theme-color" content={themeColor} />
-    <link rel="manifest" href="/manifest.json" />
+    {pwa && <link rel="manifest" href={PWA_MANIFEST_PATH} />}
 
     <Favicons />
     <SiteJsonLd
