@@ -14,6 +14,7 @@
     "studio:check": "node scripts/cabeceras-check.mjs && node scripts/studio-check.mjs && PUBLIC_SAASTRO_I18N_READS=1 SAASTRO_CHECK_ROUTES=1 astro build && node scripts/studio-contract-check.mjs && node scripts/pwa-check.mjs && node scripts/pwa-build-check.mjs && node scripts/cabeceras-worker-check.mjs && node scripts/critical-css-check.mjs",
     "studio:contract:update": "PUBLIC_SAASTRO_I18N_READS=1 SAASTRO_CHECK_ROUTES=1 astro build && node scripts/studio-contract-check.mjs --update",
     "critical-css:check": "node scripts/critical-css-check.mjs",
+    "critical-css:prod": "node scripts/critical-css-check.mjs --url",
     "ratio": "node scripts/ratio.mjs",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",
     "preview": "astro preview",

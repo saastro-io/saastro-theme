@@ -53,6 +53,41 @@ const verde = (s) => `\x1b[32m${s}\x1b[0m`
 const dim = (s) => `\x1b[2m${s}\x1b[0m`
 const nombre = 'critical-css-check'
 
+// ── modo `--url <despliegue>` (o CRITICAL_CSS_CHECK_URL) ──────────────────────
+// Mide un despliegue REAL, sin build ni navegador: ver scripts/lib/critical-css-url.mjs
+// y docs/css-critico.md («Medir un despliegue real»). No corre en la CI de PR.
+const iUrl = process.argv.indexOf('--url')
+const URL_DESPLIEGUE = (iUrl >= 0 ? process.argv[iUrl + 1] : undefined) ?? process.env.CRITICAL_CSS_CHECK_URL
+if (iUrl >= 0 && !URL_DESPLIEGUE) {
+  console.error(rojo(`✖ ${nombre} --url — falta la URL (p. ej. --url https://theme.saastro.io).`))
+  process.exit(2)
+}
+if (URL_DESPLIEGUE) {
+  const { medirDespliegue } = await import('./lib/critical-css-url.mjs')
+  let res
+  try {
+    res = await medirDespliegue(URL_DESPLIEGUE)
+  } catch (e) {
+    console.error(rojo(`✖ ${nombre} --url — no pude medir ${URL_DESPLIEGUE}: ${e?.message ?? e}`))
+    process.exit(2)
+  }
+  const ancho = Math.max(...res.filas.map((f) => f.ruta.length))
+  for (const f of res.filas) {
+    const marca = f.resultado === 'ok' ? verde('ok    ') : f.resultado === 'FALLA' ? rojo('FALLA ') : dim('omitida')
+    console.log(`${marca} ${f.estado} ${f.ruta.padEnd(ancho)}  ${dim(f.detalle)}`)
+  }
+  if (res.medidas === 0) {
+    console.error(rojo(`✖ ${nombre} --url — ninguna ruta de ${URL_DESPLIEGUE} se pudo medir: el fallo es del control o de la URL.`))
+    process.exit(2)
+  }
+  if (res.fallos) {
+    console.error(rojo(`✖ ${nombre} --url — ${res.fallos} de ${res.medidas} rutas medidas sin CSS crítico en ${URL_DESPLIEGUE}.`))
+    process.exit(1)
+  }
+  console.log(verde(`✔ ${nombre} --url — ${res.medidas} rutas medidas en ${URL_DESPLIEGUE}, todas con el CSS crítico inline.`))
+  process.exit(0)
+}
+
 if (!fs.existsSync(CONFIG) || !fs.existsSync(DIST)) {
   console.error(rojo(`✖ ${nombre} — no existe ${CONFIG}. Corre antes \`astro build\`.`))
   process.exit(2)
