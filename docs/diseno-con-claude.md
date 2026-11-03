@@ -44,7 +44,7 @@ La CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) tiene dos jobs
 - **`studio-check`**: `pnpm install --frozen-lockfile` → `pnpm run typecheck` → `pnpm run test` → `pnpm studio:check`.
 - **`ui-check`**: `node scripts/ui-check.mjs --diff` (drift de las primitivas contra el registry; puede ponerse rojo sin que tu cambio lo toque).
 
-`pnpm studio:check` no es un único script: son **siete comandos encadenados** (`package.json`, línea 14). Si uno falla, los siguientes no corren.
+`pnpm studio:check` no es un único script: son **ocho comandos encadenados** (`package.json`, línea 14). Si uno falla, los siguientes no corren.
 
 | # | Comando | Qué mira | Docs |
 |---|---|---|---|
@@ -55,6 +55,7 @@ La CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) tiene dos jobs
 | 5 | `node scripts/pwa-check.mjs` | `dist/client` coherente con `pwa.enabled` | [pwa.md](pwa.md) |
 | 6 | `node scripts/pwa-build-check.mjs` | un build con la PWA encendida (en memoria) tiene link y manifest | [pwa.md](pwa.md) |
 | 7 | `node scripts/cabeceras-worker-check.mjs` | que el Worker construido sirva las 6 cabeceras | B.3 |
+| 8 | `node scripts/critical-css-check.mjs` | que cada página (también las rutas SSR) pinte igual con solo su CSS crítico que con el CSS completo, en claro y oscuro, y CLS = 0 | B.3, [css-critico.md](css-critico.md) |
 
 Medido el 3-nov-2026 sobre `0c66c88` con `SITE_URL=https://example.test pnpm studio:check`: salida 0, con avisos (`tracking-legal` inverso para GA4 y Clarity, `i18n-consumo` para `lp` y `whatsapp.*`, ver B.2). En esa pasada el contrato corrió en **modo crawl**: levanta `wrangler dev` sobre `dist/server/wrangler.json` y pide cada ruta por HTTP. No está colgado, está arrancando un servidor.
 
@@ -115,6 +116,7 @@ Fichero: [`scripts/studio-contract-check.mjs`](../scripts/studio-contract-check.
 ### B.3 Otros guardianes del `studio:check`
 
 - **Cabeceras** (`cabeceras-check`, `cabeceras-worker-check`): hay dos listas, `public/_headers` (lo que sirven los assets) y `src/lib/security-headers.ts` (lo que sirve el Worker). Se mantienen a la par. Medido: `✓ cabeceras-check — las dos listas cuadran (6 cabeceras, nombre y valor)` y `✓ cabeceras-worker-check — el Worker sirve las 6 cabeceras`. Si un diseño necesita otro origen (fuentes, mapas, vídeo), se toca en las dos.
+- **CSS crítico** (`critical-css-check`): compara el estilo computado de cada página con solo el CSS crítico inline contra el CSS completo (claro y oscuro, móvil y escritorio), y exige CLS = 0 cuando el CSS completo llega tarde. Si tu diseño pone un estado en `<html>` antes de pintar (una clase, un `data-*`) y el CSS lo usa de raíz, falla hasta que lo añadas a `ALLOW_RULES`. Mecánica, depuración y qué hereda un site: [css-critico.md](css-critico.md).
 - **PWA** (`pwa-check`, `pwa-build-check`): medido `pwa-check: pwa.enabled=false, 17 HTML, 0 fichero(s) de manifest` y `pwa-build-check: build con pwa.enabled=true — 17/17 HTML con link`. Detalle: [pwa.md](pwa.md).
 
 ### B.4 Tests de `pnpm test` que también pueden bloquear un diseño
@@ -172,7 +174,7 @@ Fichero: [`scripts/studio-contract-check.mjs`](../scripts/studio-contract-check.
 
 **`.ds-home` y el DS de la portada**: `src/styles/home-ds.css` reescribe los tokens del theme en toda la página con el selector `:root:has(.ds-home)` (y `:root.dark:has(.ds-home)`), y trae Hanken Grotesk y Space Mono autoalojadas. Lo importan la portada y **los nueve `Block.astro`**, y `claseBloque()` añade siempre la clase `ds-home`. Consecuencia (código): **una página con cualquier bloque de `src/blocks/` toma los tokens del DS, no los de `global.css`**. Para un site con otra marca, o se reescribe ese fichero, o se evita `ds-home` en sus bloques; no lo descubras a media maqueta.
 
-**Tamaño y pintado** (medido el 3-nov-2026 en el build de `0c66c88`): `astro.config.mjs` no fija `inlineStylesheets`; el HTML de la portada enlaza **dos hojas externas** (`button.*.css`, 129 313 bytes, 19 994 gzip; `index.*.css`, 25 149 bytes, 6 445 gzip) y lleva dos `<style>` de 58 y 59 bytes. El criterio del encargo es: **un CSS grande es aceptable; lo que no se acepta es dejar `<html>` en un estado previo al pintado que un script o una condición tardía tengan que cambiar**. El theme ya tiene **un** caso, deliberado: `ApplyColorMode.astro` es un `<script is:inline>` síncrono en `<head>` que pone o quita `.dark` en `<html>` antes de que haya `<body>` (README: «no FOUC»). No añadas más: nada de clases tipo `no-js`/`loading` en `<html>`, ni `opacity:0`/`visibility:hidden` en `html` o `body` a la espera de JS o de fuentes, ni reglas `:root:has(...)` nuevas que dependan de lo que aparezca en el body (la de `.ds-home` ya existe y obliga a recalcular el estilo de toda la página). **SIN VERIFICAR**: el efecto real en LCP/CLS de estas hojas y del script (no se ha corrido Lighthouse ni un trace); que el script llegue siempre antes del primer pintado se afirma por el código y el README, no por una medición en navegador.
+**Tamaño y pintado**. *Actualización:* desde el CSS crítico ([css-critico.md](css-critico.md)) cada página lleva inline solo las reglas que usa y las hojas completas van al final del `<body>`, sin JS ni `onload`; los números de abajo son de `0c66c88`, **antes** de ese cambio. Medido el 3-nov-2026 en el build de `0c66c88`: `astro.config.mjs` no fija `inlineStylesheets`; el HTML de la portada enlaza **dos hojas externas** (`button.*.css`, 129 313 bytes, 19 994 gzip; `index.*.css`, 25 149 bytes, 6 445 gzip) y lleva dos `<style>` de 58 y 59 bytes. El criterio del encargo es: **un CSS grande es aceptable; lo que no se acepta es dejar `<html>` en un estado previo al pintado que un script o una condición tardía tengan que cambiar**. El theme ya tiene **un** caso, deliberado: `ApplyColorMode.astro` es un `<script is:inline>` síncrono en `<head>` que pone o quita `.dark` en `<html>` antes de que haya `<body>` (README: «no FOUC»). No añadas más: nada de clases tipo `no-js`/`loading` en `<html>`, ni `opacity:0`/`visibility:hidden` en `html` o `body` a la espera de JS o de fuentes, ni reglas `:root:has(...)` nuevas que dependan de lo que aparezca en el body (la de `.ds-home` ya existe y obliga a recalcular el estilo de toda la página). **SIN VERIFICAR**: el efecto real en LCP/CLS de estas hojas y del script (no se ha corrido Lighthouse ni un trace); que el script llegue siempre antes del primer pintado se afirma por el código y el README, no por una medición en navegador.
 
 **Con `ClientRouter`** (`BaseLayout.astro` lo monta), un script inline corre una vez por carga completa: lo que deba repetirse en cada navegación se engancha a `astro:page-load` (así lo hacen `GenTracking.astro` y `RenderRatio.astro`).
 
@@ -201,7 +203,7 @@ Ordenada de barata a cara. Cada línea es un comando o una comprobación, no una
 1. `pnpm install --frozen-lockfile`.
 2. `pnpm typecheck` (la CI lo corre antes que los tests).
 3. `pnpm test` (incluye `blocks.test.ts`, B.4).
-4. `SITE_URL=https://<dominio real> pnpm studio:check`: los siete comandos de B.1, salida 0. Lee los **avisos**, no solo la salida.
+4. `SITE_URL=https://<dominio real> pnpm studio:check`: los ocho comandos de B.1, salida 0. Lee los **avisos**, no solo la salida.
 5. `pnpm ui:check`: si sale rojo y no tocaste `src/components/ui/*`, es drift del registry ajeno a tu cambio; repórtalo, no lo tapes.
 6. Si cambiaste secciones, páginas, idiomas o un fichero con hash a propósito: `pnpm studio:contract:update`, **revisa el diff** (solo debe cambiar lo que cambiaste) y commitea `studio-contract.json`. Vuelve a correr el paso 4.
 7. Cada texto nuevo está en **todos** los idiomas declarados en `src/i18n/config.ts`, y cada clave la lee algún componente.
