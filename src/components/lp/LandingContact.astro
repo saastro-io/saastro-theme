@@ -2,7 +2,7 @@
 import { lpContact, type LpContactSettings } from '@/lib/lp-contact';
 import { pickByLocale } from '@/lib/lp-locale';
 
-// Contacto alternativo VISIBLE (no en <noscript>: ver src/lib/lp-contact.ts). Sin
+// Contacto alternativo VISIBLE (no dentro de un noscript: ver src/lib/lp-contact.ts). Sin
 // `contact` en settings.yaml (o con valores inválidos) no pinta nada. El texto va
 // por idioma aquí y no en i18n a propósito: el JSON de traducciones es `merge=ours`
 // en los sites descendientes y una clave nueva que lea la infra se perdería allí.
