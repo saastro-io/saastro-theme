@@ -36,8 +36,10 @@ const cubierto = (/** @type {string} */ sel) =>
 
 /** ¿Este selector usa la sonda (`.clase` o `[data-x]`) como parte propia? */
 function usa(/** @type {string} */ sel, /** @type {string} */ sonda) {
-  const esc = sonda.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(esc + "(?![\\w-])").test(sel);
+  for (let i = sel.indexOf(sonda); i >= 0; i = sel.indexOf(sonda, i + 1)) {
+    if (!/[\w-]/.test(sel[i + sonda.length] ?? "")) return true;
+  }
+  return false;
 }
 
 /**

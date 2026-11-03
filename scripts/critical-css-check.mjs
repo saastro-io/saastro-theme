@@ -92,6 +92,22 @@ for (const f of walk(DIST).sort()) {
   paginas.push({ ruta, que: 'prerenderizada', estado: 200 })
 }
 paginas.push({ ruta: '/__critical-css-check-404', que: 'SSR 404', estado: 404 })
+// Páginas .astro SSR sin parámetros propios (`/lp/gracias`): se descubren en el
+// código, no se listan. `[...locale]/` es el prefijo de idioma y se omite.
+function ssrEstaticas(dir) {
+  const out = []
+  for (const e of fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []) {
+    const f = path.join(dir, e.name)
+    if (e.isDirectory()) out.push(...ssrEstaticas(f))
+    else if (e.name.endsWith('.astro') && /export const prerender\s*=\s*false/.test(fs.readFileSync(f, 'utf8'))) out.push(f)
+  }
+  return out
+}
+for (const f of ssrEstaticas('src/pages')) {
+  const rel = path.relative('src/pages', f).split(path.sep).join('/').replace(/\.astro$/, '').replace(/^\[\.\.\.locale\]\//, '')
+  if (/\[|^404$|^500$/.test(rel)) continue // con parámetros (lp/[slug]) o ya cubiertas
+  paginas.push({ ruta: '/' + rel, que: `SSR ${rel}`, estado: 200 })
+}
 const LP_DIR = 'src/content/lp'
 if (fs.existsSync(LP_DIR)) {
   for (const f of fs.readdirSync(LP_DIR).filter((n) => /\.mdx?$/.test(n)).sort()) {
@@ -149,7 +165,15 @@ try {
     paginas.push({ ruta: `/${locale}/p/${SLUG_P}`, que: `SSR páginas como datos (${bloques.length} bloques)`, estado: 200 })
   }
 } catch {
-  // sin la ruta de páginas: no se mide
+  // se decide abajo
+}
+// Una ruta que desaparece de la lista no puede dar verde: si el site declara
+// «páginas como datos» (`pages:` en astro.config.mjs) y no se pudo medir su ruta, es fallo del control.
+if (/\bpages\s*:\s*\{/.test(fs.readFileSync('astro.config.mjs', 'utf8')) && !paginas.some((p) => p.que.startsWith('SSR páginas como datos'))) {
+  console.error(rojo(`✖ ${nombre} — el site declara «pages» pero /__blocks.json no devolvió bloques: no se midió /<locale>/p/<slug>. El fallo es del control.`))
+  await worker.dispose()
+  hubFalso.close()
+  process.exit(2)
 }
 
 if (SOLO) paginas.splice(0, paginas.length, ...paginas.filter((p) => p.ruta.includes(SOLO)))
