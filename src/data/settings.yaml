@@ -46,6 +46,12 @@ seo:
   # Profiles / owned domains Google can cross-reference (one URL per line).
   sameAs: []
 
+contact:
+  # Contacto alternativo VISIBLE al pie de las landings /lp/** (para quien tiene el JS roto y
+  # no ve el formulario). Vacío = sin bloque. Teléfono con prefijo (+34…); un valor inválido se descarta.
+  phone: ""
+  email: ""
+
 analytics:
   # Empty = disabled. GA/GTM are consent-gated; set a REAL id to enable.
   # Recommended for Saastro sites: use Cloudflare Web Analytics below instead.
