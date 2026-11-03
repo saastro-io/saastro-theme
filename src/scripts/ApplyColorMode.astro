@@ -74,6 +74,17 @@
     window.applyTheme('light');
   }
 
-  // Icons and logos are handled automatically by Tailwind dark: classes
-  // No manual synchronization needed
+  /**
+   * ClientRouter (view transitions) reemplaza los atributos de <html> por los del
+   * documento nuevo, que llega del servidor SIN la clase `dark`: sin esto, cada
+   * navegación en oscuro vuelve a claro. Se copia la clase al documento entrante
+   * antes del swap. Este script va en <head> y Astro lo persiste, así que el
+   * listener se registra una sola vez.
+   */
+  document.addEventListener('astro:before-swap', function (event) {
+    event.newDocument.documentElement.classList.toggle(
+      'dark',
+      document.documentElement.classList.contains('dark')
+    );
+  });
 </script>
