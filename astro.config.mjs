@@ -6,6 +6,7 @@ import cloudflare from '@astrojs/cloudflare';
 import icon from 'astro-icon';
 import { defineConfig, envField } from 'astro/config';
 import saastroStudio from '@saastro/studio';
+import criticalCss from './src/integrations/critical-css.mjs';
 import { fileURLToPath } from 'node:url';
 import { sitemapIncludes } from './src/lib/sitemap-filter.ts';
 import { i18nConfig } from './src/i18n/config.ts';
@@ -128,6 +129,7 @@ export default defineConfig({
   integrations: [
     stripStudioMeta,
     checkRoutes,
+    criticalCss(),
     react(),
     // Standard Astro sitemap. The site is statically prerendered, so it
     // enumerates every page automatically; the i18n option emits hreflang
