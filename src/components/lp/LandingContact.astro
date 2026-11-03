@@ -1,0 +1,32 @@
+---
+import { lpContact, type LpContactSettings } from '@/lib/lp-contact';
+import { pickByLocale } from '@/lib/lp-locale';
+
+// Contacto alternativo VISIBLE (no en <noscript>: ver src/lib/lp-contact.ts). Sin
+// `contact` en settings.yaml (o con valores inválidos) no pinta nada. El texto va
+// por idioma aquí y no en i18n a propósito: el JSON de traducciones es `merge=ours`
+// en los sites descendientes y una clave nueva que lea la infra se perdería allí.
+export interface Props {
+  contact?: LpContactSettings;
+  locale: string;
+}
+const { contact, locale } = Astro.props;
+const c = lpContact(contact);
+const LEAD: Record<string, string> = {
+  es: '¿Prefieres escribirnos o llamarnos?',
+  en: 'Prefer to write or call us?',
+};
+const lead = pickByLocale(LEAD, locale);
+const link = 'font-semibold text-foreground underline underline-offset-2';
+---
+
+{c && (
+  <aside class="mx-auto max-w-6xl px-6 pb-10 text-sm text-muted-foreground lg:px-10" data-lp-contact>
+    <p>
+      {lead}{' '}
+      {c.phone && <a class={link} href={c.phone.href}>{c.phone.label}</a>}
+      {c.phone && c.email && ' · '}
+      {c.email && <a class={link} href={c.email.href}>{c.email.label}</a>}
+    </p>
+  </aside>
+)}

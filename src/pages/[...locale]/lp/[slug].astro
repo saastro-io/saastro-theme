@@ -4,6 +4,7 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 import LandingHeroForm from '../../../components/lp/LandingHeroForm.astro';
 import LandingLong from '../../../components/lp/LandingLong.astro';
 import RenderRatio from '../../../components/RenderRatio.astro';
+import LandingContact from '../../../components/lp/LandingContact.astro';
 import StickyCta from '../../../components/lp/StickyCta.astro';
 import { getSettings } from '../../../lib/settings';
 import { fetchHubFormSchema } from '../../../lib/hub-form-schema';
@@ -126,5 +127,6 @@ const seoDescription = landing.metaDescription ?? landing.subtitle;
   >
     {Content && <Content />}
   </Layout>
+  <LandingContact contact={getSettings().contact} locale={locale} />
   {minimo && <StickyCta label={ctaLabel} />}
 </SiteLayout>

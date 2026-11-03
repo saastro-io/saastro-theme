@@ -68,6 +68,14 @@ export interface SiteSettings {
     /** Token del beacon de Cloudflare Web Analytics (32 hex). Exento de consentimiento. */
     readonly cloudflareWebAnalytics?: string;
   };
+  /**
+   * Contacto alternativo visible en las landings `/lp/**` (LandingContact). Vacío =
+   * sin bloque. Un teléfono o email inválido se descarta (src/lib/lp-contact.ts).
+   */
+  readonly contact?: {
+    readonly phone?: string;
+    readonly email?: string;
+  };
   readonly forms: {
     readonly siteId: string;
     readonly contactFormSlug: string;
