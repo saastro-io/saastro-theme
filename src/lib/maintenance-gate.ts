@@ -5,7 +5,7 @@
  * de páginas prerenderizadas: con `assets.run_worker_first` el Worker ve primero
  * lo que antes servía Static Assets sin invocarlo. Un middleware de Astro no
  * puede hacer esto (el adaptador sirve el asset prerenderizado antes de montarlo;
- * medido en `docs/maintenance-cobertura.md`).
+ * medido con wrangler dev el 10-nov, ver CLAUDE.md («Página en construcción»)).
  *
  * `null` = pasa (el llamador delega en Astro/assets). Falla abierto.
  */
