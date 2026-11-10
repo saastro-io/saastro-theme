@@ -2,6 +2,18 @@ import { defineMiddleware, sequence } from 'astro:middleware';
 import { applySecurityHeaders } from './lib/security-headers';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
 import { I18N_READS_ENABLED, injectReads, trackReads } from './i18n/reads';
+import { getSettings } from './lib/settings';
+import {
+  PASE_COOKIE,
+  PASE_PARAM,
+  decideMaintenance,
+  esRutaExenta,
+  parseCookie,
+  paseCookie,
+  renderMaintenanceHtml,
+  resolveMaintenance,
+  retryAfterSeconds,
+} from './lib/maintenance';
 
 /**
  * Cabeceras de seguridad en TODA respuesta que genere el Worker — las landings
@@ -28,6 +40,58 @@ const securityHeaders = defineMiddleware(async (_context, next) => {
     applySecurityHeaders(mutable.headers);
     return mutable;
   }
+});
+
+/**
+ * «Página en construcción» gobernada por el Hub (src/lib/maintenance.ts). OPT-IN
+ * (`maintenance.enabled` en settings.yaml): apagado, `next()` sin tocar nada ni
+ * llamar al Hub. Para que corra también en las páginas prerenderizadas,
+ * `wrangler.jsonc` lleva `assets.run_worker_first`. Falla abierto.
+ */
+const maintenance = defineMiddleware(async (context, next) => {
+  const method = context.request.method;
+  if (method !== 'GET' && method !== 'HEAD') return next();
+  const settings = getSettings();
+  const cfg = resolveMaintenance(settings);
+  if (!cfg) return next();
+  const { pathname, searchParams } = context.url;
+  if (esRutaExenta(pathname)) return next();
+
+  let decision;
+  try {
+    decision = await decideMaintenance(cfg, {
+      queryPase: searchParams.get(PASE_PARAM),
+      cookiePase: parseCookie(context.request.headers.get('cookie'), PASE_COOKIE),
+    });
+  } catch {
+    return next(); // cualquier fallo inesperado: el site se sirve
+  }
+
+  if (decision.action === 'pass') return next();
+  if (decision.action === 'setpase') {
+    // Pase válido: cookie y a la misma URL SIN el token (que no quede en enlaces ni en logs de después).
+    const clean = new URL(context.url);
+    clean.searchParams.delete(PASE_PARAM);
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: clean.pathname + clean.search,
+        'Set-Cookie': paseCookie(decision.token!),
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+  const state = decision.state!;
+  const lang = getLocaleFromUrl(pathname);
+  return new Response(method === 'HEAD' ? null : renderMaintenanceHtml(state, settings.site?.name ?? '', lang), {
+    status: 503,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Retry-After': String(retryAfterSeconds(state.returnAt)),
+      'X-Robots-Tag': 'noindex, nofollow',
+      'Cache-Control': 'no-store',
+    },
+  });
 });
 
 /**
@@ -73,4 +137,4 @@ const site = defineMiddleware(async (context, next) => {
   });
 });
 
-export const onRequest = sequence(securityHeaders, site);
+export const onRequest = sequence(securityHeaders, maintenance, site);

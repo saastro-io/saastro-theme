@@ -6,7 +6,14 @@
 
   "assets": {
     "binding": "ASSETS",
-    "directory": "./dist"
+    "directory": "./dist",
+    // Sin esto una página prerenderizada la sirve la capa de assets SIN invocar
+    // al Worker, y el middleware de «página en construcción»
+    // (src/lib/maintenance.ts) no correría en casi ninguna ruta. Con ello el
+    // Worker ve las páginas y los assets inmutables (/_astro/, ficheros con
+    // extensión comunes) siguen yendo directos. El Worker pasa la petición a
+    // ASSETS él mismo. Con `maintenance.enabled: false` no llama al Hub.
+    "run_worker_first": ["/*", "!/_astro/*", "!/*.js", "!/*.css", "!/*.png", "!/*.jpg", "!/*.jpeg", "!/*.webp", "!/*.avif", "!/*.svg", "!/*.ico", "!/*.woff2", "!/*.woff"]
   },
 
   // «Páginas como datos» (`pages` en astro.config.mjs). Solo el origen del Hub,
