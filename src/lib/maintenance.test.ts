@@ -228,7 +228,9 @@ describe('piezas', () => {
 
 describe('cableado', () => {
   const leer = (r: string) => readFileSync(new URL(r, import.meta.url), 'utf8');
-  it('el middleware encadena maintenance entre securityHeaders y site', () => {
-    expect(leer('../middleware.ts')).toContain('sequence(securityHeaders, maintenance, site)');
+  it('la puerta vive en el Worker de entrada, no en el middleware (no se consulta dos veces)', () => {
+    expect(leer('../middleware.ts')).toContain('sequence(securityHeaders, site)');
+    expect(leer('../middleware.ts')).not.toContain('maintenance');
+    expect(leer('../worker.ts')).toContain('gateMaintenance');
   });
 });

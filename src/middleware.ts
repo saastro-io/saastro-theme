@@ -2,16 +2,6 @@ import { defineMiddleware, sequence } from 'astro:middleware';
 import { applySecurityHeaders } from './lib/security-headers';
 import { getLocaleFromUrl, getTranslations, localePath } from './i18n/utils';
 import { I18N_READS_ENABLED, injectReads, trackReads } from './i18n/reads';
-import { getSettings } from './lib/settings';
-import {
-  PASE_COOKIE,
-  PASE_PARAM,
-  decideMaintenance,
-  esRutaExenta,
-  parseCookie,
-  resolveMaintenance,
-  respondMaintenance,
-} from './lib/maintenance';
 
 /**
  * Cabeceras de seguridad en TODA respuesta que genere el Worker — las landings
@@ -38,40 +28,6 @@ const securityHeaders = defineMiddleware(async (_context, next) => {
     applySecurityHeaders(mutable.headers);
     return mutable;
   }
-});
-
-/**
- * «Página en construcción» gobernada por el Hub (src/lib/maintenance.ts). OPT-IN
- * (`maintenance.enabled` en settings.yaml): apagado, `next()` sin tocar nada ni
- * llamar al Hub. Falla abierto. LÍMITE: solo ve lo que pasa por el Worker (SSR,
- * `/lp/*`); las prerenderizadas las sirve Static Assets sin invocarlo.
- */
-const maintenance = defineMiddleware(async (context, next) => {
-  const method = context.request.method;
-  if (method !== 'GET' && method !== 'HEAD') return next();
-  const settings = getSettings();
-  const cfg = resolveMaintenance(settings);
-  if (!cfg) return next();
-  const { pathname, searchParams } = context.url;
-  if (esRutaExenta(pathname)) return next();
-
-  let decision;
-  try {
-    decision = await decideMaintenance(cfg, {
-      queryPase: searchParams.get(PASE_PARAM),
-      cookiePase: parseCookie(context.request.headers.get('cookie'), PASE_COOKIE),
-    });
-  } catch {
-    return next(); // cualquier fallo inesperado: el site se sirve
-  }
-
-  const res = respondMaintenance(decision, {
-    url: context.url,
-    method,
-    siteName: settings.site?.name ?? '',
-    lang: getLocaleFromUrl(pathname),
-  });
-  return res ?? next();
 });
 
 /**
@@ -117,4 +73,4 @@ const site = defineMiddleware(async (context, next) => {
   });
 });
 
-export const onRequest = sequence(securityHeaders, maintenance, site);
+export const onRequest = sequence(securityHeaders, site);

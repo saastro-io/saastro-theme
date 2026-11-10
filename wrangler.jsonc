@@ -1,12 +1,18 @@
 {
   "name": "saastro-theme",
-  "main": "@astrojs/cloudflare/entrypoints/server",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-04-15",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 
   "assets": {
     "binding": "ASSETS",
-    "directory": "./dist"
+    "directory": "./dist",
+    // El Worker (src/worker.ts) ve primero todo salvo /_astro/ (el grueso del peso):
+    // es lo que deja a la «página en construcción» cubrir las páginas prerenderizadas.
+    // NO excluir «!/*.*»: medido, rutas con punto del Worker como /__blocks.json
+    // (critical-css-check) dejan de llegar a él. Lo estático con punto lo sirve
+    // handle() desde ASSETS; la puerta lo deja pasar sin tocar el Hub.
+    "run_worker_first": ["/*", "!/_astro/*"]
   },
 
   // «Páginas como datos» (`pages` en astro.config.mjs). Solo el origen del Hub,
