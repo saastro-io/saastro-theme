@@ -230,6 +230,15 @@ que ni le llegan las cabeceras que ponga el middleware ni corre en ella nada de
 lo que el middleware haga —una redirección apex → www incluida—. `public/_headers`
 viste solo lo que sirven los assets, y como esas cabeceras SÍ aparecen en la
 página, invita a concluir que el middleware corrió allí. No corrió.
+
+**Límite de la «página en construcción»** (`src/lib/maintenance.ts`): es un
+middleware, así que solo cubre lo que pasa por el Worker (SSR, `/lp/*`). Las
+prerenderizadas (home, about, blog, legal) las sirve Static Assets sin invocarlo y
+se ven aunque el Hub diga que el site está en obras. Se probó añadir
+`assets.run_worker_first`, pero el adaptador (`@astrojs/cloudflare` 14.4) vuelve a
+servir el asset sin pasar por el middleware cuando la ruta es prerenderizada
+(lectura de `handler.js`, SIN medir con `wrangler dev`), así que se retiró.
+
 ## Dónde buscar
 
 | carpeta | sección | ficha |

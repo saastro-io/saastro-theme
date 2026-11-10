@@ -28,6 +28,12 @@ pwa:
   themeColor: ""
   backgroundColor: ""
 
+# «Página en construcción» OPT-IN (src/lib/maintenance.ts). Encendido, el site pregunta al Hub si
+# está en obras y, si lo está, sirve un 503 con la página (el aviso, el logo y el color los
+# gobierna el Hub). Apagado = ni una petición al Hub. Si el Hub no contesta, el site se sirve.
+maintenance:
+  enabled: false
+
 metadata:
   # Fallback <meta description> when a page doesn't pass one. Per-page/per-locale
   # titles + descriptions come from the i18n `meta` namespace, not here.

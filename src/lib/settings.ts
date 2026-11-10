@@ -104,6 +104,15 @@ export interface SiteSettings {
     readonly backgroundColor?: string;
   };
   /**
+   * «Página en construcción» OPT-IN (src/lib/maintenance.ts). Ausente o
+   * `enabled: false` = el site no pregunta nunca al Hub. Encendido, consulta
+   * `/api/_public/maintenance/<forms.siteId>` y, si el Hub dice que está en
+   * obras, sirve un 503 (salvo `?pase=` válido). Falla abierto.
+   */
+  readonly maintenance?: {
+    readonly enabled?: boolean;
+  };
+  /**
    * Medición render-vs-JS (src/lib/render-ratio.ts). `renderRatio: false` =
    * apagado, y entonces ni se emiten los pings ni existe la ruta /mx/*.gif.
    */
