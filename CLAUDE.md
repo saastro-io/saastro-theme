@@ -231,13 +231,18 @@ lo que el middleware haga —una redirección apex → www incluida—. `public/
 viste solo lo que sirven los assets, y como esas cabeceras SÍ aparecen en la
 página, invita a concluir que el middleware corrió allí. No corrió.
 
-**Límite de la «página en construcción»** (`src/lib/maintenance.ts`): es un
-middleware, así que solo cubre lo que pasa por el Worker (SSR, `/lp/*`). Las
-prerenderizadas (home, about, blog, legal) las sirve Static Assets sin invocarlo y
-se ven aunque el Hub diga que el site está en obras. Se probó añadir
-`assets.run_worker_first`, pero el adaptador (`@astrojs/cloudflare` 14.4) vuelve a
-servir el asset sin pasar por el middleware cuando la ruta es prerenderizada
-(lectura de `handler.js`, SIN medir con `wrangler dev`), así que se retiró.
+**«Página en construcción» (`src/lib/maintenance.ts`) cubre TODO el site**, también
+lo prerenderizado, y por eso hay un Worker de entrada: `wrangler.jsonc` apunta
+`main` a `src/worker.ts`, que llama a `gateMaintenance`
+(`src/lib/maintenance-gate.ts`) y delega en `handle()` de
+`@astrojs/cloudflare/handler`; `assets.run_worker_first`
+(`["/*", "!/_astro/*"]`) hace que el Worker vea las páginas antes que
+Static Assets. Medido con `wrangler dev` (10-nov): `run_worker_first` SOLO no
+basta —`handle()` sirve el asset prerenderizado antes de montar la app, así que el
+middleware de Astro no corre—, por eso la puerta vive en el Worker y no en el
+middleware. Apagado = ni una petición al Hub. Un descendiente que conserve su
+`main`/`assets` viejos no tiene la puerta: tras el merge, `wrangler.jsonc`
+(`main`, `run_worker_first`) ha de coincidir con el del theme.
 
 ## Dónde buscar
 
