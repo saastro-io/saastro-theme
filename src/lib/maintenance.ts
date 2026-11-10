@@ -23,6 +23,8 @@ export const PASE_PARAM = 'pase';
 export const CACHE_MS = 5_000;
 /** Si el Hub no contesta en esto, se sirve el site. */
 export const TIMEOUT_MS = 1_500;
+/** Formato y largo fijos del pase: lo demás ni se consulta al Hub (URL gigante = 414 = bypass). */
+const PASE_FORMAT = /^[A-Za-z0-9._~-]{8,200}$/;
 const COOKIE_MAX_AGE = 12 * 60 * 60;
 const DEFAULT_RETRY_AFTER = 3600;
 const MAX_RETRY_AFTER = 7 * 24 * 3600;
@@ -219,18 +221,48 @@ export async function decideMaintenance(
   input: { queryPase: string | null; cookiePase: string | null },
   fetchImpl?: FetchLike,
 ): Promise<MaintenanceDecision> {
+  // El Hub dice si está en obras (cacheado). Sin eso, falla abierto.
   const base = await fetchMaintenance(cfg, { fetchImpl });
   if (!base || !base.enabled) return { action: 'pass' };
   const token = input.queryPase || input.cookiePase;
-  if (token) {
+  if (token && PASE_FORMAT.test(token)) {
     const checked = await fetchMaintenance(cfg, { pase: token, fetchImpl });
-    // Hub caído al validar un pase: falla abierto también.
-    if (!checked) return { action: 'pass' };
-    if (checked.pase === true) {
+    if (checked?.pase === true) {
       return input.queryPase ? { action: 'setpase', token: input.queryPase } : { action: 'pass' };
     }
-    if (!checked.enabled) return { action: 'pass' };
-    return { action: 'block', state: checked };
+    // Ya sabemos que está en obras: un pase que no se puede validar (Hub caído, 4xx,
+    // basura) NO abre la puerta. Falla abierto vale para saber el ESTADO, no el pase.
+    if (checked && !checked.enabled) return { action: 'pass' };
+    return { action: 'block', state: checked && checked.enabled ? checked : base };
   }
   return { action: 'block', state: base };
+}
+
+/** La Response de una decisión; `null` = pass (el llamador sigue con `next()`). */
+export function respondMaintenance(
+  decision: MaintenanceDecision,
+  ctx: { url: URL; method: string; siteName: string; lang: string },
+): Response | null {
+  if (decision.action === 'pass') return null;
+  if (decision.action === 'setpase') {
+    // Pase válido: cookie y a la misma URL SIN el token. El path se normaliza para que
+    // nunca empiece por `//` (redirección protocolo-relativa a otro host).
+    const clean = new URL(ctx.url);
+    clean.searchParams.delete(PASE_PARAM);
+    const path = (clean.pathname.replace(/^\/{2,}/, '/') || '/') + clean.search;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: path, 'Set-Cookie': paseCookie(decision.token!), 'Cache-Control': 'no-store' },
+    });
+  }
+  const state = decision.state!;
+  return new Response(ctx.method === 'HEAD' ? null : renderMaintenanceHtml(state, ctx.siteName, ctx.lang), {
+    status: 503,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Retry-After': String(retryAfterSeconds(state.returnAt)),
+      'X-Robots-Tag': 'noindex, nofollow',
+      'Cache-Control': 'no-store',
+    },
+  });
 }

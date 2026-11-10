@@ -9,10 +9,8 @@ import {
   decideMaintenance,
   esRutaExenta,
   parseCookie,
-  paseCookie,
-  renderMaintenanceHtml,
   resolveMaintenance,
-  retryAfterSeconds,
+  respondMaintenance,
 } from './lib/maintenance';
 
 /**
@@ -45,8 +43,8 @@ const securityHeaders = defineMiddleware(async (_context, next) => {
 /**
  * «Página en construcción» gobernada por el Hub (src/lib/maintenance.ts). OPT-IN
  * (`maintenance.enabled` en settings.yaml): apagado, `next()` sin tocar nada ni
- * llamar al Hub. Para que corra también en las páginas prerenderizadas,
- * `wrangler.jsonc` lleva `assets.run_worker_first`. Falla abierto.
+ * llamar al Hub. Falla abierto. LÍMITE: solo ve lo que pasa por el Worker (SSR,
+ * `/lp/*`); las prerenderizadas las sirve Static Assets sin invocarlo.
  */
 const maintenance = defineMiddleware(async (context, next) => {
   const method = context.request.method;
@@ -67,31 +65,13 @@ const maintenance = defineMiddleware(async (context, next) => {
     return next(); // cualquier fallo inesperado: el site se sirve
   }
 
-  if (decision.action === 'pass') return next();
-  if (decision.action === 'setpase') {
-    // Pase válido: cookie y a la misma URL SIN el token (que no quede en enlaces ni en logs de después).
-    const clean = new URL(context.url);
-    clean.searchParams.delete(PASE_PARAM);
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: clean.pathname + clean.search,
-        'Set-Cookie': paseCookie(decision.token!),
-        'Cache-Control': 'no-store',
-      },
-    });
-  }
-  const state = decision.state!;
-  const lang = getLocaleFromUrl(pathname);
-  return new Response(method === 'HEAD' ? null : renderMaintenanceHtml(state, settings.site?.name ?? '', lang), {
-    status: 503,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Retry-After': String(retryAfterSeconds(state.returnAt)),
-      'X-Robots-Tag': 'noindex, nofollow',
-      'Cache-Control': 'no-store',
-    },
+  const res = respondMaintenance(decision, {
+    url: context.url,
+    method,
+    siteName: settings.site?.name ?? '',
+    lang: getLocaleFromUrl(pathname),
   });
+  return res ?? next();
 });
 
 /**

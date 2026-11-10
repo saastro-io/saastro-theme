@@ -14,6 +14,7 @@ import {
   paseCookie,
   parseMaintenance,
   renderMaintenanceHtml,
+  respondMaintenance,
   resolveMaintenance,
   retryAfterSeconds,
 } from './maintenance';
@@ -52,14 +53,14 @@ describe('decideMaintenance', () => {
     expect(d.state?.title).toBe('Vuelvo');
   });
   it('?pase válido → setpase con el token', async () => {
-    expect(await decideMaintenance(cfg, { queryPase: 'tok', cookiePase: null }, conPase(true))).toEqual({ action: 'setpase', token: 'tok' });
+    expect(await decideMaintenance(cfg, { queryPase: 'tokentoken1', cookiePase: null }, conPase(true))).toEqual({ action: 'setpase', token: 'tokentoken1' });
   });
   it('cookie válida → pass (sin re-poner cookie)', async () => {
-    expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: 'tok' }, conPase(true))).action).toBe('pass');
+    expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: 'tokentoken1' }, conPase(true))).action).toBe('pass');
   });
   it('pase inválido o revocado → block', async () => {
-    expect((await decideMaintenance(cfg, { queryPase: 'mal', cookiePase: null }, conPase(false))).action).toBe('block');
-    expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: 'mal' }, conPase(false))).action).toBe('block');
+    expect((await decideMaintenance(cfg, { queryPase: 'malmalmal1', cookiePase: null }, conPase(false))).action).toBe('block');
+    expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: 'malmalmal1' }, conPase(false))).action).toBe('block');
   });
   it.each([
     ['red caída', async () => { throw new Error('boom'); }],
@@ -74,13 +75,53 @@ describe('decideMaintenance', () => {
       new Promise<Response>((_r, rej) => init.signal.addEventListener('abort', () => rej(new Error('abort'))));
     expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: null }, cuelga as never)).action).toBe('pass');
   }, 10_000);
-  it('Hub cae al validar el pase → pass', async () => {
+  it('Hub cae al validar el pase (estado ya conocido) → block, no pass', async () => {
     let n = 0;
     const f = async () => {
       if (n++ === 0) return { ok: true, json: async () => ON } as Response;
       throw new Error('x');
     };
-    expect((await decideMaintenance(cfg, { queryPase: 't', cookiePase: null }, f as never)).action).toBe('pass');
+    expect((await decideMaintenance(cfg, { queryPase: 'tokentoken1', cookiePase: null }, f as never)).action).toBe('block');
+  });
+  it('pase basura o gigante → block sin consultar al Hub por él', async () => {
+    let urls: string[] = [];
+    const f = async (u: string) => {
+      urls.push(u);
+      return { ok: true, json: async () => ON } as Response;
+    };
+    expect((await decideMaintenance(cfg, { queryPase: null, cookiePase: 'x'.repeat(17000) }, f as never)).action).toBe('block');
+    expect((await decideMaintenance(cfg, { queryPase: '<mal>', cookiePase: null }, f as never)).action).toBe('block');
+    expect(urls.every((u) => !u.includes('pase='))).toBe(true);
+  });
+});
+
+describe('respondMaintenance', () => {
+  const ctx = (o: object = {}) => ({ url: new URL('https://x.test/es/?a=1&pase=tok'), method: 'GET', siteName: 'S', lang: 'es', ...o });
+  const st = parseMaintenance(ON)! as never;
+  it('pass → null (sin Response, sigue el site)', () => {
+    expect(respondMaintenance({ action: 'pass' }, ctx())).toBeNull();
+  });
+  it('block → 503 con Retry-After, noindex y cuerpo', async () => {
+    const r = respondMaintenance({ action: 'block', state: st }, ctx())!;
+    expect(r.status).toBe(503);
+    expect(r.headers.get('Retry-After')).toBe('3600');
+    expect(r.headers.get('X-Robots-Tag')).toContain('noindex');
+    expect(await r.text()).toContain('Vuelvo');
+  });
+  it('HEAD → 503 sin cuerpo', async () => {
+    const r = respondMaintenance({ action: 'block', state: st }, ctx({ method: 'HEAD' }))!;
+    expect(r.status).toBe(503);
+    expect(await r.text()).toBe('');
+  });
+  it('setpase → 302 con cookie, a la misma URL sin el token', () => {
+    const r = respondMaintenance({ action: 'setpase', token: 'tok' }, ctx())!;
+    expect(r.status).toBe(302);
+    expect(r.headers.get('Location')).toBe('/es/?a=1');
+    expect(r.headers.get('Set-Cookie')).toMatch(/saastro_pase=tok.*HttpOnly.*Secure.*SameSite=Lax/);
+  });
+  it('setpase nunca redirige a otro host (//evil)', () => {
+    const r = respondMaintenance({ action: 'setpase', token: 't' }, ctx({ url: new URL('https://x.test//evil.com/?pase=t') }))!;
+    expect(r.headers.get('Location')).toBe('/evil.com/');
   });
 });
 
@@ -189,8 +230,5 @@ describe('cableado', () => {
   const leer = (r: string) => readFileSync(new URL(r, import.meta.url), 'utf8');
   it('el middleware encadena maintenance entre securityHeaders y site', () => {
     expect(leer('../middleware.ts')).toContain('sequence(securityHeaders, maintenance, site)');
-  });
-  it('wrangler.jsonc hace correr el Worker primero (si no, no corre en las prerenderizadas)', () => {
-    expect(leer('../../wrangler.jsonc')).toMatch(/"run_worker_first"\s*:\s*\["\/\*"/);
   });
 });
