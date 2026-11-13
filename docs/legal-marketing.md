@@ -41,6 +41,20 @@ Auditado en `src/components/Analytics.astro`, `src/lib/tracking.ts`,
 | **Sin JavaScript** | No hay `<noscript>` de ningún proveedor: sin JS el visitante no puede consentir y no se le mide. |
 | **Evento de conversión** | `window.saastroTrack('generate_lead', { event_id })` emite a los proveedores YA cargados (con consentimiento). El cableado al envío del formulario (UUID por envío) llega con el PR de conversión: hasta entonces nadie lo llama. |
 
+## El contrato vigila el TEXTO de cada ancla (invariante 13b, `legal-texto`)
+
+El ancla `data-legal` es un `<div>` vacío: lo que declara al visitante es el texto que le
+sigue hasta el siguiente encabezado. `studio-contract.json` guarda el sha256 de ese texto
+(`legalHashes`, por página) y `studio:check` avisa cuando cambia, cuando aparece un ancla sin
+registrar o cuando una registrada desaparece. Los espacios y saltos de línea no cuentan.
+
+- **Aviso por defecto, rojo con `STUDIO_LEGAL_STRICT=1`.** Un texto legal cambia legítimamente
+  (lo edita el cliente, lo aprueba JC): bloquear su despliegue sería peor que el problema.
+- **Aceptar un cambio** = revisar el texto y `pnpm studio:contract:update`; el diff de
+  `legalHashes` en el PR es la revisión.
+- Solo ve el texto bajo el ancla, no el resto de la política, y el hash no dice si el texto es
+  CORRECTO: dice que alguien debe haberlo mirado.
+
 ## Google Analytics 4 <div data-legal="tracking-ga4"></div>
 
 Categoría `analytics`. Carga `https://www.googletagmanager.com/gtag/js` y envía

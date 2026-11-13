@@ -75,6 +75,11 @@
  *  12. crawl            — toda ruta crawleable del manifiesto sigue sirviendo 200 + HTML (modo crawl)
  *  13. i18n-consumo     — toda hoja del JSON de traducciones la LEE alguna página (registro de
  *                         src/i18n/reads.ts, emitido con PUBLIC_SAASTRO_I18N_READS=1)
+ *  13b. legal-texto     — el TEXTO declarado bajo cada ancla data-legal (hasta el siguiente
+ *                         encabezado) sigue siendo el registrado en `legalHashes` del manifiesto.
+ *                         AVISO por defecto (un texto legal cambia legítimamente: lo edita el
+ *                         cliente); FALLA con STUDIO_LEGAL_STRICT=1. Acepta el cambio con
+ *                         `pnpm studio:contract:update` tras revisarlo.
  *  14. marca-header     — el <header> pinta la marca DEL SITE: meta.siteName y nav.contact del
  *                         locale, y los logos de src/assets/brand/ que existan
  *  15. cobertura        — se midió al menos UNA página de contenido (las de error no cuentan);
@@ -263,6 +268,27 @@ const TRACKING_CATALOG = JSON.parse(
 // desde este .mjs; tracking-legal.test.ts ejecuta ESTA copia).
 const trackingExento = (def) =>
   def.category === 'none' && typeof def.exemptReason === 'string' && def.exemptReason.trim() !== ''
+
+/** Invariante 13b (legal-texto). Para cada ancla `data-legal` de la página: sha256 del texto que
+ *  le sigue —los hermanos siguientes hasta el próximo encabezado h1-h6—, con los espacios
+ *  colapsados. El ancla es un <div> vacío: lo que DECLARA al visitante es ese texto, y el
+ *  checker 8c/8d/8e solo mira que el ancla exista. Un ancla repetida acumula su texto. */
+function legalHashesOf(root) {
+  const textos = {}
+  for (const el of root.querySelectorAll('[data-legal]')) {
+    const marker = el.getAttribute('data-legal')
+    let txt = textos[marker] ?? ''
+    for (let n = el.nextElementSibling; n && !/^h[1-6]$/i.test(n.tagName); n = n.nextElementSibling) {
+      txt += ' ' + n.text
+    }
+    textos[marker] = txt
+  }
+  const out = {}
+  for (const [marker, txt] of Object.entries(textos)) {
+    out[marker] = createHash('sha256').update(txt.replace(/\s+/g, ' ').trim()).digest('hex')
+  }
+  return out
+}
 
 /** Proveedores encendidos según settings.yaml Y según el frontmatter de CUALQUIER landing
  *  (src/content/lp/*.md, publicada o borrador: una landing puede publicarse sin tocar el
@@ -819,6 +845,10 @@ function scanPage(html) {
     root.querySelectorAll('[data-legal]').map((el) => el.getAttribute('data-legal')),
   )
 
+  // Hash del TEXTO que cada ancla declara (invariante 13b, legal-texto): el ancla es un
+  // <div> vacío; lo que declara es lo que sigue hasta el siguiente encabezado.
+  const legalHashes = legalHashesOf(root)
+
   // href de la política de cookies: viaja en las props de la isla (el banner
   // SSR-renderiza null, así que el DOM estático no lleva el <a>).
   let cookiePolicyHref = null
@@ -879,7 +909,7 @@ function scanPage(html) {
     }
   }
 
-  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers, i18nReads, header }
+  return { html, root, sections, fieldsBySection, imgMarkers, schemaScripts, hasFooter, hasManageCookies, cookiePolicyHref, hasGenBeacon, hasRenderRatioPixel, legalMarkers, legalHashes, i18nReads, header }
 }
 
 /**
@@ -1091,6 +1121,12 @@ async function main() {
         locales,
         pages: manifestPagesOut,
         css: { requires: CSS_REQUIRES },
+        legalHashes: Object.fromEntries(
+          Object.entries(pages)
+            .filter(([, p]) => Object.keys(p?.legalHashes ?? {}).length > 0)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, p]) => [key, p.legalHashes]),
+        ),
         formPrimitiveExports: currentFormPrimitiveExports(),
         // autoprotección: la lista incluye scripts/studio-contract-check.mjs — el
         // hash sale del fichero en disco, así que no hay circularidad con el manifiesto
@@ -1610,6 +1646,32 @@ async function main() {
         if (!(file in (manifest.architectureHashes ?? {}))) {
           fail('architecture', file, '—', 'fichero de arquitectura sin hash registrado en el manifiesto',
             'corre `pnpm studio:contract:update` para registrarlo')
+        }
+      }
+    }
+
+    // 13b — legal-texto: el texto bajo cada ancla data-legal no ha cambiado desde que se
+    // registró. Aviso por defecto: un texto legal cambia legítimamente (lo edita el cliente,
+    // lo aprueba JC) y bloquear su despliegue por eso sería peor que el problema. Con
+    // STUDIO_LEGAL_STRICT=1 falla (CI del theme, o un site que quiera la puerta cerrada).
+    {
+      const registrado = manifest.legalHashes ?? {}
+      const avisar = process.env.STUDIO_LEGAL_STRICT === '1' ? fail : warn
+      const arreglo = 'revisa que el texto sigue siendo correcto y registra el cambio con `pnpm studio:contract:update` (el diff del manifiesto es la revisión)'
+      for (const [key, page] of Object.entries(pages)) {
+        const actual = page?.legalHashes ?? {}
+        const previo = registrado[key] ?? {}
+        for (const [marker, hash] of Object.entries(actual)) {
+          if (!(marker in previo)) {
+            avisar('legal-texto', key, `data-legal="${marker}"`, 'ancla sin hash registrado: su texto nunca se ha revisado en el contrato', arreglo)
+          } else if (previo[marker] !== hash) {
+            avisar('legal-texto', key, `data-legal="${marker}"`, 'el texto declarado bajo esta ancla CAMBIÓ desde el último registro', arreglo)
+          }
+        }
+        for (const marker of Object.keys(previo)) {
+          if (!(marker in actual)) {
+            avisar('legal-texto', key, `data-legal="${marker}"`, 'ancla registrada que ya no está en la página', arreglo)
+          }
         }
       }
     }
