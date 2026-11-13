@@ -174,35 +174,42 @@ describe('8e: lista de ids por proveedor', () => {
   })
 })
 
-describe('8e: proveedor exento de consentimiento (Cloudflare Web Analytics)', () => {
+describe('8e: Cloudflare Web Analytics pide consentimiento y se NOMBRA en la política', () => {
+  // Hasta el 13-nov-2026 figuraba exento por una decisión del theme que nunca se verificó
+  // contra la ley ni contra Cloudflare. Ahora es un proveedor de analítica más.
   const TOKEN = 'c0ffee00c0ffee00c0ffee00c0ffee00'
 
-  it('encendido por tracking.cloudflareWebAnalytics y SIN ancla → verde (exención explícita del catálogo)', () => {
+  it('encendido por tracking.cloudflareWebAnalytics y SIN ancla → rojo, nombrando tracking-cloudflare', () => {
     const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
-    expect(r.code, r.out).toBe(0)
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-cloudflare')
   })
 
-  it('encendido por la ruta vieja analytics.cloudflareWebAnalytics.token y SIN ancla → verde', () => {
+  it('encendido por la ruta vieja analytics.cloudflareWebAnalytics.token y SIN ancla → rojo', () => {
     const r = check(site({ settings: `analytics:\n  cloudflareWebAnalytics:\n    token: "${TOKEN}"\n` }))
+    expect(r.code, r.out).not.toBe(0)
+    expect(r.out).toContain('tracking-cloudflare')
+  })
+
+  it('encendido y CON su ancla → verde', () => {
+    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, marcadores: ['tracking-cloudflare'] }))
     expect(r.code, r.out).toBe(0)
   })
 
-  it('NO exime a los demás: con Meta encendido sigue faltando SU ancla y no se pide la de Cloudflare', () => {
+  it('con Meta y Cloudflare encendidos faltan las DOS anclas, y las dos se nombran', () => {
     const r = check(site({ settings: `tracking:\n  metaPixel: "1234567890123"\n  cloudflareWebAnalytics: "${TOKEN}"\n` }))
     expect(r.code, r.out).not.toBe(0)
     expect(r.out).toContain('tracking-meta')
-    expect(r.out).not.toMatch(/cloudflare/i)
+    expect(r.out).toContain('tracking-cloudflare')
   })
 
-  it('un site con SOLO Cloudflare no necesita banner ni política (no hay nada que declarar): verde, no «NO SE MIDIÓ»', () => {
+  it('un site con SOLO Cloudflare ya necesita banner y política: sin ellos → rojo', () => {
     const r = check(siteSinPolitica(`tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, null))
-    expect(r.code, r.out).toBe(0)
-    expect(r.out).not.toContain('NO SE MIDIÓ')
-    expect(r.out).not.toContain('NINGUNA página lleva el banner')
+    expect(r.code, r.out).not.toBe(0)
   })
 
-  it('la política no declara nada de Cloudflare y no hay aviso inverso por ello', () => {
-    const r = check(site({ settings: `tracking:\n  cloudflareWebAnalytics: "${TOKEN}"\n`, marcadores: ['tracking-cloudflare'] }))
+  it('el ancla de Cloudflare sin el proveedor encendido no rompe (aviso inverso, no rojo)', () => {
+    const r = check(site({ settings: 'tracking:\n  metaPixel: ""\n', marcadores: ['tracking-cloudflare'] }))
     expect(r.code, r.out).toBe(0)
   })
 
@@ -220,10 +227,11 @@ describe('8e: proveedor exento de consentimiento (Cloudflare Web Analytics)', ()
     expect(exento({ category: 'marketing' })).toBe(false)
   })
 
-  it('el catálogo real: Cloudflare es el único exento y todo lo demás lleva ancla', () => {
+  it('el catálogo real: NINGÚN proveedor es exento y todos llevan ancla (una exención solo entra por ley y por decisión de JC)', () => {
     const cat = JSON.parse(readFileSync(join(dirname(SCRIPT), '..', 'src', 'lib', 'tracking-providers.json'), 'utf8')).providers
     const sinAncla = cat.filter((p: { marker?: string }) => !p.marker).map((p: { key: string }) => p.key)
-    expect(sinAncla).toEqual(['cloudflareWebAnalytics'])
+    expect(sinAncla).toEqual([])
+    expect(cat.filter((p: { category: string }) => p.category === 'none')).toEqual([])
   })
 })
 

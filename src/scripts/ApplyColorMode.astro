@@ -25,10 +25,13 @@
    * Global function to apply theme
    * 
    * @param {string} theme - 'dark' | 'light'
+   * @param {boolean} [persist=true] - guardar la elección en localStorage. El arranque
+   *   llama con `false`: guardar al cargar, sin que el visitante haya elegido nada, no es
+   *   una preferencia suya sino un dato que el sitio le escribe en el dispositivo.
    * 
    * Functionality:
    * - Applies/removes the 'dark' class on <html>
-   * - Saves preference to localStorage
+   * - Saves preference to localStorage (solo si `persist` y la llamada viene de una elección del usuario)
    * - Automatically updates toggle icons
    * - Dispatches 'themechange' event for other components
    * 
@@ -36,10 +39,10 @@
    * window.applyTheme('dark');  // Enable dark mode
    * window.applyTheme('light'); // Enable light mode
    */
-  window.applyTheme = function(theme) {
+  window.applyTheme = function(theme, persist) {
     const isDark = theme === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', theme);
+    if (persist !== false) localStorage.setItem('theme', theme);
     
     // Icons and logos are handled automatically by Tailwind dark: classes
     // No manual synchronization needed
@@ -64,14 +67,14 @@
    * 4. Default: 'light'
    */
   if ((defaultTheme && defaultTheme.endsWith(':only')) || (!localStorage.theme && defaultTheme !== 'system')) {
-    window.applyTheme(defaultTheme.replace(':only', ''));
+    window.applyTheme(defaultTheme.replace(':only', ''), false);
   } else if (
     localStorage.theme === 'dark' ||
     (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
   ) {
-    window.applyTheme('dark');
+    window.applyTheme('dark', false);
   } else {
-    window.applyTheme('light');
+    window.applyTheme('light', false);
   }
 
   /**

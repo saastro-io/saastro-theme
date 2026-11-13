@@ -1,9 +1,10 @@
 /**
- * Cloudflare Web Analytics dentro del catálogo (exento de consentimiento) y varios
- * ids por proveedor. Lo que importa: la exención es EXPLÍCITA (categoría + motivo),
- * un exento no entra en las claves de consentimiento (si entrara, todos los
- * visitantes con cookie vigente volverían a ver el banner), y cada id de una lista
- * pasa por el patrón del proveedor antes de llegar a una URL o a código inline.
+ * Cloudflare Web Analytics dentro del catálogo (CON consentimiento de analítica
+ * desde el 13-nov-2026; antes figuraba exento por una decisión del theme que nunca
+ * se verificó) y varios ids por proveedor. Lo que importa: la exención, si algún día
+ * hay una, es EXPLÍCITA (categoría + motivo) y se prueba con un proveedor sintético;
+ * lo que pide consentimiento entra en las claves de consentimiento; y cada id de una
+ * lista pasa por el patrón del proveedor antes de llegar a una URL o a código inline.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -18,7 +19,7 @@ const legadoCF = (token: string) => ({
   analytics: { googleAnalytics: { id: '' }, googleTagManager: { id: '' }, cloudflareWebAnalytics: { token } },
 });
 
-describe('Cloudflare Web Analytics en el catálogo (exento de consentimiento)', () => {
+describe('Cloudflare Web Analytics en el catálogo (con consentimiento de analítica)', () => {
   it('el token de producción cumple el patrón del catálogo y los mal formados no', () => {
     const def = PROVIDERS.find((p) => p.key === 'cloudflareWebAnalytics')!;
     const re = new RegExp(def.pattern);
@@ -28,10 +29,16 @@ describe('Cloudflare Web Analytics en el catálogo (exento de consentimiento)', 
     expect(re.test('g' + CF.slice(1))).toBe(false); // no hex
   });
 
-  it('es exento SOLO con categoría none Y motivo escrito', () => {
-    const def = PROVIDERS.find((p) => p.key === 'cloudflareWebAnalytics')!;
-    expect(def.category).toBe('none');
-    expect(isExempt(def)).toBe(true);
+  it('NO es exento: pide consentimiento de analítica y lleva ancla en la política', () => {
+    const def = PROVIDERS.find((p) => p.key === 'cloudflareWebAnalytics')! as { exemptReason?: string; marker?: string; category: string };
+    expect(def.category).toBe('analytics');
+    expect(def.exemptReason).toBeUndefined();
+    expect(def.marker).toBe('tracking-cloudflare');
+    expect(isExempt(def as never)).toBe(false);
+  });
+
+  it('el mecanismo de exención exige categoría none Y motivo escrito (proveedor sintético)', () => {
+    expect(isExempt({ category: 'none', exemptReason: 'motivo escrito' })).toBe(true);
     expect(isExempt({ category: 'none' })).toBe(false); // sin motivo no es exención
     expect(isExempt({ category: 'none', exemptReason: '  ' })).toBe(false);
     expect(isExempt({ category: 'analytics', exemptReason: 'x' })).toBe(false); // el motivo solo no basta
@@ -46,7 +53,7 @@ describe('Cloudflare Web Analytics en el catálogo (exento de consentimiento)', 
 
   it('la ruta vieja analytics.cloudflareWebAnalytics.token sigue funcionando', () => {
     const r = resolveTracking(legadoCF(CF));
-    expect(r.providers).toEqual([{ key: 'cloudflareWebAnalytics', id: CF, ids: [CF], category: 'none' }]);
+    expect(r.providers).toEqual([{ key: 'cloudflareWebAnalytics', id: CF, ids: [CF], category: 'analytics' }]);
   });
 
   it('tracking.cloudflareWebAnalytics gana a la ruta vieja si ambos existen', () => {
@@ -77,13 +84,13 @@ describe('Cloudflare Web Analytics en el catálogo (exento de consentimiento)', 
     expect(r.consentKeys).toEqual([]);
   });
 
-  it('NO entra en consentKeys, NO enciende el banner de marketing y convive con los demás', () => {
+  it('ENTRA en consentKeys (analítica), NO enciende el banner de marketing y convive con los demás', () => {
     const solo = resolveTracking(legadoCF(CF));
-    expect(solo.consentKeys).toEqual([]);
+    expect(solo.consentKeys).toEqual(['cloudflareWebAnalytics']);
     expect(solo.showMarketing).toBe(false);
     const con = resolveTracking({ ...legadoCF(CF), tracking: { ga4: 'G-ABC123XYZ9', metaPixel: '1234567890123' } });
     expect(con.providers.map((p) => p.key).sort()).toEqual(['cloudflareWebAnalytics', 'ga4', 'metaPixel']);
-    expect(con.consentKeys.sort()).toEqual(['ga4', 'metaPixel']);
+    expect(con.consentKeys.sort()).toEqual(['cloudflareWebAnalytics', 'ga4', 'metaPixel']);
     expect(con.showMarketing).toBe(true);
   });
 
@@ -96,15 +103,18 @@ describe('Cloudflare Web Analytics en el catálogo (exento de consentimiento)', 
 
 describe('fail-closed del catálogo', () => {
   it('una categoría none sin exemptReason se resuelve como analytics (pide consentimiento y entra en consentKeys)', () => {
-    const def = PROVIDERS.find((p) => p.key === 'cloudflareWebAnalytics') as { exemptReason?: string };
-    const motivo = def.exemptReason;
+    // Se fuerza la forma del catálogo viejo (none, sin motivo) sobre un proveedor real para
+    // probar el mecanismo: una exención a medias NO exime.
+    const def = PROVIDERS.find((p) => p.key === 'cloudflareWebAnalytics') as { category: string; exemptReason?: string };
+    const categoria = def.category;
     try {
+      def.category = 'none';
       delete def.exemptReason;
       const r = resolveTracking(legadoCF(CF));
       expect(r.providers[0].category).toBe('analytics');
       expect(r.consentKeys).toEqual(['cloudflareWebAnalytics']);
     } finally {
-      def.exemptReason = motivo;
+      def.category = categoria;
     }
   });
 });

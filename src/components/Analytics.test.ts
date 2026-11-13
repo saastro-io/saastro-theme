@@ -23,7 +23,7 @@ const TIKTOK = mk('tiktokPixel', 'marketing', 'ABCDEFGHIJ12345');
 const LINKEDIN = mk('linkedinPartnerId', 'marketing', '1234567');
 const CLARITY = mk('clarity', 'analytics', 'abcdefgh12');
 const CF_TOKEN = 'c0ffee00c0ffee00c0ffee00c0ffee00';
-const CF = mk('cloudflareWebAnalytics', 'none', CF_TOKEN);
+const CF = mk('cloudflareWebAnalytics', 'analytics', CF_TOKEN);
 const TODOS = [GA4, GTM, ADS, META, TIKTOK, LINKEDIN, CLARITY];
 
 interface Scr { src?: string; defer?: boolean; attrs: Record<string, string>; onload?: () => void }
@@ -196,32 +196,44 @@ describe('saastroTrack (conversión)', () => {
   });
 });
 
-describe('Cloudflare Web Analytics: exento de consentimiento, mismo cargador, mismo bloqueo de hosts', () => {
+describe('Cloudflare Web Analytics: con consentimiento de analítica, mismo cargador, mismo bloqueo de hosts', () => {
+  // Hasta el 13-nov-2026 cargaba SIN consentimiento por una decisión del theme que nunca se
+  // verificó contra la ley ni contra Cloudflare. Ahora es un proveedor de analítica más.
   const beacon = (r: { elementos: Scr[] }) => r.elementos.filter((e) => (e.src ?? '').includes('cloudflareinsights.com'));
+  // La cookie por defecto de estas pruebas lista los proveedores SIN Cloudflare: no lo cubre (versión del
+  // consentimiento). Estas pruebas aceptan con una cookie que sí lo lista.
+  const conCF = (o: object) => ck({ providers: [...TODOS.map((p) => p.key), 'cloudflareWebAnalytics'], ...o });
+  const TODO_CF = conCF({ analytics: true, marketing: true });
 
-  it('SIN consentimiento carga el beacon y NINGÚN otro proveedor', () => {
+  it('SIN consentimiento no carga el beacon NI ningún otro proveedor', () => {
     const r = ejecutar('', [...TODOS, CF]);
-    expect(r.scripts).toEqual(['https://static.cloudflareinsights.com/beacon.min.js']);
-    const [b] = beacon(r);
-    expect(b.defer).toBe(true);
-    expect(JSON.parse(b.attrs['data-cf-beacon'])).toEqual({ token: CF_TOKEN });
+    expect(beacon(r)).toHaveLength(0);
+    expect(r.scripts).toEqual([]);
   });
 
-  it('con consentimiento rechazado tampoco carga nada más; con consentimiento total, el beacon sale UNA vez', () => {
-    expect(ejecutar(ck({ analytics: false, marketing: false }), [...TODOS, CF]).scripts).toEqual([
-      'https://static.cloudflareinsights.com/beacon.min.js',
-    ]);
-    const r = ejecutar(TODO, [...TODOS, CF]);
+  it('con consentimiento rechazado tampoco; solo marketing (sin analítica) tampoco', () => {
+    expect(beacon(ejecutar(conCF({ analytics: false, marketing: false }), [CF]))).toHaveLength(0);
+    expect(beacon(ejecutar(conCF({ analytics: false, marketing: true }), [CF]))).toHaveLength(0);
+  });
+
+  it('con analítica aceptada el beacon sale UNA vez, con su token y defer', () => {
+    const r = ejecutar(conCF({ analytics: true, marketing: false }), [CF]);
     expect(beacon(r)).toHaveLength(1);
+    const [b] = beacon(r);
+    expect(b.src).toBe('https://static.cloudflareinsights.com/beacon.min.js');
+    expect(b.defer).toBe(true);
+    expect(JSON.parse(b.attrs['data-cf-beacon'])).toEqual({ token: CF_TOKEN });
     r.evento({ analytics: true, marketing: true });
     expect(beacon(r)).toHaveLength(1);
   });
 
-  it('un evento de consentimiento posterior no vuelve a cargarlo', () => {
-    const r = ejecutar('', [GA4, CF]);
+  it('aceptar DESPUÉS (evento del banner) lo carga, y una sola vez', () => {
+    const r = ejecutar('', [CF]);
+    expect(beacon(r)).toHaveLength(0);
     r.evento({ analytics: true, marketing: false });
     expect(beacon(r)).toHaveLength(1);
-    expect(r.scripts.filter((s) => s.includes('gtag/js'))).toHaveLength(1);
+    r.evento({ analytics: true, marketing: false });
+    expect(beacon(r)).toHaveLength(1);
   });
 
   const HOSTS: Array<[string, string, boolean]> = [
@@ -234,36 +246,34 @@ describe('Cloudflare Web Analytics: exento de consentimiento, mismo cargador, mi
     ['theme.saastro.io', 'theme.saastro.io', true], // host propio de la flota: se mide
     ['www.cliente.com', '', true],
   ];
-  it.each(HOSTS)('host %s (propio %j) -> carga=%s', (host, ownHost, carga) => {
-    expect(beacon(ejecutar('', [CF], '', { host, ownHost })).length).toBe(carga ? 1 : 0);
+  it.each(HOSTS)('con consentimiento, host %s (propio %j) -> carga=%s', (host, ownHost, carga) => {
+    expect(beacon(ejecutar(TODO_CF, [CF], '', { host, ownHost })).length).toBe(carga ? 1 : 0);
   });
 
-  it('la exención la da la categoría del catálogo, no el nombre: «cloudflareWebAnalytics» con otra categoría NO carga sin consentimiento', () => {
-    const noExento = mk('cloudflareWebAnalytics', 'analytics', CF_TOKEN);
-    expect(beacon(ejecutar('', [noExento]))).toHaveLength(0);
-  });
-
-  it('NO marca trackersLoaded (revocar el consentimiento no recarga la página por él)', () => {
+  it('MARCA trackersLoaded una vez cargado (revocar el consentimiento recarga la página por él)', () => {
     expect(ejecutar('', [CF]).win.trackersLoaded).toBeUndefined();
-    expect(ejecutar(TODO, [CF]).win.trackersLoaded).toBeUndefined();
+    expect(ejecutar(TODO_CF, [CF]).win.trackersLoaded).toBe(true);
   });
 
   it('NO es un destino de saastroTrack y no toca el dataLayer', () => {
-    const r = ejecutar(TODO, [CF]);
+    const r = ejecutar(TODO_CF, [CF]);
     expect(r.track('generate_lead', { event_id: 'e' })).toEqual([]);
     expect(r.dl()).toEqual([]);
   });
 
-  it('NO cuenta en la versión del consentimiento: una cookie que cubre los demás sigue valiendo', () => {
-    // Si CF entrara en KEYS, esta cookie (sin 'cloudflareWebAnalytics') dejaría de cubrir y GA4 no cargaría.
-    const c = ck({ analytics: true, marketing: false, providers: ['ga4'] });
-    const r = ejecutar(c, [GA4, CF]);
-    expect(r.scripts.some((s) => s.includes('gtag/js?id=G-TEST123456'))).toBe(true);
-    expect(beacon(r)).toHaveLength(1);
+  it('CUENTA en la versión del consentimiento: una cookie que no lo cubre vuelve a preguntar y no carga nada', () => {
+    const sinCF = ck({ analytics: true, marketing: false, providers: ['ga4'] });
+    const r = ejecutar(sinCF, [GA4, CF]);
+    expect(beacon(r)).toHaveLength(0);
+    expect(r.scripts).toEqual([]);
+    const conCF = ck({ analytics: true, marketing: false, providers: ['ga4', 'cloudflareWebAnalytics'] });
+    const r2 = ejecutar(conCF, [GA4, CF]);
+    expect(beacon(r2)).toHaveLength(1);
+    expect(r2.scripts.some((x) => x.includes('gtag/js?id=G-TEST123456'))).toBe(true);
   });
 
   it('shim: normaliza URLs del mismo origen a ruta relativa y deja pasar lo demás', () => {
-    const r = ejecutar('', [CF]);
+    const r = ejecutar(TODO_CF, [CF]);
     beacon(r)[0].onload!();
     const h = r.historial as { pushState: (...a: unknown[]) => void; replaceState: (...a: unknown[]) => void };
     h.pushState({ n: 1 }, '', 'https://sitio.example/otra?x=1#ancla');

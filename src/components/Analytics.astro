@@ -36,11 +36,11 @@ const ownHost = Astro.site?.hostname ?? '';
     al aceptar (analytics → analytics_storage; marketing → ad_storage,
     ad_user_data, ad_personalization).
 
-    EXENTOS (categoría `none` del catálogo, hoy Cloudflare Web Analytics): cargan SIN
-    puerta de consentimiento, por una decisión escrita en el catálogo
-    (`exemptReason` de tracking-providers.json). No entran en `covers`/KEYS (no
-    piden volver a consentir), no marcan `trackersLoaded` (revocar no recarga por
-    ellos) y no reciben `saastroTrack`. Siguen sin cargar en una vista previa
+    EXENTOS (categoría `none` del catálogo): HOY NINGUNO. Cloudflare Web Analytics lo
+    era por una decisión del theme que nunca se verificó y se retiró el 13-nov-2026:
+    es analítica con consentimiento, como GA4 y Clarity. El mecanismo sigue (EXEMPT,
+    abajo) para una exención que algún día sea por ley, y la decide JC.
+    Cloudflare no recibe `saastroTrack`; sigue sin cargar en una vista previa
     (resolveTracking con `noindex`) y en los hosts de `isBlockedMeasureHost`.
 
     VERSIÓN del consentimiento: la cookie guarda `providers` (los proveedores
@@ -195,14 +195,11 @@ const ownHost = Astro.site?.hostname ?? '';
           window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
           script('https://www.clarity.ms/tag/' + encodeURIComponent(ids[0]));
         },
-      };
-
-      // Exentos de consentimiento. Mismo bloqueo de hosts que RenderRatio/GenTracking
-      // (copia de isBlockedMeasureHost; measure-host.test.ts la compara) y mismo shim
-      // que antes de entrar en el catálogo: el beacon de CF trata el SPA con
-      // history.pushState y, sin normalizar, ClientRouter le da URLs same-origin que
-      // acaban en `https:://`.
-      var EXEMPT = {
+        // Con consentimiento de analítica (antes exento por decisión del theme, sin verificar:
+        // ver el PR). Mismo bloqueo de hosts que RenderRatio/GenTracking (copia de
+        // isBlockedMeasureHost; measure-host.test.ts la compara) y mismo shim de siempre:
+        // el beacon de CF trata el SPA con history.pushState y, sin normalizar,
+        // ClientRouter le da URLs same-origin que acaban en `https:://`.
         cloudflareWebAnalytics: function (ids) {
           var h = location.hostname;
           var blocked =
@@ -233,6 +230,11 @@ const ownHost = Astro.site?.hostname ?? '';
           document.head.appendChild(s);
         },
       };
+
+      // Exentos de consentimiento: ninguno hoy. Un proveedor con `category: "none"` y su
+      // `exemptReason` en el catálogo se carga desde aquí SIN puerta de consentimiento;
+      // solo se admite lo que esté exento POR LEY, no por comodidad (ver el PR).
+      var EXEMPT = {};
       function loadExempt() {
         providers.forEach(function (p) {
           if (p.category !== 'none' || !EXEMPT[p.key]) return;

@@ -133,7 +133,7 @@ describe('ids inválidos: motivo sin eco del valor', () => {
   });
 });
 
-describe('noindex y proveedor exento', () => {
+describe('noindex y proveedor sin variante por landing', () => {
   it('noindex apaga todo, tal cual lo hace el cargador', () => {
     const settings = conTracking({ ga4: 'G-TESTAAAA01' });
     const j = json(settings, { PUBLIC_TRACKING_CLARITY: 'testaaaa01' }, true);
@@ -141,9 +141,9 @@ describe('noindex y proveedor exento', () => {
     expect(resolveTracking(settings, { noindex: true }).providers).toEqual([]);
   });
 
-  it('Cloudflare Web Analytics (exento): consentRequired false, perLanding false, y se publica', () => {
+  it('Cloudflare Web Analytics (con consentimiento de analítica): consentRequired true, perLanding false, y se publica', () => {
     const j = json(base, { PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS: '0123456789abcdef0123456789abcdef' });
-    expect(de(j, 'cloudflareWebAnalytics')).toMatchObject({ source: 'variable', ids: ['0123456789abcdef0123456789abcdef'], category: 'none', consentRequired: false, perLanding: false });
+    expect(de(j, 'cloudflareWebAnalytics')).toMatchObject({ source: 'variable', ids: ['0123456789abcdef0123456789abcdef'], category: 'analytics', consentRequired: true, perLanding: false });
   });
 
   it('una `none` SIN motivo no es exención: pide consentimiento', () => {

@@ -330,12 +330,12 @@ Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off;
 | `tiktokPixel` | TikTok Pixel | `marketing` |
 | `linkedinPartnerId` | LinkedIn Insight Tag | `marketing` |
 | `clarity` | Microsoft Clarity | `analytics` |
-| `cloudflareWebAnalytics` | Cloudflare Web Analytics | **exempt**: loads without consent (the catalogue records the reason) |
+| `cloudflareWebAnalytics` | Cloudflare Web Analytics | `analytics` consent (it was exempt until 13 Nov 2026 by an unverified decision; no provider is exempt today) |
 
 - Each key accepts several ids separated by commas (`"G-AAAA…,G-BBBB…"`, max 5; Clarity and Cloudflare, 1). Invalid ids are dropped with a build warning.
 - Google tags declare Consent Mode v2 `default: denied` before any Google script; if there is no consent yet, the component listens for `cookie-consent-updated`.
 - No pixel loads in the Studio preview or local dev. There is no GTM `<noscript>` iframe: without JS the visitor cannot consent.
-- Turning a provider on adds a processing: the cookie policy must declare it (`<div data-legal="tracking-…">`, see `docs/legal-marketing.md`) or `pnpm studio:check` fails. Cloudflare Web Analytics has no anchor because it is exempt.
+- Turning a provider on adds a processing: the cookie policy must declare it (`<div data-legal="tracking-…">`, see `docs/legal-marketing.md`) or `pnpm studio:check` fails. Every provider needs its anchor; none is exempt today.
 - Old routes (`analytics.googleAnalytics.id`, `analytics.cloudflareWebAnalytics.token`) are still read as a fallback; `tracking.*` wins.
 
 ### Lead attribution (SAASTRO Gen) — opt-in

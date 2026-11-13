@@ -40,6 +40,14 @@ Herramienta de Microsoft que registra cómo se usa el sitio: grabaciones de sesi
 
 Más información: [declaración de privacidad de Microsoft](https://www.microsoft.com/privacy/privacystatement).
 
+### Cloudflare Web Analytics
+
+<div data-legal="tracking-cloudflare"></div>
+
+Servicio de analítica de Cloudflare. Mide qué páginas se visitan y el rendimiento del sitio. Se carga desde `static.cloudflareinsights.com` y envía las mediciones a Cloudflare.
+
+Más información: [política de privacidad de Cloudflare](https://www.cloudflare.com/privacypolicy/).
+
 ## Cookies de personalización
 
 Recuerdan tus preferencias y configuración para ofrecerte una mejor experiencia.

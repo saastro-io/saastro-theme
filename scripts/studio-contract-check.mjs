@@ -67,8 +67,8 @@
  *                         LinkedIn, Clarity) la política enlazada lo NOMBRA (ancla
  *                         <div data-legal="tracking-<proveedor>">, ver docs/legal-marketing.md).
  *                         Un valor puede ser una lista de ids separados por comas. Los
- *                         proveedores EXENTOS (catálogo: category "none" + exemptReason, hoy
- *                         Cloudflare Web Analytics) no exigen ancla.
+ *                         proveedores EXENTOS (catálogo: category "none" + exemptReason; hoy
+ *                         ninguno) no exigen ancla.
  *   9. form-primitives  — form.tsx / field.tsx siguen exportando los nombres del manifiesto
  *  10. architecture     — sha256 de ficheros de arquitectura pura = manifiesto
  *  11. routes           — toda ruta descubierta (src/pages × locales / dist) está en el manifiesto (v2)
@@ -261,7 +261,7 @@ const TRACKING_CATALOG = JSON.parse(
 ).providers
 
 // EXENCIÓN EXPLÍCITA: un proveedor del catálogo con `category: "none"` Y un
-// `exemptReason` escrito (hoy Cloudflare Web Analytics) no exige ancla en la
+// `exemptReason` escrito (hoy ninguno) no exige ancla en la
 // política. Las dos cosas a la vez: una `none` sin motivo, o un motivo en un
 // proveedor con otra categoría, NO eximen (el checker falla del lado de exigir).
 // Misma regla que `isExempt` de src/lib/tracking.ts (no se puede importar un .ts
