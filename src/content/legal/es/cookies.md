@@ -13,6 +13,7 @@ Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo c
 Son necesarias para que el sitio funcione correctamente. No se pueden desactivar.
 
 - **cookie_consent** — almacena tus preferencias de cookies (1 año)
+- **cf_clearance** — la coloca Cloudflare, el proveedor que protege este sitio frente a tráfico automatizado y ataques. Guarda el resultado de las comprobaciones de seguridad para no repetirlas en cada página. Para este sitio solo cumple una función de seguridad: no se usa para medir ni para publicidad. Su duración la fija Cloudflare. Solo aparece si el sitio tiene activa esa protección.
 
 ## Cookies analíticas
 
