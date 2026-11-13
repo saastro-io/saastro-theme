@@ -37,7 +37,7 @@ const politica = (ga4: string, clarity = 'Grabaciones de sesión de Microsoft.')
   `<h3>Google Analytics 4</h3><div data-legal="tracking-ga4"></div><p>${ga4}</p><ul><li><code>_ga</code></li></ul>` +
   `<h3>Microsoft Clarity</h3><div data-legal="tracking-clarity"></div><p>${clarity}</p>`
 
-function site() {
+function site(politicaHtml = politica('Mide qué páginas visitas.')) {
   const root = mkdtempSync(join(tmpdir(), 'legal-texto-'))
   dirs.push(root)
   const w = (rel: string, body: string) => {
@@ -49,7 +49,7 @@ function site() {
   w('src/pages/legal/cookies.astro', '---\n---\n')
   w('src/data/settings.yaml', 'gen:\n  workspaceId: ""\n')
   w('dist/client/index.html', pagina(ISLA))
-  w('dist/client/legal/cookies/index.html', pagina(politica('Mide qué páginas visitas.')))
+  w('dist/client/legal/cookies/index.html', pagina(politicaHtml))
   return { root, w }
 }
 
@@ -63,8 +63,8 @@ function run(root: string, args: string[] = [], env: Record<string, string> = {}
 }
 
 /** Un site con el contrato ya REGISTRADO por el propio script. */
-function registrado() {
-  const s = site()
+function registrado(politicaHtml?: string) {
+  const s = site(politicaHtml)
   const up = run(s.root, ['--update'])
   expect(up.code, up.out).toBe(0)
   return s
@@ -124,5 +124,59 @@ describe('legal-texto · el portero dice algo', () => {
     const r = run(root)
     expect(r.out).toMatch(/legal-texto/)
     expect(r.out).toMatch(/tracking-clarity/)
+  })
+})
+
+// El formato de docs/legal-marketing.md: el ancla vive DENTRO del encabezado y no tiene
+// hermanos. Sin tratarlo, el hash era el de la cadena vacía y NINGÚN cambio avisaba.
+const enEncabezado = (texto: string, otro = 'Otra sección.') =>
+  `<h2>Cookies de analítica</h2>` +
+  `<h2>Meta Pixel <div data-legal="tracking-meta"></div></h2><p>${texto}</p><ul><li>_fbp</li></ul>` +
+  `<h2>Otra</h2><p>${otro}</p>`
+
+describe('legal-texto · ancla dentro del encabezado (formato de la guía)', () => {
+  it('registra un hash que NO es el del texto vacío', () => {
+    const { root } = registrado(enEncabezado('Píxel de Meta.'))
+    const m = JSON.parse(readFileSync(join(root, 'studio-contract.json'), 'utf8'))
+    const h = m.legalHashes['legal/cookies/index.html']['tracking-meta']
+    expect(h).not.toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+  })
+  it('cambiar el texto de ESA sección avisa', () => {
+    const { root, w } = registrado(enEncabezado('Píxel de Meta.'))
+    w('dist/client/legal/cookies/index.html', pagina(enEncabezado('Píxel de Meta y datos de contacto.')))
+    const r = run(root)
+    expect(r.out).toMatch(/legal-texto/)
+    expect(r.out).toMatch(/tracking-meta/)
+  })
+  it('cambiar OTRA sección (tras el siguiente encabezado) no avisa', () => {
+    const { root, w } = registrado(enEncabezado('Píxel de Meta.'))
+    w('dist/client/legal/cookies/index.html', pagina(enEncabezado('Píxel de Meta.', 'Otra sección, cambiada.')))
+    expect(run(root).out).not.toMatch(/legal-texto/)
+  })
+})
+
+describe('legal-texto · casos de borde del texto', () => {
+  it('texto en la MISMA línea que el ancla también entra en el hash', () => {
+    const base = (t: string) => `<h3>Meta</h3><div data-legal="tracking-meta"></div>${t}<h3>Otra</h3>`
+    const { root, w } = registrado(base('Texto declarado.'))
+    w('dist/client/legal/cookies/index.html', pagina(base('Texto declarado, cambiado.')))
+    expect(run(root).out).toMatch(/legal-texto/)
+  })
+  it('un ancla SIN texto debajo avisa de que no se puede vigilar', () => {
+    const { root } = registrado(`<h3>Meta</h3><div data-legal="tracking-meta"></div><h3>Otra</h3><p>x</p>`)
+    const r = run(root)
+    expect(r.out).toMatch(/legal-texto/)
+    expect(r.out).toMatch(/no tiene TEXTO/)
+  })
+  it('una página con hashes registrados que ya no se escanea avisa', () => {
+    const { root } = registrado()
+    // el manifiesto registró una política que esta pasada ya no ve (p. ej. no crawleable):
+    // se añade su entrada a mano para no forzar el modo crawl, que arranca wrangler
+    const ruta = join(root, 'studio-contract.json')
+    const m = JSON.parse(readFileSync(ruta, 'utf8'))
+    m.legalHashes['es/legal/cookies/index.html'] = { 'tracking-ga4': 'a'.repeat(64) }
+    writeFileSync(ruta, JSON.stringify(m))
+    const r = run(root)
+    expect(r.out).toMatch(/legal-texto[\s\S]*NO ha podido escanear/)
   })
 })

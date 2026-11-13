@@ -269,17 +269,29 @@ const TRACKING_CATALOG = JSON.parse(
 const trackingExento = (def) =>
   def.category === 'none' && typeof def.exemptReason === 'string' && def.exemptReason.trim() !== ''
 
+/** sha256 del texto vacío: un ancla sin texto bajo ella (invariante 13b lo avisa). */
+const LEGAL_HASH_VACIO = createHash('sha256').update('').digest('hex')
+
 /** Invariante 13b (legal-texto). Para cada ancla `data-legal` de la página: sha256 del texto que
- *  le sigue —los hermanos siguientes hasta el próximo encabezado h1-h6—, con los espacios
- *  colapsados. El ancla es un <div> vacío: lo que DECLARA al visitante es ese texto, y el
- *  checker 8c/8d/8e solo mira que el ancla exista. Un ancla repetida acumula su texto. */
+ *  le sigue —nodos hermanos, de texto incluidos, hasta el próximo encabezado h1-h6—, con los
+ *  espacios colapsados. El ancla es un <div> vacío: lo que DECLARA al visitante es ese texto, y
+ *  el checker 8c/8d/8e solo mira que el ancla exista.
+ *
+ *  Dos formas de escribirla, las dos reales: en su propia línea bajo el encabezado
+ *  (`### Meta` + `<div data-legal>`), o DENTRO del encabezado (`## Meta <div data-legal>`,
+ *  el formato de docs/legal-marketing.md). En el segundo el <div> no tiene hermanos: se
+ *  parte del encabezado que lo contiene. Un ancla repetida acumula su texto. */
 function legalHashesOf(root) {
+  const esEncabezado = (n) => n.nodeType === 1 && /^h[1-6]$/i.test(n.tagName)
   const textos = {}
   for (const el of root.querySelectorAll('[data-legal]')) {
     const marker = el.getAttribute('data-legal')
+    const inicio = el.closest('h1,h2,h3,h4,h5,h6') ?? el
+    const hermanos = inicio.parentNode?.childNodes ?? []
     let txt = textos[marker] ?? ''
-    for (let n = el.nextElementSibling; n && !/^h[1-6]$/i.test(n.tagName); n = n.nextElementSibling) {
-      txt += ' ' + n.text
+    for (let k = hermanos.indexOf(inicio) + 1; k > 0 && k < hermanos.length; k++) {
+      if (esEncabezado(hermanos[k])) break
+      txt += ' ' + hermanos[k].text
     }
     textos[marker] = txt
   }
@@ -359,7 +371,7 @@ const trackingEnabled = () => [...trackingEnabledPorOrigen().keys()]
 const INVARIANTES_POR_PAGINA = [
   'sec-markers', 'field-markers', 'verbatim', 'img-raw', 'schema-scripts',
   'locale-parity', 'manage-cookies', 'marca-header',
-  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal',
+  'cookie-policy', 'gen-legal', 'medicion-legal', 'tracking-legal', 'legal-texto',
 ]
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -1077,6 +1089,7 @@ async function main() {
       mode = MODE_FLAG ?? (distCovers ? 'dist' : 'crawl')
 
       const manifestPagesOut = {}
+      let paginasParaLegal = null // en crawl: lo crawleado + lo prerenderizado en dist
       if (mode === 'dist') {
         if (!htmlRoot) exitNoDistHtml()
         pages = scanDistPages()
@@ -1096,6 +1109,7 @@ async function main() {
         pages = scanned
         crawledCssText = await crawlCss(server.origin, scanned)
         const distPagesFallback = htmlRoot ? scanDistPages() : {}
+        paginasParaLegal = { ...distPagesFallback, ...scanned }
         for (const [key, route] of [...discovered.routes.entries()].sort(([a], [b]) => a.localeCompare(b))) {
           const p = scanned[key] ?? distPagesFallback[key] ?? null
           manifestPagesOut[key] = {
@@ -1122,7 +1136,7 @@ async function main() {
         pages: manifestPagesOut,
         css: { requires: CSS_REQUIRES },
         legalHashes: Object.fromEntries(
-          Object.entries(pages)
+          Object.entries(paginasParaLegal ?? pages)
             .filter(([, p]) => Object.keys(p?.legalHashes ?? {}).length > 0)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, p]) => [key, p.legalHashes]),
@@ -1658,11 +1672,18 @@ async function main() {
       const registrado = manifest.legalHashes ?? {}
       const avisar = process.env.STUDIO_LEGAL_STRICT === '1' ? fail : warn
       const arreglo = 'revisa que el texto sigue siendo correcto y registra el cambio con `pnpm studio:contract:update` (el diff del manifiesto es la revisión)'
+      for (const key of Object.keys(registrado)) {
+        if (!(key in pages)) {
+          warn('legal-texto', key, '—', 'página con hashes legales registrados que esta pasada NO ha podido escanear: su texto legal no se ha comparado', 'comprueba que la ruta sigue sirviéndose (o regístrala de nuevo con `pnpm studio:contract:update` si se movió)')
+        }
+      }
       for (const [key, page] of Object.entries(pages)) {
         const actual = page?.legalHashes ?? {}
         const previo = registrado[key] ?? {}
         for (const [marker, hash] of Object.entries(actual)) {
-          if (!(marker in previo)) {
+          if (hash === LEGAL_HASH_VACIO) {
+            avisar('legal-texto', key, `data-legal="${marker}"`, 'el ancla no tiene TEXTO debajo (ni en su línea ni tras el encabezado que la contiene): el contrato no puede vigilar nada', 'pon el texto declarado justo después del ancla, antes del siguiente encabezado')
+          } else if (!(marker in previo)) {
             avisar('legal-texto', key, `data-legal="${marker}"`, 'ancla sin hash registrado: su texto nunca se ha revisado en el contrato', arreglo)
           } else if (previo[marker] !== hash) {
             avisar('legal-texto', key, `data-legal="${marker}"`, 'el texto declarado bajo esta ancla CAMBIÓ desde el último registro', arreglo)
