@@ -17,14 +17,15 @@ el formato exacto de cada id y las cookies que deja es
 ## Antes de nada: tres reglas
 
 1. **Un id vacío = apagado.** Nada se carga sin id.
-2. **Nada carga sin consentimiento, salvo el proveedor exento.** Los ids se ponen y
-   el banner decide (ver la categoría de cada proveedor abajo). La única excepción
-   es Cloudflare Web Analytics (categoría `none`, su sección está más abajo): carga
-   sin esperar al banner, por una exención escrita con su motivo en el catálogo.
+2. **Nada carga sin consentimiento.** Los ids se ponen y el banner decide (ver la
+   categoría de cada proveedor abajo). Hoy **no hay ningún proveedor exento**:
+   Cloudflare Web Analytics lo estaba por una decisión del theme que nunca se verificó y
+   se retiró el 13-nov-2026. Solo se admite una exención si lo está por ley, y la decide JC.
 3. **Encender un proveedor exige nombrarlo en la política de cookies**
    (ancla `data-legal="tracking-<proveedor>"`, ver `docs/legal-marketing.md`), también si solo lo enciende una landing. Si
    no, `pnpm studio:check` se pone rojo. El texto lo aprueba el responsable del site.
-   El proveedor exento no exige ancla (excepción explícita del catálogo).
+   (El mecanismo de exención del catálogo —`category: "none"` más `exemptReason`— sigue
+   existiendo, pero está vacío y un test impide añadir uno sin cambiarlo a propósito.)
 
 **Un id con formato inválido no se inyecta nunca**: se descarta con un aviso en el
 build. Un id **numérico sin comillas** en el YAML (`metaPixel: 1234567890`) también
@@ -89,8 +90,8 @@ Campos por proveedor del catálogo (`providers[]`, todos presentes aunque estén
 | `ids` | Ids ya validados, sin duplicados, en el orden escrito. `[]` si está apagado |
 | `source` | De dónde sale: `variable` (`PUBLIC_TRACKING_*`) · `settings` (`tracking.<clave>`) · `legacy` (ruta vieja `analytics.*`) · `none` (nadie lo fija) |
 | `envVar` | Nombre de la variable que lo fijaría (derivado del catálogo), esté o no puesta |
-| `consentRequired` | `false` solo para un proveedor exento (hoy Cloudflare Web Analytics) |
-| `perLanding` | ¿Puede una landing sobrescribirlo? `false` en los del site y en los exentos |
+| `consentRequired` | `false` solo para un proveedor exento (hoy ninguno) |
+| `perLanding` | ¿Puede una landing sobrescribirlo? `false` en los del site (Clarity, Cloudflare) y en los exentos |
 | `invalid` | **Solo si procede:** lista de motivos por los que se descartó un valor: `formato`, `no-cadena` (YAML lo leyó como número/booleano) o `tope` (más ids de los que admite). Nunca el valor |
 
 Cómo leerlo: `source: "variable"` = **fijado por variable de build**. Para ese aviso el Hub usa `source` y `envVar` («este id lo fija `PUBLIC_TRACKING_GA4` en el despliegue; editarlo en settings no tendrá efecto»). Una variable inválida sale como `source: "variable"`, `ids: []` e `invalid: ["formato"]`: el proveedor queda apagado y **no** cae a settings. `source: "none"` con `ids: []` es apagado. `schema` solo cambia si se rompe el contrato; añadir campos no lo cambia.
@@ -255,7 +256,7 @@ su propia propiedad o cuenta**, no en la del que las construye.
   URL: la página `/lp/gracias`).
 - **Documentación:** <https://www.linkedin.com/help/lms/answer/a415390>
 
-## Cloudflare Web Analytics · `cloudflareWebAnalytics` · categoría `none` (exento de consentimiento)
+## Cloudflare Web Analytics · `cloudflareWebAnalytics` · categoría `analytics`
 
 - **Id:** el *token del beacon*, 32 caracteres hexadecimales (patrón `^[0-9a-fA-F]{32}$`).
   No es el *site tag* de la API GraphQL: es el token que va en `data-cf-beacon`.
@@ -266,16 +267,14 @@ su propia propiedad o cuenta**, no en la del que las construye.
   `tracking.cloudflareWebAnalytics`**, aunque su valor sea inválido (entonces se
   descarta con aviso y NO se cae a la antigua en silencio).
 - **Cookies propias del site:** ninguna prevista en el catálogo (SIN VERIFICAR).
-- **Consentimiento: exento, y es una decisión escrita, no un olvido.** El motivo
-  literal está en `exemptReason` del catálogo. Consecuencias: carga sin esperar al
-  banner, no cuenta en «si hay un proveedor nuevo, volver a preguntar», retirar el
-  consentimiento no recarga la página por él y no recibe `window.saastroTrack`.
-  Sigue sin cargar en una vista previa de borrador y en `localhost`/`*.saastro.io`
-  (salvo el host propio del site). **SIN VERIFICAR** contra la documentación
-  vigente de Cloudflare que el beacon no use almacenamiento ni identifique al
-  visitante; la valoración legal y, si hace falta, el texto, son del responsable del site.
-- **Política de cookies:** el invariante 8e **no exige ancla** por este proveedor
-  (`docs/legal-marketing.md`, última sección).
+- **Consentimiento: de analítica, como GA4 y Clarity** (desde el 13-nov-2026; antes figuraba
+  exento por una decisión del theme que **nunca se verificó** contra la documentación de
+  Cloudflare ni contra la ley). No carga hasta que el visitante acepta analítica, entra en la
+  versión del consentimiento (un consentimiento anterior que no lo cubra vuelve a preguntar) y
+  retirar el consentimiento recarga la página. Sigue sin cargar en una vista previa de borrador y
+  en `localhost`/`*.saastro.io` (salvo el host propio del site). No recibe `window.saastroTrack`.
+- **Política de cookies:** el invariante 8e **exige su ancla** `tracking-cloudflare`
+  (`docs/legal-marketing.md`, última sección; el texto final es de JC).
 - **Solo un token por página:** con una lista `a,b` se usa el primero y el build avisa.
 - **Dónde (SIN VERIFICAR):** <https://dash.cloudflare.com> → Analytics y registros →
   **Web Analytics** → el sitio → el token del fragmento JavaScript.
@@ -393,7 +392,7 @@ mide en un navegador). Lo que se consiente en la landing vale después en el sit
 lista guardada es un superconjunto). Añadir otro id a un proveedor que el site ya tiene
 no cambia la versión: el consentimiento es por proveedor.
 
-**Invariante `tracking-legal` (8e): límite con las variables de build.** El checker lee `settings.yaml` y las landings, **no** las `PUBLIC_TRACKING_*`. Medido (2-nov-2026): con GA4 y Clarity encendidos solo por variable, `pnpm studio:check` sigue avisando «la política DECLARA GA4/Clarity pero el site NO lo tiene encendido» (aviso inverso, falso para ese despliegue). Por el código (`trackingEnabledPorOrigen`, NO medido con un caso), el efecto contrario también existe: un proveedor encendido solo por variable **sin ancla en la política pasa en verde**. La CI de GitHub no tiene esas variables (viven en el build de Cloudflare), así que no podría verlas aunque las leyera. Quien las use debe comprobar a mano que la política nombra cada proveedor (`docs/legal-marketing.md`). Para `theme.saastro.io` las cuatro previstas están cubiertas por las anclas actuales (GA4 y Clarity) o exentas (Cloudflare).
+**Invariante `tracking-legal` (8e): límite con las variables de build.** El checker lee `settings.yaml` y las landings, **no** las `PUBLIC_TRACKING_*`. Medido (2-nov-2026): con GA4 y Clarity encendidos solo por variable, `pnpm studio:check` sigue avisando «la política DECLARA GA4/Clarity pero el site NO lo tiene encendido» (aviso inverso, falso para ese despliegue). Por el código (`trackingEnabledPorOrigen`, NO medido con un caso), el efecto contrario también existe: un proveedor encendido solo por variable **sin ancla en la política pasa en verde**. La CI de GitHub no tiene esas variables (viven en el build de Cloudflare), así que no podría verlas aunque las leyera. Quien las use debe comprobar a mano que la política nombra cada proveedor (`docs/legal-marketing.md`). Para `theme.saastro.io`, GA4, Clarity y Cloudflare Web Analytics llevan su ancla en la política del theme (la de Cloudflare es un borrador que revisa JC); la cuarta variable es el número de WhatsApp, que no es un tracker.
 
 **Invariante `tracking-legal` (8e).** Además de `settings.yaml`, lee el frontmatter de
 **cualquier** landing de `src/content/lp/*.md` (publicada o borrador). Un proveedor
@@ -420,7 +419,7 @@ de esa página** (los del site más los de la landing, o solo los de la landing 
 - Un proveedor que **solo** enciende una landing hay que declararlo en la política
   (texto de JC) antes de publicarla; el checker lo exige.
 - **Vista de las claves (`consentKeys`):** solo cuentan los proveedores que piden
-  consentimiento; Cloudflare Web Analytics, exento, no se toca desde una landing.
+  consentimiento; Cloudflare Web Analytics y Clarity son del site y no se tocan desde una landing.
 - Los efectos en los paneles de cada proveedor **no** están comprobados: sí que las
   peticiones salen a los ids esperados (ver la medición del PR).
 

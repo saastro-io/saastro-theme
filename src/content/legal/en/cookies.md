@@ -42,6 +42,14 @@ A Microsoft tool that records how the site is used: session recordings (clicks, 
 
 More information: [Microsoft's privacy statement](https://www.microsoft.com/privacy/privacystatement).
 
+### Cloudflare Web Analytics
+
+<div data-legal="tracking-cloudflare"></div>
+
+Cloudflare's analytics service. It measures which pages are visited and how the site performs. It loads from `static.cloudflareinsights.com` and sends to `cloudflareinsights.com` the page address, the browser engine and version and the operating system version, JavaScript memory usage, load timings, an identifier of that page load and the site token. Like any server, Cloudflare also receives your IP address and connection data.
+
+More information: [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
+
 ## Personalization cookies
 
 These remember your preferences and settings to provide a better experience.

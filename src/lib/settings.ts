@@ -65,7 +65,7 @@ export interface SiteSettings {
     readonly tiktokPixel?: string;
     readonly linkedinPartnerId?: string;
     readonly clarity?: string;
-    /** Token del beacon de Cloudflare Web Analytics (32 hex). Exento de consentimiento. */
+    /** Token del beacon de Cloudflare Web Analytics (32 hex). Pide consentimiento de analítica. */
     readonly cloudflareWebAnalytics?: string;
   };
   /**

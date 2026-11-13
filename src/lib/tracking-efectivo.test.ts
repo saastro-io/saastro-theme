@@ -10,6 +10,9 @@ import { describe, expect, it } from 'vitest';
 import { LANDING_KEYS, PROVIDERS, envVarName, resolveTracking } from './tracking';
 import { serializar, trackingJson } from './tracking-efectivo';
 
+/** PROVIDERS es `readonly` en el tipo: estos tests lo mutan A PROPÓSITO (proveedor sintético, siempre con try/finally). */
+const CATALOGO_MUTABLE = PROVIDERS as unknown as unknown[];
+
 const base = { analytics: { googleAnalytics: { id: '' }, googleTagManager: { id: '' } } };
 const conTracking = (tracking: Record<string, unknown>) => ({ ...base, tracking });
 const SITE = 'https://example.test';
@@ -133,7 +136,7 @@ describe('ids inválidos: motivo sin eco del valor', () => {
   });
 });
 
-describe('noindex y proveedor exento', () => {
+describe('noindex y proveedor sin variante por landing', () => {
   it('noindex apaga todo, tal cual lo hace el cargador', () => {
     const settings = conTracking({ ga4: 'G-TESTAAAA01' });
     const j = json(settings, { PUBLIC_TRACKING_CLARITY: 'testaaaa01' }, true);
@@ -141,9 +144,20 @@ describe('noindex y proveedor exento', () => {
     expect(resolveTracking(settings, { noindex: true }).providers).toEqual([]);
   });
 
-  it('Cloudflare Web Analytics (exento): consentRequired false, perLanding false, y se publica', () => {
+  it('Cloudflare Web Analytics (con consentimiento de analítica): consentRequired true, perLanding false, y se publica', () => {
     const j = json(base, { PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS: '0123456789abcdef0123456789abcdef' });
-    expect(de(j, 'cloudflareWebAnalytics')).toMatchObject({ source: 'variable', ids: ['0123456789abcdef0123456789abcdef'], category: 'none', consentRequired: false, perLanding: false });
+    expect(de(j, 'cloudflareWebAnalytics')).toMatchObject({ source: 'variable', ids: ['0123456789abcdef0123456789abcdef'], category: 'analytics', consentRequired: true, perLanding: false });
+  });
+
+  it('un proveedor exento SINTÉTICO (con motivo): consentRequired false y perLanding false en el fichero que lee el Hub', () => {
+    const sintetico = { key: 'sintetico', label: 'Sintético', category: 'none', exemptReason: 'motivo de prueba', pattern: '^[a-z]{4}$', maxIds: 1 };
+    CATALOGO_MUTABLE.push(sintetico as never);
+    try {
+      const j = json(conTracking({ sintetico: 'abcd' }));
+      expect(de(j, 'sintetico')).toMatchObject({ category: 'none', consentRequired: false, perLanding: false });
+    } finally {
+      CATALOGO_MUTABLE.splice(CATALOGO_MUTABLE.indexOf(sintetico as never), 1);
+    }
   });
 
   it('una `none` SIN motivo no es exención: pide consentimiento', () => {
