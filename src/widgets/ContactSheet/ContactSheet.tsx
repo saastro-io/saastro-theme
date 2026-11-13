@@ -6,6 +6,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import '@/lib/forms-consent';
 import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { Locale } from '@/i18n/config';
 import type { Translations } from '@/i18n/types';

@@ -6,6 +6,7 @@
  * registro de primitivas. No hay un `<form>` propio: los leads van por el Hub.
  * Solo se monta si hay `siteId`; sin él, `RequestSite.astro` pinta un aviso.
  */
+import '@/lib/forms-consent';
 import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { Locale } from '@/i18n/config';
 
