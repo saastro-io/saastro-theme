@@ -31,11 +31,11 @@ Auditado en `src/components/GenTracking.astro` (emisor) y en
 | | |
 |---|---|
 | **Cookies** | **Ninguna.** No se escribe ni se lee ninguna cookie; la respuesta de `/collect` no trae `Set-Cookie` y la petición va con `credentials: 'omit'`. |
-| **Almacenamiento en el dispositivo** | `sessionStorage['gen-visitor-id']` — un UUID v4 aleatorio. Vive **mientras dure la pestaña/sesión** del navegador; al cerrarla desaparece. No hay identificador persistente entre sesiones. |
+| **Almacenamiento en el dispositivo** | **Solo tras aceptar analítica** (con `consent: "required"`, el defecto): `sessionStorage['gen-visitor-id']` — un UUID v4 aleatorio. Vive **mientras dure la pestaña/sesión** del navegador; al cerrarla desaparece. No hay identificador persistente entre sesiones. |
 | **Qué se envía en cada vista** | A `https://gen.saastro.io/collect`: id de workspace, vertical, el visitor id, tipo (`page_view`), URL completa, ruta, título de la página, referrer, parámetros UTM (`source`, `medium`, `campaign`, `term`, `content`) y marca de tiempo. |
 | **Dirección IP** | Como en cualquier petición HTTP, el servidor la recibe. Gen la usa **solo** para limitar la frecuencia de peticiones: vive ≤60 s en una clave de caché y **no se guarda en la base de datos**. |
 | **NO se recoge** | User-agent, geolocalización, huella de dispositivo (*fingerprinting*). Nada de eso se lee ni se almacena. |
-| **Formularios** | El visitor id se inyecta como campo oculto `gen_visitor_id`. Al enviar un formulario, Gen **vincula las vistas previas de ese visitante al contacto identificado** — ese es el momento en que el histórico anónimo pasa a ser dato personal. |
+| **Formularios** | **Solo si el visitante aceptó analítica**, el visitor id se inyecta como campo oculto `gen_visitor_id`; si no, el formulario va sin él. Al enviar un formulario, Gen **vincula las vistas previas de ese visitante al contacto identificado** — ese es el momento en que el histórico anónimo pasa a ser dato personal. |
 | **Finalidad** | Atribución de leads (primer/último contacto) y embudo/coste por lead por canal. |
 | **Destinatario** | SAASTRO Gen (`gen.saastro.io`). |
 
@@ -47,6 +47,15 @@ Override por workspace: `flags.retention.anonymousDays`. Además el erase DSAR
 barre también el rastro anónimo del mismo `visitor_id` y el export lo entrega
 (Art. 15). El plazo de abajo ya es un hecho del sistema, no una promesa —
 si un workspace configura un `anonymousDays` distinto, ajusta el texto.
+
+> **Antes de copiar el texto, ten presente qué NO está verificado.** Son lecturas jurídicas, no
+> hechos del código: (1) que guardar un id en `sessionStorage` exija consentimiento (art. 22.2 LSSI /
+> ePrivacy 5.3); (2) que la base jurídica sea el consentimiento (art. 6.1.a RGPD); (3) que SAASTRO Gen
+> actúe como **encargado del tratamiento** del titular (debe coincidir con el contrato real); (4) la
+> mención a la AEPD solo vale para titulares españoles. Lo que SÍ está comprobado en código: no se
+> guarda nada ni se envía nada antes de aceptar, retirar el consentimiento borra el id, la IP no se
+> guarda y las vistas anónimas se purgan a los 13 meses por defecto. El texto final lo decide el
+> titular del site.
 
 ## El texto — español
 
