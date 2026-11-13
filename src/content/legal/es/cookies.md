@@ -44,7 +44,7 @@ Más información: [declaración de privacidad de Microsoft](https://www.microso
 
 <div data-legal="tracking-cloudflare"></div>
 
-Servicio de analítica de Cloudflare. Mide qué páginas se visitan y el rendimiento del sitio. Se carga desde `static.cloudflareinsights.com` y envía las mediciones a Cloudflare.
+Servicio de analítica de Cloudflare. Mide qué páginas se visitan y el rendimiento del sitio. Se carga desde `static.cloudflareinsights.com` y envía a `cloudflareinsights.com` la dirección de la página, el motor y la versión del navegador y del sistema operativo, el uso de memoria de JavaScript, los tiempos de carga, un identificador de esa carga de página y el token del sitio. Como cualquier servidor, Cloudflare recibe además tu dirección IP y los datos de la conexión.
 
 Más información: [política de privacidad de Cloudflare](https://www.cloudflare.com/privacypolicy/).
 

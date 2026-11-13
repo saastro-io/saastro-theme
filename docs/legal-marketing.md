@@ -103,5 +103,8 @@ el token del site y mide visitas y rendimiento de las páginas. Desde el 13-nov-
 al banner por una decisión del theme (el beacon no escribe en el dispositivo ni identifica
 al visitante) que **nunca se verificó** contra la documentación de Cloudflare ni contra la
 ley, y por eso se retiró: solo se mantiene exento lo que lo está por ley.
-*[Texto final: JC. Contrastar qué datos recibe Cloudflare (IP, user-agent, URL, referrer),
-si el beacon usa almacenamiento en el dispositivo y dónde se procesan.]*
+El párrafo de la política del theme lista los datos que SE VIERON enviar el 13-nov-2026
+(POST a `cloudflareinsights.com/cdn-cgi/rum` desde un Chrome limpio: URL, motor/versión del
+navegador y del SO, memoria de JS, tiempos, id de la carga y token del site; sin `Set-Cookie`).
+*[Sin verificar contra Cloudflare: si el beacon usa almacenamiento en otras condiciones, la
+retención y dónde se procesan los datos; el párrafo no lo afirma. Texto final: JC.]*
