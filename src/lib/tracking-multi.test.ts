@@ -12,6 +12,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { PROVIDERS, isExempt, resolveTracking } from './tracking';
 
+/** PROVIDERS es `readonly` en el tipo: estos tests lo mutan A PROPÓSITO (proveedor sintético, siempre con try/finally). */
+const CATALOGO_MUTABLE = PROVIDERS as unknown as unknown[];
+
 const base = { analytics: { googleAnalytics: { id: '' }, googleTagManager: { id: '' } } };
 const CF = 'c0ffee00c0ffee00c0ffee00c0ffee00';
 const OTRO = '0123456789abcdef0123456789abcdef';
@@ -104,8 +107,8 @@ describe('Cloudflare Web Analytics en el catálogo (con consentimiento de analí
 describe('mecanismo de exención en el resolvedor (proveedor SINTÉTICO: el catálogo real no tiene ninguno)', () => {
   const SINTETICO = { key: 'sintetico', label: 'Sintético', category: 'none', exemptReason: 'motivo de prueba', pattern: '^[a-z]{4}$', maxIds: 1 };
   const con = (fn: () => void) => {
-    PROVIDERS.push(SINTETICO as never);
-    try { fn(); } finally { PROVIDERS.splice(PROVIDERS.indexOf(SINTETICO as never), 1); }
+    CATALOGO_MUTABLE.push(SINTETICO as never);
+    try { fn(); } finally { CATALOGO_MUTABLE.splice(CATALOGO_MUTABLE.indexOf(SINTETICO as never), 1); }
   };
 
   it('un exento con motivo conserva category none, NO entra en consentKeys y no enciende el banner de marketing', () => {
@@ -120,13 +123,13 @@ describe('mecanismo de exención en el resolvedor (proveedor SINTÉTICO: el cat�
   it('el mismo proveedor sin motivo se resuelve como analytics y SÍ entra en consentKeys', () => {
     con(() => {
       const { exemptReason: _, ...sinMotivo } = SINTETICO;
-      PROVIDERS.splice(PROVIDERS.indexOf(SINTETICO as never), 1, sinMotivo as never);
+      CATALOGO_MUTABLE.splice(CATALOGO_MUTABLE.indexOf(SINTETICO as never), 1, sinMotivo as never);
       try {
         const r = resolveTracking({ ...base, tracking: { sintetico: 'abcd' } });
         expect(r.providers.find((p) => p.key === 'sintetico')?.category).toBe('analytics');
         expect(r.consentKeys).toEqual(['sintetico']);
       } finally {
-        PROVIDERS.splice(PROVIDERS.indexOf(sinMotivo as never), 1, SINTETICO as never);
+        CATALOGO_MUTABLE.splice(CATALOGO_MUTABLE.indexOf(sinMotivo as never), 1, SINTETICO as never);
       }
     });
   });

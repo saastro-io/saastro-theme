@@ -10,6 +10,9 @@ import { describe, expect, it } from 'vitest';
 import { LANDING_KEYS, PROVIDERS, envVarName, resolveTracking } from './tracking';
 import { serializar, trackingJson } from './tracking-efectivo';
 
+/** PROVIDERS es `readonly` en el tipo: estos tests lo mutan A PROPÓSITO (proveedor sintético, siempre con try/finally). */
+const CATALOGO_MUTABLE = PROVIDERS as unknown as unknown[];
+
 const base = { analytics: { googleAnalytics: { id: '' }, googleTagManager: { id: '' } } };
 const conTracking = (tracking: Record<string, unknown>) => ({ ...base, tracking });
 const SITE = 'https://example.test';
@@ -148,12 +151,12 @@ describe('noindex y proveedor sin variante por landing', () => {
 
   it('un proveedor exento SINTÉTICO (con motivo): consentRequired false y perLanding false en el fichero que lee el Hub', () => {
     const sintetico = { key: 'sintetico', label: 'Sintético', category: 'none', exemptReason: 'motivo de prueba', pattern: '^[a-z]{4}$', maxIds: 1 };
-    PROVIDERS.push(sintetico as never);
+    CATALOGO_MUTABLE.push(sintetico as never);
     try {
       const j = json(conTracking({ sintetico: 'abcd' }));
       expect(de(j, 'sintetico')).toMatchObject({ category: 'none', consentRequired: false, perLanding: false });
     } finally {
-      PROVIDERS.splice(PROVIDERS.indexOf(sintetico as never), 1);
+      CATALOGO_MUTABLE.splice(CATALOGO_MUTABLE.indexOf(sintetico as never), 1);
     }
   });
 
