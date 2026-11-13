@@ -198,7 +198,7 @@ describe('etiqueta de conversión de Google Ads por variable', () => {
 });
 
 describe('consentimiento con ids por variable', () => {
-  it('Cloudflare por variable sigue exento (no entra en consentKeys) y GA4/Clarity sí piden consentimiento', () => {
+  it('Cloudflare por variable ya NO es exento: GA4, Clarity y Cloudflare piden consentimiento de analítica', () => {
     const r = resolveTracking(base, {
       env: {
         PUBLIC_TRACKING_GA4: VALIDO.ga4,
@@ -206,8 +206,8 @@ describe('consentimiento con ids por variable', () => {
         PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS: VALIDO.cloudflareWebAnalytics,
       },
     });
-    expect(r.consentKeys.sort()).toEqual(['clarity', 'ga4']);
-    expect(r.providers.find((p) => p.key === 'cloudflareWebAnalytics')?.category).toBe('none');
+    expect(r.consentKeys.sort()).toEqual(['clarity', 'cloudflareWebAnalytics', 'ga4']);
+    expect(r.providers.find((p) => p.key === 'cloudflareWebAnalytics')?.category).toBe('analytics');
   });
 
   it('noindex apaga también lo que viene de variables', () => {

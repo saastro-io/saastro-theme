@@ -48,10 +48,9 @@ interface CookieBannerProps {
  *  Solo los flags de los loaders gateados (Analytics.astro: `gaLoaded` /
  *  `gtmLoaded`).
  *
- *  El beacon de Cloudflare NO cuenta a propósito: no está gateado (es cookieless
- *  — ver la nota de decisión en BaseLayout), así que recargar por él sería
- *  inútil: volvería a cargar igual tras el reload. Incluirlo solo provocaría una
- *  recarga sin efecto cada vez que alguien apaga analytics en un site con beacon. */
+ *  El beacon de Cloudflare Web Analytics SÍ cuenta (desde el 13-nov-2026): está gateado
+ *  como GA4 y Clarity y marca `trackersLoaded` al cargarse (Analytics.astro), así que
+ *  revocar analytics lo detiene con la recarga. Antes se excluía por «exento». */
 function analyticsTrackerLoaded(): boolean {
   const w = window as Window & { gaLoaded?: boolean; gtmLoaded?: boolean; trackersLoaded?: boolean }
   return Boolean(w.gaLoaded || w.gtmLoaded || w.trackersLoaded)

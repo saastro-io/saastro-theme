@@ -166,9 +166,9 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
     <slot name="head" />
 
     {/* Cloudflare Web Analytics ya NO se carga aquí: es un proveedor más del catálogo
-        (`cloudflareWebAnalytics`, categoría `none` = exento de consentimiento, con su
-        motivo escrito en tracking-providers.json) y lo carga el ÚNICO cargador,
-        Analytics.astro, con el mismo bloqueo de hosts y el mismo shim de siempre. */}
+        (`cloudflareWebAnalytics`, categoría `analytics`: espera al consentimiento del banner,
+        como GA4 y Clarity) y lo carga el ÚNICO cargador, Analytics.astro, con el mismo
+        bloqueo de hosts y el mismo shim de siempre. */}
 
     {/* SAASTRO Gen lead attribution — page-view beacon (waits for the banner by default) + visitor id
         on form submits. Off unless settings.gen.workspaceId is set (the Hub's
