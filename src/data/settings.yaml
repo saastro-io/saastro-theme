@@ -103,17 +103,18 @@ forms:
   contactFormSlug: "contact"
 
 gen:
-  # SAASTRO Gen lead-attribution beacon (GenTracking): one cookieless page-view
-  # per load → gen.saastro.io/collect, and the anonymous visitor id rides along
-  # on form submits so Gen links each lead to its pre-conversion journey.
+  # SAASTRO Gen lead-attribution beacon (GenTracking): one page-view per load →
+  # gen.saastro.io/collect, and the anonymous visitor id (sessionStorage) rides
+  # along on form submits so Gen links each lead to its pre-conversion journey.
   # `workspaceId` = your Gen workspace (the Platform team id). EMPTY = OFF.
   # Toggled per site from Hub → Site → Settings, which writes this block
   # (same mechanism as forms.siteId). Host-blocked on previews/local dev.
   workspaceId: ""
   vertical: "default"
-  # "none" = cookieless, tracks immediately (no banner needed).
-  # "required" = waits until localStorage['gen-consent'] === 'granted'.
-  consent: "none"
+  # "required" = (default) no id, no form field and no request until the visitor
+  #   accepts the `analytics` category of the cookie banner.
+  # "none" = tracks immediately. Only if the site owner has decided it is exempt.
+  consent: "required"
 
 measure:
   # Medición render-vs-JS: cuántas visitas se quedan SIN formulario utilizable.

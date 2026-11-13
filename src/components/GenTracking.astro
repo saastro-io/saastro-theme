@@ -3,8 +3,8 @@
  * GenTracking — SAASTRO Gen lead-attribution beacon (opt-in).
  *
  * Emits one page-view to `{endpoint}/collect` per page load, keyed by an
- * anonymous `visitorId` kept in **sessionStorage** (cookieless → GDPR-friendly,
- * no banner needed), and injects that id into every `<form>` as a hidden field
+ * anonymous `visitorId` kept in **sessionStorage**, and injects that id into
+ * every `<form>` as a hidden field
  * `gen_visitor_id`. When the form is submitted the id rides along, so Gen can
  * link the lead back to its pre-conversion journey → first/last-touch
  * attribution + funnel/CPL per channel.
@@ -20,13 +20,19 @@
  *   <GenTracking workspaceId="team_123" vertical="realestate" />
  *
  * Consent modes:
- *   consent="none"      (default) cookieless, tracks immediately.
- *   consent="required"  waits until localStorage['gen-consent'] === 'granted'
- *                       (re-checked on each navigation; dispatch a
- *                       `gen:consent-granted` window event to start same-tab).
- *                       Además la cookie `cookie_consent` debe CUBRIR los
- *                       proveedores encendidos (`trackingKeys`): misma regla que
- *                       Analytics.astro (consentCovers, src/lib/cookies.ts).
+ *   consent="required"  (default) NOTHING happens until the visitor accepts the
+ *                       `analytics` category of the cookie banner: no
+ *                       sessionStorage id, no form field, no request. The banner
+ *                       mirrors that choice into localStorage['gen-consent']
+ *                       (src/lib/gen-consent.ts) and the cookie `cookie_consent`
+ *                       must also COVER the providers switched on
+ *                       (`trackingKeys`; same rule as Analytics.astro,
+ *                       consentCovers in src/lib/cookies.ts). Rejecting or
+ *                       revoking deletes the id and the hidden form fields.
+ *   consent="none"      explicit opt-out: tracks immediately. Only for a site
+ *                       whose owner has decided the beacon is exempt — the
+ *                       theme does NOT assume it (art. 22.2 LSSI / ePrivacy 5(3)
+ *                       cover any storage on the device, not only cookies).
  */
 export interface Props {
   /** Gen workspace id = the SAASTRO Platform team id (public). */
@@ -35,7 +41,7 @@ export interface Props {
   vertical?: string;
   /** Gen collector origin. Default: https://gen.saastro.io */
   endpoint?: string;
-  /** "none" (cookieless, immediate) | "required" (gated on gen-consent). */
+  /** "required" (default, gated on the cookie banner) | "none" (immediate). */
   consent?: 'none' | 'required';
   /** Claves de los proveedores de tracking encendidos (resolveTracking). Con
    *  consent="required" el consentimiento guardado debe cubrirlas todas. */
@@ -46,7 +52,7 @@ const {
   workspaceId,
   vertical = 'default',
   endpoint = 'https://gen.saastro.io',
-  consent = 'none',
+  consent = 'required',
   trackingKeys = [],
 } = Astro.props;
 // Host propio del site (`SITE_URL`): se mide aunque cuelgue de *.saastro.io.
@@ -72,7 +78,9 @@ const ownHost = Astro.site?.hostname ?? '';
         if (!workspace) return;
         var vertical = cfg.genVertical || 'default';
         var endpoint = (cfg.genEndpoint || 'https://gen.saastro.io').replace(/\/+$/, '');
-        var consentMode = cfg.genConsent || 'none';
+        // Ausente o desconocido = «required»: solo un «none» escrito a propósito
+        // se salta el banner.
+        var consentMode = cfg.genConsent === 'none' ? 'none' : 'required';
         var ownHost = cfg.genOwnHost || '';
         var KEYS = [];
         try { KEYS = JSON.parse(cfg.genKeys || '[]'); } catch (e) { KEYS = []; }
@@ -117,6 +125,18 @@ const ownHost = Astro.site?.hostname ?? '';
           } catch (e) {
             return false;
           }
+        }
+
+        // Retirada: borra el id de la pestaña y los campos ocultos ya
+        // inyectados, para que un envío posterior no lo lleve.
+        function forget() {
+          try {
+            sessionStorage.removeItem('gen-visitor-id');
+          } catch (e) {}
+          try {
+            var inputs = document.querySelectorAll('input[name="gen_visitor_id"]');
+            for (var i = 0; i < inputs.length; i++) inputs[i].remove();
+          } catch (e) {}
         }
 
         function uuid() {
@@ -221,7 +241,11 @@ const ownHost = Astro.site?.hostname ?? '';
         var lastUrl = '';
         var lastTs = 0;
         function track() {
-          if (!consentOk()) return;
+          if (!consentOk()) {
+            // Sin consentimiento no se deja nada, ni siquiera un id viejo.
+            if (consentMode === 'required') forget();
+            return;
+          }
           var vid = visitorId();
           if (!vid) return;
           // Always (re)inject — forms are swapped on SPA navigation.
@@ -252,6 +276,11 @@ const ownHost = Astro.site?.hostname ?? '';
               if (e && e.key === 'gen-consent' && e.newValue === 'granted') track();
             });
             window.addEventListener('gen:consent-granted', function () {
+              track();
+            });
+            // El banner avisa en cada decisión, también al rechazar o revocar:
+            // ahí `track()` ve que ya no hay consentimiento y olvida el id.
+            window.addEventListener('cookie-consent-updated', function () {
               track();
             });
           } catch (e) {}
