@@ -31,11 +31,11 @@ Auditado en `src/components/GenTracking.astro` (emisor) y en
 | | |
 |---|---|
 | **Cookies** | **Ninguna.** No se escribe ni se lee ninguna cookie; la respuesta de `/collect` no trae `Set-Cookie` y la petición va con `credentials: 'omit'`. |
-| **Almacenamiento en el dispositivo** | `sessionStorage['gen-visitor-id']` — un UUID v4 aleatorio. Vive **mientras dure la pestaña/sesión** del navegador; al cerrarla desaparece. No hay identificador persistente entre sesiones. |
+| **Almacenamiento en el dispositivo** | **Solo tras aceptar analítica** (con `consent: "required"`, el defecto): `sessionStorage['gen-visitor-id']` — un UUID v4 aleatorio. Vive **mientras dure la pestaña/sesión** del navegador; al cerrarla desaparece. No hay identificador persistente entre sesiones. |
 | **Qué se envía en cada vista** | A `https://gen.saastro.io/collect`: id de workspace, vertical, el visitor id, tipo (`page_view`), URL completa, ruta, título de la página, referrer, parámetros UTM (`source`, `medium`, `campaign`, `term`, `content`) y marca de tiempo. |
 | **Dirección IP** | Como en cualquier petición HTTP, el servidor la recibe. Gen la usa **solo** para limitar la frecuencia de peticiones: vive ≤60 s en una clave de caché y **no se guarda en la base de datos**. |
 | **NO se recoge** | User-agent, geolocalización, huella de dispositivo (*fingerprinting*). Nada de eso se lee ni se almacena. |
-| **Formularios** | El visitor id se inyecta como campo oculto `gen_visitor_id`. Al enviar un formulario, Gen **vincula las vistas previas de ese visitante al contacto identificado** — ese es el momento en que el histórico anónimo pasa a ser dato personal. |
+| **Formularios** | **Solo si el visitante aceptó analítica**, el visitor id se inyecta como campo oculto `gen_visitor_id`; si no, el formulario va sin él. Al enviar un formulario, Gen **vincula las vistas previas de ese visitante al contacto identificado** — ese es el momento en que el histórico anónimo pasa a ser dato personal. |
 | **Finalidad** | Atribución de leads (primer/último contacto) y embudo/coste por lead por canal. |
 | **Destinatario** | SAASTRO Gen (`gen.saastro.io`). |
 
@@ -48,6 +48,15 @@ barre también el rastro anónimo del mismo `visitor_id` y el export lo entrega
 (Art. 15). El plazo de abajo ya es un hecho del sistema, no una promesa —
 si un workspace configura un `anonymousDays` distinto, ajusta el texto.
 
+> **Antes de copiar el texto, ten presente qué NO está verificado.** Son lecturas jurídicas, no
+> hechos del código: (1) que guardar un id en `sessionStorage` exija consentimiento (art. 22.2 LSSI /
+> ePrivacy 5.3); (2) que la base jurídica sea el consentimiento (art. 6.1.a RGPD); (3) que SAASTRO Gen
+> actúe como **encargado del tratamiento** del titular (debe coincidir con el contrato real); (4) la
+> mención a la AEPD solo vale para titulares españoles. Lo que SÍ está comprobado en código: no se
+> guarda nada ni se envía nada antes de aceptar, retirar el consentimiento borra el id, la IP no se
+> guarda y las vistas anónimas se purgan a los 13 meses por defecto. El texto final lo decide el
+> titular del site.
+
 ## El texto — español
 
 ````markdown
@@ -56,14 +65,22 @@ si un workspace configura un `anonymousDays` distinto, ajusta el texto.
 <div data-legal="gen-tracking"></div>
 
 Este sitio utiliza **SAASTRO Gen**, un servicio de atribución de leads, para
-saber por qué canal nos llegan las solicitudes de contacto.
+saber por qué canal nos llegan las solicitudes de contacto. **Solo lo activamos
+si aceptas las cookies de analítica** en el aviso de cookies: mientras no lo
+aceptes, o si lo rechazas, no se guarda ningún identificador y no se envía
+ningún dato a Gen.
 
-**No utiliza cookies.** En su lugar guarda en el almacenamiento de sesión de tu
-navegador (`sessionStorage`) un identificador aleatorio y anónimo
+**No utiliza cookies.** Una vez aceptado, guarda en el almacenamiento de sesión
+de tu navegador (`sessionStorage`) un identificador aleatorio y anónimo
 (`gen-visitor-id`) que **se borra al cerrar la pestaña**. No permite
 identificarte entre sesiones ni entre dispositivos.
 
-En cada página que visitas se envía a `gen.saastro.io` la siguiente información:
+**Puedes retirar tu consentimiento cuando quieras** desde «Gestionar cookies»,
+en el pie de la página: al hacerlo se borra ese identificador y dejan de
+enviarse datos.
+
+Si has aceptado, en cada página que visitas se envía a `gen.saastro.io` la
+siguiente información:
 
 - la dirección de la página, su ruta y su título;
 - la página de procedencia (*referrer*), si la hay;
@@ -79,20 +96,28 @@ datos** ni se asocia a tu navegación.
 **No** recogemos por esta vía tu user-agent, tu ubicación geográfica ni ninguna
 huella de dispositivo.
 
-**Si envías un formulario**, ese identificador anónimo se adjunta al envío. Eso
-nos permite saber por qué canal llegaste, y a partir de ese momento las páginas
-que habías visitado quedan vinculadas a los datos de contacto que nos facilitas.
+**Si has aceptado y envías un formulario**, ese identificador anónimo se
+adjunta al envío. Eso nos permite saber por qué canal llegaste, y a partir de
+ese momento las páginas que habías visitado quedan vinculadas a los datos de
+contacto que nos facilitas. Si no has aceptado, el formulario se envía sin él.
 
 - **Responsable del tratamiento:** [PENDIENTE: razón social, NIF, dirección y
   correo de contacto del titular del sitio]
-- **Base jurídica:** [PENDIENTE: decidir consentimiento o interés legítimo —
-  depende del modo de consentimiento configurado; ver nota abajo]
+- **Base jurídica:** tu consentimiento (art. 6.1.a RGPD), que prestas al aceptar
+  las cookies de analítica y puedes retirar en cualquier momento sin que ello
+  afecte a lo ya realizado.
 - **Plazo de conservación:** las vistas de página anónimas se conservan un
   máximo de **13 meses**; si nos facilitas tus datos en un formulario, tu
   actividad pasa a conservarse junto a tu solicitud, con el plazo indicado en
   esta política para ella.
+- **Destinatario:** SAASTRO Gen (`gen.saastro.io`), como encargado del
+  tratamiento por cuenta del titular del sitio.
 - **Transferencias internacionales:** [PENDIENTE: confirmar dónde se procesan
   los datos y con qué garantías]
+- **Tus derechos:** acceso, rectificación, supresión, oposición, limitación y
+  portabilidad, escribiendo al correo del responsable; y reclamación ante la
+  autoridad de control (en España, la Agencia Española de Protección de Datos,
+  www.aepd.es).
 ````
 
 ## El texto — inglés
@@ -103,13 +128,20 @@ que habías visitado quedan vinculadas a los datos de contacto que nos facilitas
 <div data-legal="gen-tracking"></div>
 
 This site uses **SAASTRO Gen**, a lead-attribution service, to understand which
-channel our enquiries come from.
+channel our enquiries come from. **We only switch it on if you accept analytics
+cookies** in the cookie notice: until you accept, or if you reject, no
+identifier is stored and no data is sent to Gen.
 
-**It does not use cookies.** Instead it stores a random, anonymous identifier
-(`gen-visitor-id`) in your browser's session storage, which **is deleted when
-you close the tab**. It cannot identify you across sessions or devices.
+**It does not use cookies.** Once you accept, it stores a random, anonymous
+identifier (`gen-visitor-id`) in your browser's session storage, which **is
+deleted when you close the tab**. It cannot identify you across sessions or
+devices.
 
-On each page you visit, the following is sent to `gen.saastro.io`:
+**You can withdraw your consent at any time** from "Manage cookies" in the page
+footer: doing so deletes that identifier and stops any data being sent.
+
+If you have accepted, on each page you visit the following is sent to
+`gen.saastro.io`:
 
 - the page address, path and title;
 - the referring page, if any;
@@ -124,19 +156,27 @@ minute and is **not stored in the database** or linked to your browsing.
 We do **not** collect your user-agent, your geographic location or any device
 fingerprint through this mechanism.
 
-**If you submit a form**, that anonymous identifier is attached to the
-submission. This tells us which channel you came from, and from that point the
-pages you had visited become linked to the contact details you provide.
+**If you have accepted and you submit a form**, that anonymous identifier is
+attached to the submission. This tells us which channel you came from, and from
+that point the pages you had visited become linked to the contact details you
+provide. If you have not accepted, the form is submitted without it.
 
 - **Data controller:** [PENDIENTE: legal name, tax id, address and contact
   email of the site owner]
-- **Legal basis:** [PENDIENTE: decide consent or legitimate interest — depends
-  on the configured consent mode; see note below]
+- **Legal basis:** your consent (art. 6(1)(a) GDPR), which you give by
+  accepting analytics cookies and can withdraw at any time without affecting
+  what was done before.
 - **Retention period:** anonymous page views are kept for a maximum of
   **13 months**; if you submit your details through a form, your activity is
   then kept alongside your enquiry, for the period stated in this policy.
+- **Recipient:** SAASTRO Gen (`gen.saastro.io`), acting as processor on behalf of
+  the site owner.
 - **International transfers:** [PENDIENTE: confirm where data is processed and
   under which safeguards]
+- **Your rights:** access, rectification, erasure, objection, restriction and
+  portability, by writing to the controller's email; and to lodge a complaint
+  with your supervisory authority (in Spain, the Agencia Española de Protección
+  de Datos, www.aepd.es).
 ````
 
 ## Los huecos `[PENDIENTE: …]` — por qué siguen abiertos
@@ -149,13 +189,13 @@ conservación dejó de ser un hueco el 17-jul-2026: gen lo cumple de serie —
 | Hueco | Por qué no lo decide el código |
 |---|---|
 | Responsable del tratamiento | Es el titular del site, distinto en cada descendiente del theme. |
-| Base jurídica | Es una calificación jurídica, no una propiedad del código. Depende además del modo: `settings.gen.consent: "required"` (por defecto desde el 13-nov-2026) **no guarda el id, no inyecta el campo ni envía nada hasta que el visitante acepta la categoría `analytics` del banner**; rechazar o revocar borra el id. `"none"` dispara el beacon inmediatamente, antes de que el visitante toque el banner. Que guardar un id en `sessionStorage` esté o no exento de consentimiento (art. 22.2 LSSI / ePrivacy) es un juicio legal sin verificar con fuente primaria; el theme ya no lo da por hecho. **El texto canónico de abajo todavía dice que el beacon actúa «en cada página que visitas»: con `required` solo actúa tras aceptar analítica y hay que reescribirlo (es texto legal: lo revisa JC).** |
+| Base jurídica | El texto de abajo asume `settings.gen.consent: "required"` (el defecto desde el 13-nov-2026): el beacon no hace nada hasta que el visitante acepta analítica, y la base es el consentimiento (art. 6.1.a RGPD). **Si un site fija `consent: "none"`, este texto deja de ser cierto** (diría que solo actúa tras aceptar) y la base jurídica es otra decisión del titular. Que guardar un id en `sessionStorage` exija consentimiento (art. 22.2 LSSI / ePrivacy 5.3) es una lectura jurídica sin verificar con fuente primaria. |
 | Transferencias internacionales | El código no fija región de procesamiento. |
 
 ## Al activar Gen — checklist
 
 1. Rellena `settings.gen.workspaceId` (o deja que lo escriba Hub → Site → Settings).
 2. Copia la sección de arriba al `cookies.md` de **cada locale**, con su ancla.
-3. Rellena los tres `[PENDIENTE: …]` restantes (responsable, base jurídica, transferencias).
+3. Rellena los dos `[PENDIENTE: …]` restantes (responsable y transferencias) y confirma que el site NO fija `consent: "none"` (si lo fija, el texto no es válido tal cual).
 4. `pnpm studio:check` → verde.
 </content>
