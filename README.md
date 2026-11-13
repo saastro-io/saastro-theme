@@ -342,8 +342,8 @@ Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off;
 
 `GenTracking.astro` reports where leads come from. On each page load it POSTs a
 page-view to the Gen collector (`{endpoint}/collect`) keyed by an anonymous
-`visitorId` kept in **sessionStorage** (cookieless → GDPR-friendly, no banner
-needed), and injects that id into every `<form>` as a hidden `gen_visitor_id`
+`visitorId` kept in **sessionStorage** (no cookies; by default gated on the
+banner's `analytics` consent), and injects that id into every `<form>` as a hidden `gen_visitor_id`
 field. When the form is submitted the id rides along, so Gen links the lead to
 its pre-conversion journey → first/last-touch attribution + funnel/CPL per
 channel (source · medium · campaign).
@@ -365,7 +365,7 @@ Props (all but `workspaceId` optional):
 | `workspaceId` | —                          | Gen workspace = the SAASTRO Platform team id. **Public** (like a GA measurement id — no secret in the browser). |
 | `vertical`    | `"default"`                | Product surface within the workspace (free string).          |
 | `endpoint`    | `"https://gen.saastro.io"` | Gen collector origin.                                        |
-| `consent`     | `"none"`                   | `"none"` = cookieless, tracks immediately. `"required"` = waits until `localStorage['gen-consent'] === 'granted'` (re-checked on each navigation; dispatch a `gen:consent-granted` window event to start in the same tab). |
+| `consent`     | `"required"`               | `"required"` = nothing (no id, no form field, no request) until the visitor accepts the `analytics` category of the cookie banner (mirrored in `localStorage['gen-consent']`); reject/revoke deletes the id. `"none"` = tracks immediately, only if the site owner has decided the beacon is exempt. |
 
 Notes:
 

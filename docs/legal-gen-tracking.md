@@ -149,7 +149,7 @@ conservación dejó de ser un hueco el 17-jul-2026: gen lo cumple de serie —
 | Hueco | Por qué no lo decide el código |
 |---|---|
 | Responsable del tratamiento | Es el titular del site, distinto en cada descendiente del theme. |
-| Base jurídica | Es una calificación jurídica, no una propiedad del código. Depende además del modo: `settings.gen.consent: "none"` (por defecto) **dispara el beacon inmediatamente, antes de que el visitante toque el banner**; `"required"` espera a `localStorage['gen-consent'] === 'granted'`. Que guardar un id en `sessionStorage` esté o no exento de consentimiento (art. 22.2 LSSI / ePrivacy) es un juicio legal — el comentario de `GenTracking.astro` lo da por hecho («cookieless → no banner needed»), pero eso es una opinión, no un hecho del código. |
+| Base jurídica | Es una calificación jurídica, no una propiedad del código. Depende además del modo: `settings.gen.consent: "required"` (por defecto desde el 13-nov-2026) **no guarda el id, no inyecta el campo ni envía nada hasta que el visitante acepta la categoría `analytics` del banner**; rechazar o revocar borra el id. `"none"` dispara el beacon inmediatamente, antes de que el visitante toque el banner. Que guardar un id en `sessionStorage` esté o no exento de consentimiento (art. 22.2 LSSI / ePrivacy) es un juicio legal sin verificar con fuente primaria; el theme ya no lo da por hecho. **El texto canónico de abajo todavía dice que el beacon actúa «en cada página que visitas»: con `required` solo actúa tras aceptar analítica y hay que reescribirlo (es texto legal: lo revisa JC).** |
 | Transferencias internacionales | El código no fija región de procesamiento. |
 
 ## Al activar Gen — checklist
