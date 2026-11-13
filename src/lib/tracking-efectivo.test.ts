@@ -146,6 +146,17 @@ describe('noindex y proveedor sin variante por landing', () => {
     expect(de(j, 'cloudflareWebAnalytics')).toMatchObject({ source: 'variable', ids: ['0123456789abcdef0123456789abcdef'], category: 'analytics', consentRequired: true, perLanding: false });
   });
 
+  it('un proveedor exento SINTÉTICO (con motivo): consentRequired false y perLanding false en el fichero que lee el Hub', () => {
+    const sintetico = { key: 'sintetico', label: 'Sintético', category: 'none', exemptReason: 'motivo de prueba', pattern: '^[a-z]{4}$', maxIds: 1 };
+    PROVIDERS.push(sintetico as never);
+    try {
+      const j = json(conTracking({ sintetico: 'abcd' }));
+      expect(de(j, 'sintetico')).toMatchObject({ category: 'none', consentRequired: false, perLanding: false });
+    } finally {
+      PROVIDERS.splice(PROVIDERS.indexOf(sintetico as never), 1);
+    }
+  });
+
   it('una `none` SIN motivo no es exención: pide consentimiento', () => {
     const j = trackingJson({ report: PROVIDERS.map((d) => ({ key: d.key, ids: [], source: 'none' as const, invalid: [] })) }, SITE);
     expect(de(j, 'ga4').consentRequired).toBe(true);

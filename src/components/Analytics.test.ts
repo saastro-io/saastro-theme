@@ -289,6 +289,18 @@ describe('Cloudflare Web Analytics: con consentimiento de analítica, mismo carg
   });
 });
 
+describe('un proveedor «none» (exento) no carga nada desde este cargador', () => {
+  // El cargador ya no sabe cargar exentos: la exención, si algún día es por ley, la decide JC y se
+  // escribe su cargador entonces. Mientras tanto, una `none` en el catálogo falla CERRADO.
+  const SINTETICO = mk('sintetico', 'none', 'abcd1234');
+  it('ni sin consentimiento ni con consentimiento total, y no marca trackersLoaded', () => {
+    expect(ejecutar('', [SINTETICO]).scripts).toEqual([]);
+    const r = ejecutar(TODO, [SINTETICO]);
+    expect(r.scripts).toEqual([]);
+    expect(r.win.trackersLoaded).toBeUndefined();
+  });
+});
+
 describe('varios ids por proveedor', () => {
   const dosGA = mk('ga4', 'analytics', 'G-AAAAAA0001', 'G-BBBBBB0002');
 
