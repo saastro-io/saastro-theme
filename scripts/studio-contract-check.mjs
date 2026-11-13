@@ -1667,7 +1667,8 @@ async function main() {
     // 13b — legal-texto: el texto bajo cada ancla data-legal no ha cambiado desde que se
     // registró. Aviso por defecto: un texto legal cambia legítimamente (lo edita el cliente,
     // lo aprueba JC) y bloquear su despliegue por eso sería peor que el problema. Con
-    // STUDIO_LEGAL_STRICT=1 falla (CI del theme, o un site que quiera la puerta cerrada).
+    // STUDIO_LEGAL_STRICT=1 falla. Ningún workflow del theme lo activa hoy (lo heredarían todos
+    // los descendientes): un site que quiera la puerta cerrada lo pone en SU CI.
     {
       const registrado = manifest.legalHashes ?? {}
       const avisar = process.env.STUDIO_LEGAL_STRICT === '1' ? fail : warn
