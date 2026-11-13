@@ -17,7 +17,8 @@ import { describe, expect, it } from 'vitest';
 const FUENTE = readFileSync(new URL('../components/GenTracking.astro', import.meta.url), 'utf8');
 const SCRIPT = /<script[^>]*>([\s\S]*?)<\/script>/.exec(FUENTE)![1]!;
 
-type Oyente = () => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Oyente = (e?: any) => void;
 
 const COOKIE_SI =
   'cookie_consent=' + encodeURIComponent('{"essential":true,"analytics":true,"personalization":false}');
@@ -34,6 +35,7 @@ function navegador(opts: {
   const local = new Map<string, string>();
   if (opts.genConsent) local.set('gen-consent', opts.genConsent);
   const envios: unknown[] = [];
+  let reloj = 1_789_000_000_000;
   const oyentes: Record<string, Oyente[]> = {};
   const inputs: { name: string; value: string; remove: () => void }[] = [];
   const formulario = {
@@ -84,13 +86,15 @@ function navegador(opts: {
     Blob: class {
       constructor(public parts: unknown[]) {}
     },
-    URLSearchParams, JSON, Date, Math, Object, decodeURIComponent, String,
+    Date: { now: () => reloj },
+    URLSearchParams, JSON, Math, Object, decodeURIComponent, String,
     fetch: () => Promise.resolve(),
   };
   runInNewContext(SCRIPT, ctx);
   return {
     envios, sesion, local, inputs, doc,
-    emitir: (n: string) => (oyentes[n] ?? []).forEach((f) => f()),
+    avanzar: (ms: number) => void (reloj += ms),
+    emitir: (n: string, e?: unknown) => (oyentes[n] ?? []).forEach((f) => f(e)),
     /** Lo que hace el banner al ACEPTAR analítica. */
     aceptar() {
       doc.cookie = COOKIE_SI;
@@ -149,6 +153,46 @@ describe('GenTracking · tras decidir', () => {
     expect(n.sesion.size).toBe(1);
     expect(n.inputs).toHaveLength(1);
     n.rechazar();
+    expect(n.sesion.size).toBe(0);
+    expect(n.inputs).toHaveLength(0);
+  });
+  it('revocar en OTRA pestaña (storage con newValue null) borra el id y el campo aquí', () => {
+    const n = navegador({ consent: 'required', cookie: COOKIE_SI, genConsent: 'granted' });
+    expect(n.sesion.size).toBe(1);
+    n.doc.cookie = COOKIE_NO;
+    n.local.delete('gen-consent');
+    n.emitir('storage', { key: 'gen-consent', newValue: null });
+    expect(n.sesion.size).toBe(0);
+    expect(n.inputs).toHaveLength(0);
+    expect(n.envios).toHaveLength(1); // retirar no cuenta una visita
+  });
+  it('conceder en otra pestaña (storage granted) empieza a medir aquí', () => {
+    const n = navegador({ consent: 'required' });
+    n.doc.cookie = COOKIE_SI;
+    n.local.set('gen-consent', 'granted');
+    n.emitir('storage', { key: 'gen-consent', newValue: 'granted' });
+    expect(n.envios).toHaveLength(1);
+  });
+  it('página restaurada de bfcache sin consentimiento olvida el id', () => {
+    const n = navegador({ consent: 'required', cookie: COOKIE_SI, genConsent: 'granted' });
+    n.doc.cookie = COOKIE_NO;
+    n.local.delete('gen-consent');
+    n.emitir('pageshow', { persisted: true });
+    expect(n.sesion.size).toBe(0);
+    expect(n.inputs).toHaveLength(0);
+  });
+  it('re-guardar preferencias con analytics ya concedido NO cuenta otra visita', () => {
+    const n = navegador({ consent: 'required', cookie: COOKIE_SI, genConsent: 'granted' });
+    expect(n.envios).toHaveLength(1);
+    // pasa la ventana de deduplicación de 1 s; el banner no emite
+    // gen:consent-granted (ya era granted), solo esto:
+    n.avanzar(5000);
+    n.emitir('cookie-consent-updated');
+    expect(n.envios).toHaveLength(1);
+  });
+  it('un gen-consent «granted» obsoleto con cookie analytics:false NO concede', () => {
+    const n = navegador({ consent: 'required', cookie: COOKIE_NO, genConsent: 'granted' });
+    expect(n.envios).toHaveLength(0);
     expect(n.sesion.size).toBe(0);
     expect(n.inputs).toHaveLength(0);
   });

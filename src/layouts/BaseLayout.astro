@@ -170,7 +170,7 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
         motivo escrito en tracking-providers.json) y lo carga el ÚNICO cargador,
         Analytics.astro, con el mismo bloqueo de hosts y el mismo shim de siempre. */}
 
-    {/* SAASTRO Gen lead attribution — cookieless page-view beacon + visitor id
+    {/* SAASTRO Gen lead attribution — page-view beacon (waits for the banner by default) + visitor id
         on form submits. Off unless settings.gen.workspaceId is set (the Hub's
         per-site "Gen tracking" toggle writes it). */}
     {genWorkspaceId && (

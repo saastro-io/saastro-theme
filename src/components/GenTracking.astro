@@ -118,10 +118,23 @@ const ownHost = Astro.site?.hostname ?? '';
           }
         }
 
+        // La cookie manda: un `gen-consent` 'granted' que sobrevive a una cookie
+        // con analytics:false (otro CMP, edición manual) NO concede nada.
+        function cookieAnalyticsOn() {
+          try {
+            var match = document.cookie.split('; ').find(function (c) { return c.indexOf('cookie_consent=') === 0; });
+            if (!match) return false;
+            var c = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+            return !!c && c.analytics === true;
+          } catch (e) {
+            return false;
+          }
+        }
+
         function consentOk() {
           if (consentMode !== 'required') return true;
           try {
-            return localStorage.getItem('gen-consent') === 'granted' && cookieCovers();
+            return localStorage.getItem('gen-consent') === 'granted' && cookieAnalyticsOn() && cookieCovers();
           } catch (e) {
             return false;
           }
@@ -238,6 +251,11 @@ const ownHost = Astro.site?.hostname ?? '';
           } catch (e) {}
         }
 
+        // Solo RETIRA: si el consentimiento ya no vale, olvida el id y los campos.
+        function revalidate() {
+          if (consentMode === 'required' && !consentOk()) forget();
+        }
+
         var lastUrl = '';
         var lastTs = 0;
         function track() {
@@ -273,15 +291,24 @@ const ownHost = Astro.site?.hostname ?? '';
         if (consentMode === 'required') {
           try {
             window.addEventListener('storage', function (e) {
-              if (e && e.key === 'gen-consent' && e.newValue === 'granted') track();
+              if (!e || e.key !== 'gen-consent') return;
+              // Concedido en otra pestaña → medir; retirado en otra pestaña
+              // (newValue null) → olvidar aquí también, sin enviar nada.
+              if (e.newValue === 'granted') track();
+              else revalidate();
+            });
+            // Página restaurada desde bfcache: no hay page-load ni DOMContentLoaded.
+            window.addEventListener('pageshow', function (e) {
+              if (e && e.persisted) revalidate();
             });
             window.addEventListener('gen:consent-granted', function () {
               track();
             });
-            // El banner avisa en cada decisión, también al rechazar o revocar:
-            // ahí `track()` ve que ya no hay consentimiento y olvida el id.
+            // El banner avisa en cada decisión. Medir al CONCEDER ya lo hace
+            // `gen:consent-granted`; aquí solo se retira lo que ya no vale, sin
+            // volver a contar la visita al re-guardar preferencias.
             window.addEventListener('cookie-consent-updated', function () {
-              track();
+              revalidate();
             });
           } catch (e) {}
         }
