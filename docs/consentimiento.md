@@ -92,11 +92,9 @@ ausencia, es `"required"`. Texto legal y comportamiento: [legal-gen-tracking.md]
 propio** `settings.yaml`. Un site que heredó `consent: "none"` sigue con `"none"` aunque el
 theme haya cambiado el defecto. Y el Hub **no corrige eso**: al provisionar escribe solo
 `gen.workspaceId` y `gen.vertical` (`apps/hub-react/src/server/lib/gen-config.ts` del Hub),
-nunca `gen.consent`. Leído el 14-nov en las copias locales de JC
-(`~/ENLOLAB/esosique/src/data/settings.yaml` y
-`~/ENLOLAB/Zamesegur/zamesegur/src/data/settings.yaml`), **no en `main` ni en producción**:
-esosique y zamesegur tienen `workspaceId` y `consent: "none"`. Si eso es lo que hay
-desplegado, miden antes del banner. Está aparcado por decisión de JC (ver abajo).
+nunca `gen.consent`. Puede haber descendientes con `consent: "none"` y un `workspaceId` puesto: si lo tienen
+desplegado, miden antes del banner. **No se listan aquí** (el repo es público): hay que
+medirlo site a site, en su `main` y en producción, no en una copia local.
 
 ## El contrato: lo que falla solo
 
@@ -134,7 +132,7 @@ escriben por su cuenta (p. ej. `cf_clearance`).
 | **Render-ratio** (`measure.renderRatio`) | **Apagado** (`false`, el valor por defecto). No se enciende hasta decidir la base jurídica | JC y su asesor | No toca el dispositivo ni lleva identificador, pero la calificación jurídica no es una propiedad del código. Texto con `[PENDIENTE]` en [legal-render-ratio.md](legal-render-ratio.md) |
 | **`cf_clearance`** | Declarada esencial en la política (saastro-theme#153). **Interpretación**, no certeza | JC y su asesor | A favor: Cloudflare la declara «strictly necessary»; la guía AEPD 2024 y la FAQ 17 de la CNIL (29-abr-2026) admiten seguridad. En contra: sin resolución AEPD; confianza media-baja para JSD en todas las visitas; Cloudflare trata algunas señales de Turnstile como responsable propio. La salida limpia es apagar Bot Fight Mode y las detecciones JS de la zona (la API exige apagar las dos). Detalle en [legal-marketing.md](legal-marketing.md) |
 | **Turnstile al interactuar** | En `@saastro/forms` 0.29.0 y en el theme (#156) | — | Sin comprobar en navegador con un formulario real |
-| **Sites con `consent: "none"`** | Aparcado por JC («más adelante») | JC | Ver la sección de Gen. Sin encargo abierto |
+| **Descendientes con `consent: "none"`** | Pendiente de medir y corregir site a site | JC | Ver la sección de Gen |
 | **Textos legales** | Plantilla con `[PENDIENTE]`: responsable, transferencias, plazos | JC y su asesor | Base jurídica de Gen, Gen como encargado, AEPD solo España, párrafo de Cloudflare: lecturas del proyecto, **SIN VERIFICAR** |
 | **Estado de Cloudflare en el DPF** | No verificado contra el registro oficial | JC y su asesor | Hay que comprobarlo antes de cerrar la política de transferencias |
 
