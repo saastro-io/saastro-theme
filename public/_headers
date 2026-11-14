@@ -58,3 +58,7 @@
 
 /favicon.*
   Cache-Control: public, max-age=86400
+
+# Qué commit corre (src/pages/health.json.ts): que nadie lo sirva de una caché vieja.
+/health.json
+  Cache-Control: no-store

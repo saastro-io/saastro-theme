@@ -20,3 +20,9 @@ declare namespace App {
     localePath: (path: string) => string;
   }
 }
+
+interface ImportMetaEnv {
+  /** Commit construido (lo define astro.config.mjs desde WORKERS_CI_COMMIT_SHA). */
+  readonly BUILD_SHA?: string;
+  readonly BUILD_BRANCH?: string;
+}
