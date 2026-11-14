@@ -76,3 +76,19 @@ npx wrangler deploy --config dist/server/wrangler.json
 
 (`pnpm build` emits `dist/server/wrangler.json`; the adapter derives it from the
 root `wrangler.jsonc`, inheriting the Worker `name`.)
+
+## Which commit is live? — `/health.json`
+
+Merged is not deployed. The site serves `/health.json`:
+
+```bash
+curl https://<site>/health.json
+# { "sha": "<40-hex commit that was built>", "branch": "main" }
+```
+
+Workers Builds injects `WORKERS_CI_COMMIT_SHA` / `WORKERS_CI_BRANCH` at build time;
+`astro.config.mjs` turns them into constants (`vite.define`) because the prerendered
+code runs in workerd and does not see `process.env`. Without them (local dev, a manual
+build) the values are `null` — a sha is never made up. The response is `no-store`
+(`public/_headers`). The Hub does not read it today. Details: [conexion-hub.md](conexion-hub.md).
+

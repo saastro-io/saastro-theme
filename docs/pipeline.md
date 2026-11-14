@@ -79,6 +79,7 @@ visual. Lo que ya no haces es vigilar la arquitectura a ojo.
 Rama → PR → deploy → en el Hub, **"Connect existing"**. El gate corre el mismo
 validador que el Setup doctor del Hub, así que **verde aquí ⇒ verde allí**. A partir de
 ese momento el copy lo posee el cliente: antes de re-portar un diseño nuevo, `git pull`.
+Qué hace el Hub con el site y qué comprobar tras conectarlo: **`docs/conexion-hub.md`**. Cómo trata el theme el consentimiento y las cookies: **`docs/consentimiento.md`**.
 
 ## Qué te protege, y de qué
 
