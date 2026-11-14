@@ -20,8 +20,11 @@ ningún proveedor exento. Si algún día hay que exentar algo, se hace con
 `category: "none"` más un `exemptReason` escrito en `src/lib/tracking-providers.json`, y
 el motivo tiene que aguantar una lectura jurídica: no se exenta «porque es poco».
 
-Quién no cumple esta regla se rompe en el build: `pnpm studio:check` falla (ver
-[El contrato](#el-contrato-lo-que-falla-solo)).
+**Qué la hace cumplir y qué no.** `pnpm studio:check` solo exige que la política
+**declare** cada tratamiento (ver [El contrato](#el-contrato-lo-que-falla-solo)). **No
+comprueba que un script no cargue antes del consentimiento**: eso lo garantizan el código
+(`Analytics.astro`, `GenTracking.astro`) y sus tests, y se verifica a mano en un navegador
+limpio ([Cómo comprobarlo tú](#cómo-comprobarlo-tú)).
 
 ## Qué hay en el dispositivo y por qué
 
@@ -31,7 +34,7 @@ Quién no cumple esta regla se rompe en el build: `pnpm studio:check` falla (ver
 | `gen-consent` = `granted` | `localStorage` | `mirrorGenConsent` (`src/lib/gen-consent.ts`) | al aceptar `analytics`; se borra al retirarla | Espejo de `analytics` para el beacon de Gen |
 | `gen-visitor-id` | `sessionStorage` | `GenTracking.astro` | tras aceptar `analytics`; se borra al retirar | `analytics` |
 | `gen_visitor_id` | campo oculto en cada `<form>` | `GenTracking.astro` | tras aceptar `analytics`; se quita al retirar | `analytics` |
-| `saastro_landing_page`, `saastro_first_referrer` | `sessionStorage` | `@saastro/forms` ≥ 0.28 | solo tras `analytics`; antes viven en memoria | `analytics` (vía `src/lib/forms-consent.ts`) |
+| `saastro_landing_page`, `saastro_first_referrer` | `sessionStorage` | `@saastro/forms` ≥ 0.28 (claves en `utils/deviceStorage.ts` de la librería) | según el changelog de 0.28.0, solo tras conceder el propósito `attribution`; antes viven en memoria | `analytics`: `src/lib/forms-consent.ts` mapea `attribution` y `enrichment` a `analytics`. El comportamiento de la librería está **leído en su changelog y código, no probado en un navegador** |
 | `theme` | `localStorage` | `ApplyColorMode.astro` | **solo** cuando el visitante pulsa el interruptor de tema | No se guarda nada por defecto. Se trata como preferencia pedida expresamente: lectura del theme, **SIN VERIFICAR** por un asesor |
 | `_ga`, `_ga_*`, `_clck`, `_clsk`… | cookies de terceros | GA4, Clarity | tras aceptar su categoría | `analytics` |
 | Meta, TikTok, LinkedIn, Google Ads | scripts de terceros | `Analytics.astro` | tras aceptar `marketing` | `marketing` |
@@ -89,9 +92,11 @@ ausencia, es `"required"`. Texto legal y comportamiento: [legal-gen-tracking.md]
 propio** `settings.yaml`. Un site que heredó `consent: "none"` sigue con `"none"` aunque el
 theme haya cambiado el defecto. Y el Hub **no corrige eso**: al provisionar escribe solo
 `gen.workspaceId` y `gen.vertical` (`apps/hub-react/src/server/lib/gen-config.ts` del Hub),
-nunca `gen.consent`. Medido el 14-nov en copias locales de JC, **no en producción**:
-esosique y zamesegur tienen `workspaceId` y `consent: "none"`. Es decir: miden antes del
-banner. Está aparcado por decisión de JC (ver abajo).
+nunca `gen.consent`. Leído el 14-nov en las copias locales de JC
+(`~/ENLOLAB/esosique/src/data/settings.yaml` y
+`~/ENLOLAB/Zamesegur/zamesegur/src/data/settings.yaml`), **no en `main` ni en producción**:
+esosique y zamesegur tienen `workspaceId` y `consent: "none"`. Si eso es lo que hay
+desplegado, miden antes del banner. Está aparcado por decisión de JC (ver abajo).
 
 ## El contrato: lo que falla solo
 
