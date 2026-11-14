@@ -95,7 +95,7 @@ src/
 ├── integrations/
 │   └── strip-studio-meta-middleware.ts  # Strips Studio meta tags from prod HTML
 ├── lib/
-│   ├── cookies.ts                # getConsent, setConsent, hasConsent (cookie-based)
+│   ├── cookies.ts                # getConsent, setConsent, hasConsent (the banner's own, cookie-based; @saastro/forms has ITS setConsent, wired in forms-consent.ts)
 │   ├── reading-time.ts           # Auto reading time calculation from markdown
 │   ├── settings.ts               # Typed settings.yaml reader (cached, frozen)
 │   └── utils.ts                  # cn() — clsx + tailwind-merge
@@ -377,6 +377,14 @@ Notes:
   navigation.
 - If the site sets a Content-Security-Policy, allow the collector in
   `connect-src` (e.g. `https://gen.saastro.io`).
+
+## Consent, cookies and the Hub
+
+How the theme handles consent (what loads when, what is stored on the device, who decides,
+where each legal text lives) is mapped in [`docs/consentimiento.md`](docs/consentimiento.md).
+How a site connects to the Hub (what the Hub writes into the repo, what it reads from the
+deployed site, `/health.json`) is in [`docs/conexion-hub.md`](docs/conexion-hub.md). Open
+legal decisions are listed there, marked as pending: they are not settled.
 
 ## Accessibility
 

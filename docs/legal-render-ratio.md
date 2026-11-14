@@ -1,5 +1,12 @@
 # Declaración legal de la medición render-vs-JS (`data-legal="render-ratio"`)
 
+> **Estado (14-nov-2026): APAGADO, a propósito.** `measure.renderRatio` vale `false` y no
+> se enciende hasta que JC y su asesor decidan la base jurídica (consentimiento o interés
+> legítimo): es una calificación jurídica y no una propiedad del código. Que la medición no
+> escriba nada en el dispositivo y no lleve identificador es un argumento a favor de
+> medir sin consentimiento, pero no está confirmado por un asesor. Si se enciende, rellenar
+> también los demás `[PENDIENTE]` de este texto. Mapa general: [consentimiento.md](consentimiento.md).
+
 Texto canónico para la política de cookies de un site con
 `settings.measure.renderRatio: true`. Cópialo tal cual al markdown de la
 política —**en todos los locales**— **antes** de encender el flag.

@@ -38,9 +38,9 @@ Cuatro variables, en Cloudflare → Workers → `saastro-theme` → Settings →
 | # | Qué cambiar | Dónde | Lo escribe el Hub solo |
 |---|---|---|---|
 | 1 | `tracking.ga4`, `tracking.clarity` (y el resto de `tracking.*` que se enciendan) | `src/data/settings.yaml` o variables `PUBLIC_TRACKING_*` | No. La plantilla ya viene vacía: poner los del cliente |
-| 2 | Token de Cloudflare Web Analytics | `tracking.cloudflareWebAnalytics` o `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS`; la ruta vieja `analytics.cloudflareWebAnalytics.token` también viene vacía | No. Carga SIN consentimiento: nunca poner el del theme |
+| 2 | Token de Cloudflare Web Analytics | `tracking.cloudflareWebAnalytics` o `PUBLIC_TRACKING_CLOUDFLARE_WEB_ANALYTICS`; la ruta vieja `analytics.cloudflareWebAnalytics.token` también viene vacía | No. Desde #151 (13-nov-2026) carga solo tras aceptar `analytics`, como el resto; aun así, nunca poner el token del theme en un site ajeno |
 | 3 | `forms.siteId` | `src/data/settings.yaml`; también el `siteId` de `content/pages/*` | `forms.siteId` sí. Los `content/pages/*` no: revisarlos |
-| 4 | Bloque `gen` (`workspaceId`, consentimiento, vertical) | `src/data/settings.yaml` | Sí |
+| 4 | Bloque `gen` (`workspaceId`, `consent`, `vertical`) | `src/data/settings.yaml` | `workspaceId` y `vertical` sí. **`consent` NO**: déjalo `"required"` o ausente. Un `"none"` heredado hace que el site mida antes del banner ([consentimiento.md](consentimiento.md)) |
 | 5 | Número de WhatsApp (vacío oculta el widget) | `PUBLIC_WHATSAPP_NUMBER` o `whatsapp.number` en `src/i18n/translations/es.json` y `en.json` | No |
 | 6 | Home, About, hero, features, CTA y demás textos del escaparate «Saastro Theme» | `src/i18n/translations/*.json` y `src/pages/[...locale]/index.astro` | No |
 | 7 | `meta.siteName` y `site.name` (hoy hay dos nombres; gana `meta.siteName`) | `src/i18n/translations/*.json` y `settings.yaml` | No |
@@ -60,3 +60,11 @@ git grep -n "2b771188\|ui.saastro.io" -- . ':!docs'
 No debe devolver nada (`2b771188` es el `forms.siteId` del theme). Los ids de medición y el WhatsApp del theme ya no están en el repo; comprueba a ojo que `tracking.*`, `analytics.cloudflareWebAnalytics.token` y `whatsapp.number` están vacíos o son del cliente.
 
 Nota del punto 7: `meta.siteName` solo gana a `site.name` con i18n activo.
+
+## Después de conectar el site
+
+Comprueba con `curl` y en un navegador limpio (guía completa en [conexion-hub.md](conexion-hub.md#qué-comprobar-tras-conectar-un-site) y [consentimiento.md](consentimiento.md#cómo-comprobarlo-tú)):
+
+- `/health.json` devuelve el sha que esperas.
+- `/saastro-tracking.json` responde 200 con JSON: es lo que lee el Hub.
+- Antes de tocar el banner, ninguna petición a Gen, Google, Clarity, Cloudflare Insights ni Turnstile.

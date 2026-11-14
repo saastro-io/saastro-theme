@@ -95,6 +95,31 @@ structural/architecture change run `pnpm studio:contract:update` and commit the
 diff. A red check = the built DOM diverged from the recorded contract; each
 failure says which invariant, which page/section/field, and what to do.
 
+## Consentimiento y cookies — léelo antes de tocar tracking, banner, Gen o formularios
+
+El mapa completo está en **`docs/consentimiento.md`**; cómo se conecta un site con el Hub,
+en **`docs/conexion-hub.md`**. Las reglas duras:
+
+- **Nada toca el dispositivo ni contacta con un tercero antes del consentimiento, salvo lo
+  exento por ley.** Hoy ningún proveedor del catálogo (`src/lib/tracking-providers.json`)
+  está exento. **No inventes una exención**: si dudas de si algo lo está, pregunta a JC.
+  Una exención es `category: "none"` más un `exemptReason` que aguante una lectura jurídica.
+- **El catálogo es único** y `consentCovers` (`src/lib/cookies.ts`) es la fuente única de la
+  versión del consentimiento: `Analytics.astro` y `GenTracking.astro` llevan una réplica
+  inline, y sus tests la ejecutan contra la función pura. Si cambias una, cambia la otra.
+- **`gen.consent` es `"required"` por defecto** y solo un `"none"` escrito a propósito se
+  salta el banner. El Hub **nunca** lo escribe, y `settings.yaml` es `merge=ours`: un site
+  descendiente conserva el suyo. Un `"none"` heredado mide antes del banner.
+- **Decisiones abiertas, no resueltas** (no las des por cerradas en un texto ni en un PR):
+  `measure.renderRatio` sigue **apagado** hasta decidir su base jurídica; `cf_clearance` está
+  declarada esencial como **interpretación**; los textos legales llevan `[PENDIENTE]` y las
+  lecturas de ley no las ha confirmado un asesor.
+- **El contrato mira la forma, no la verdad jurídica.** Los invariantes `gen-legal`,
+  `medicion-legal`, `tracking-legal` y `legal-texto` fallan o avisan si falta un texto o
+  cambia. No uses `pnpm studio:contract:update` para callar un aviso de `legal-texto`.
+- **`/health.json`** da el sha del build (`WORKERS_CI_COMMIT_SHA`): así se mide qué sirve
+  producción. «Mergeado» no es «desplegado».
+
 ## Pipeline de un proyecto nuevo
 
 La ruta completa está en **`docs/pipeline.md`**. En corto: `pnpm scaffold client`
