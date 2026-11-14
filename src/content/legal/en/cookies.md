@@ -1,7 +1,7 @@
 ---
 title: Cookie Policy
 description: How we use cookies on this site.
-lastUpdated: '2026-11-02T00:00:00.000Z'
+lastUpdated: '2026-11-14T00:00:00.000Z'
 draft: true
 ---
 
