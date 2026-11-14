@@ -1,7 +1,7 @@
 ---
 title: Cookie Policy
 description: How we use cookies on this site.
-lastUpdated: '2026-11-02T00:00:00.000Z'
+lastUpdated: '2026-11-14T00:00:00.000Z'
 draft: true
 ---
 
@@ -14,6 +14,7 @@ Cookies are small text files stored on your device when you visit a website. The
 These are required for the site to function correctly. They cannot be disabled.
 
 -   **cookie\\\_consent** — stores your cookie preferences (1 year)
+-   **cf\\\_clearance** — set by Cloudflare, the provider that protects this site against automated traffic and attacks. It stores the result of security checks so they are not repeated on every page. For this site it serves a security function only: it is not used for measurement or advertising. Cloudflare sets its lifetime. It only appears if the site has that protection enabled.
     
 
 ## Analytics cookies

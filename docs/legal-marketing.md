@@ -108,3 +108,21 @@ El párrafo de la política del theme lista los datos que SE VIERON enviar el 13
 navegador y del SO, memoria de JS, tiempos, id de la carga y token del site; sin `Set-Cookie`).
 *[Sin verificar contra Cloudflare: si el beacon usa almacenamiento en otras condiciones, la
 retención y dónde se procesan los datos; el párrafo no lo afirma. Texto final: JC.]*
+
+## `cf_clearance` (Cloudflare, seguridad): declarada como esencial, SIN VERIFICAR del todo
+
+La zona `saastro.io` tiene Bot Fight Mode y las detecciones de JavaScript de Cloudflare
+activas; estas escriben `cf_clearance` antes del banner. La política la lista entre las
+cookies **esenciales** (sin ancla `data-legal`: no es un proveedor del catálogo) y el theme
+no la carga ni la bloquea: la pone Cloudflare en el borde.
+
+**Es una interpretación, no una certeza.** A favor: Cloudflare la declara «strictly
+necessary» (docs de cookies, 13-nov-2026), la Guía AEPD 2024 admite elementos de seguridad
+durante la navegación y la FAQ 17 de la CNIL (29-abr-2026) exime un anti-robot cuya única
+finalidad sea la seguridad. En contra: no hay resolución de la AEPD, el informe lo valora
+con confianza media-baja para JSD en todas las visitas, y el Addendum de Turnstile dice que
+Cloudflare trata algunas señales como responsable propio (no verificado si alcanza a JSD).
+Duración: la doc de Cloudflare no la indica; en saastro.io se midió 1 año. Un site fuera de
+Cloudflare, o sin esa protección, debe quitar la línea de su política. Si JC o su asesor
+prefieren no depender de la exención, la salida es apagar Bot Fight Mode y las detecciones
+JS de la zona (la API exige apagar los dos).
