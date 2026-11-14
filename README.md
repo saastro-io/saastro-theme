@@ -330,20 +330,20 @@ Measurement ids live in `src/data/settings.yaml` under `tracking:` (empty = off;
 | `tiktokPixel` | TikTok Pixel | `marketing` |
 | `linkedinPartnerId` | LinkedIn Insight Tag | `marketing` |
 | `clarity` | Microsoft Clarity | `analytics` |
-| `cloudflareWebAnalytics` | Cloudflare Web Analytics | **exempt**: loads without consent (the catalogue records the reason) |
+| `cloudflareWebAnalytics` | Cloudflare Web Analytics | `analytics` consent (it was exempt until 13 Nov 2026 by an unverified decision; no provider is exempt today) |
 
 - Each key accepts several ids separated by commas (`"G-AAAA…,G-BBBB…"`, max 5; Clarity and Cloudflare, 1). Invalid ids are dropped with a build warning.
 - Google tags declare Consent Mode v2 `default: denied` before any Google script; if there is no consent yet, the component listens for `cookie-consent-updated`.
 - No pixel loads in the Studio preview or local dev. There is no GTM `<noscript>` iframe: without JS the visitor cannot consent.
-- Turning a provider on adds a processing: the cookie policy must declare it (`<div data-legal="tracking-…">`, see `docs/legal-marketing.md`) or `pnpm studio:check` fails. Cloudflare Web Analytics has no anchor because it is exempt.
+- Turning a provider on adds a processing: the cookie policy must declare it (`<div data-legal="tracking-…">`, see `docs/legal-marketing.md`) or `pnpm studio:check` fails. Every provider needs its anchor; none is exempt today.
 - Old routes (`analytics.googleAnalytics.id`, `analytics.cloudflareWebAnalytics.token`) are still read as a fallback; `tracking.*` wins.
 
 ### Lead attribution (SAASTRO Gen) — opt-in
 
 `GenTracking.astro` reports where leads come from. On each page load it POSTs a
 page-view to the Gen collector (`{endpoint}/collect`) keyed by an anonymous
-`visitorId` kept in **sessionStorage** (cookieless → GDPR-friendly, no banner
-needed), and injects that id into every `<form>` as a hidden `gen_visitor_id`
+`visitorId` kept in **sessionStorage** (no cookies; by default gated on the
+banner's `analytics` consent), and injects that id into every `<form>` as a hidden `gen_visitor_id`
 field. When the form is submitted the id rides along, so Gen links the lead to
 its pre-conversion journey → first/last-touch attribution + funnel/CPL per
 channel (source · medium · campaign).
@@ -365,7 +365,7 @@ Props (all but `workspaceId` optional):
 | `workspaceId` | —                          | Gen workspace = the SAASTRO Platform team id. **Public** (like a GA measurement id — no secret in the browser). |
 | `vertical`    | `"default"`                | Product surface within the workspace (free string).          |
 | `endpoint`    | `"https://gen.saastro.io"` | Gen collector origin.                                        |
-| `consent`     | `"none"`                   | `"none"` = cookieless, tracks immediately. `"required"` = waits until `localStorage['gen-consent'] === 'granted'` (re-checked on each navigation; dispatch a `gen:consent-granted` window event to start in the same tab). |
+| `consent`     | `"required"`               | `"required"` = nothing (no id, no form field, no request) until the visitor accepts the `analytics` category of the cookie banner (mirrored in `localStorage['gen-consent']`); reject/revoke deletes the id. `"none"` = tracks immediately, only if the site owner has decided the beacon is exempt. |
 
 Notes:
 

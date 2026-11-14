@@ -30,9 +30,11 @@
  * deduplica y se aplica el tope (`maxIds` del catálogo, por defecto 5). Un valor
  * con un solo id se comporta exactamente como antes.
  *
- * EXENTOS: un proveedor `category: "none"` con `exemptReason` (hoy Cloudflare Web
- * Analytics) carga sin puerta de consentimiento y NO entra en `consentKeys`: la
- * versión del consentimiento (cookies.ts) solo cuenta los que sí piden permiso.
+ * EXENTOS: un proveedor `category: "none"` con `exemptReason` carga sin puerta de
+ * consentimiento y NO entra en `consentKeys`: la versión del consentimiento (cookies.ts)
+ * solo cuenta los que sí piden permiso. HOY NO HAY NINGUNO: Cloudflare Web Analytics lo era
+ * por una decisión sin verificar y se retiró el 13-nov-2026. Solo se admite una exención si lo
+ * está por ley, y la decide JC (scripts/tracking-legal.test.ts lo impide si no se cambia a propósito).
  */
 import catalogo from './tracking-providers.json';
 import type { SiteSettings } from './settings';

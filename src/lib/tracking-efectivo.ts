@@ -29,7 +29,7 @@ export type PublishedSource = Exclude<TrackingSource, 'prop'>;
 export interface TrackingEntry {
   key: string;
   label: string;
-  /** Categoría del catálogo: analytics | marketing | any (GTM, con cualquiera de las dos) | none (exento). */
+  /** Categoría del catálogo: analytics | marketing | any (GTM, con cualquiera de las dos) | none (exento: hoy ninguno). */
   category: string;
   ids: string[];
   source: PublishedSource;

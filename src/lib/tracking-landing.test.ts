@@ -188,7 +188,7 @@ describe('consentimiento: la versión es la UNIÓN site + landing', () => {
     expect(r.providers.find((p) => p.key === 'metaPixel')!.category).toBe('marketing');
     expect(r.providers.find((p) => p.key === 'gtm')!.category).toBe('any');
     expect(ids(r, 'cloudflareWebAnalytics')).toEqual(['abcdefabcdefabcdefabcdefabcdefab']); // el del site, intacto
-    expect(r.consentKeys).not.toContain('cloudflareWebAnalytics');
+    expect(r.consentKeys).toContain('cloudflareWebAnalytics'); // pide consentimiento de analítica, como Clarity
   });
 });
 

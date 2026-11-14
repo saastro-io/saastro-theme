@@ -23,8 +23,8 @@ política declara uno que está apagado) es un aviso, no un fallo. Mecanismo y
 razón del ancla explícita: `legal-gen-tracking.md`; por qué se pregunta a
 settings y no al DOM: `legal-render-ratio.md`. **Excepción explícita:** un
 proveedor del catálogo `src/lib/tracking-providers.json` con `category: "none"` y
-un `exemptReason` escrito (hoy solo Cloudflare Web Analytics) no exige ancla; ver
-la última sección.
+un `exemptReason` escrito no exige ancla. Hoy no hay ninguno: Cloudflare Web
+Analytics lo era y se retiró el 13-nov-2026 (ver su sección, la última).
 
 ## Qué es común a todos (auditado sobre el código)
 
@@ -33,13 +33,27 @@ Auditado en `src/components/Analytics.astro`, `src/lib/tracking.ts`,
 
 | | |
 |---|---|
-| **Cuándo se carga** | Solo tras el consentimiento del banner. Sin consentimiento, ninguna petición al proveedor. En una vista previa de un borrador (`noindex`) no se carga nada. **Única excepción: Cloudflare Web Analytics** (proveedor exento, ver su sección al final). |
+| **Cuándo se carga** | Solo tras el consentimiento del banner. Sin consentimiento, ninguna petición al proveedor. En una vista previa de un borrador (`noindex`) no se carga nada. Ningún proveedor está exento hoy (Cloudflare Web Analytics lo estaba y se retiró; ver su sección al final). |
 | **Varios ids** | Un proveedor puede llevar varios ids separados por comas (`tracking.ga4: "G-AAAA…,G-BBBB…"`, máximo 5; Clarity y Cloudflare, 1). El proveedor sigue siendo UNO: el ancla de abajo cubre todos sus ids y el consentimiento es único por proveedor. Al declarar un proveedor con varios ids conviene que el texto lo diga (varias propiedades o cuentas del responsable). |
 | **Categoría** | `analytics`: GA4, Clarity. `marketing`: Google Ads, Meta, TikTok, LinkedIn. GTM carga con `analytics` **o** `marketing`. |
 | **Retirar el consentimiento** | El banner recarga la página si había un tracker vivo; al arrancar sin consentimiento ya no se inyecta. |
 | **Consent Mode v2 (Google)** | Antes de cargar nada de Google se declara todo denegado (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`); al aceptar se actualiza por categoría. |
 | **Sin JavaScript** | No hay `<noscript>` de ningún proveedor: sin JS el visitante no puede consentir y no se le mide. |
 | **Evento de conversión** | `window.saastroTrack('generate_lead', { event_id })` emite a los proveedores YA cargados (con consentimiento). El cableado al envío del formulario (UUID por envío) llega con el PR de conversión: hasta entonces nadie lo llama. |
+
+## El contrato vigila el TEXTO de cada ancla (invariante 13b, `legal-texto`)
+
+El ancla `data-legal` es un `<div>` vacío: lo que declara al visitante es el texto que le
+sigue hasta el siguiente encabezado. `studio-contract.json` guarda el sha256 de ese texto
+(`legalHashes`, por página) y `studio:check` avisa cuando cambia, cuando aparece un ancla sin
+registrar o cuando una registrada desaparece. Los espacios y saltos de línea no cuentan.
+
+- **Aviso por defecto, rojo con `STUDIO_LEGAL_STRICT=1`.** Un texto legal cambia legítimamente
+  (lo edita el cliente, lo aprueba JC): bloquear su despliegue sería peor que el problema.
+- **Aceptar un cambio** = revisar el texto y `pnpm studio:contract:update`; el diff de
+  `legalHashes` en el PR es la revisión.
+- Solo ve el texto bajo el ancla, no el resto de la política, y el hash no dice si el texto es
+  CORRECTO: dice que alguien debe haberlo mirado.
 
 ## Google Analytics 4 <div data-legal="tracking-ga4"></div>
 
@@ -81,27 +95,34 @@ Categoría `analytics`. Carga `https://www.clarity.ms/tag/<id>`. Clarity registr
 sesiones del visitante (interacciones en la página). *[Texto final: JC. Contrastar
 qué datos graba y cómo enmascara campos de formulario.]*
 
-## Cloudflare Web Analytics (exento de consentimiento, SIN ancla `data-legal`)
+## Cloudflare Web Analytics <div data-legal="tracking-cloudflare"></div>
 
-> **Esto no es texto legal.** Es el registro técnico de una excepción que ya existía
-> en el código y que ahora está escrita en el catálogo. Si hay que nombrar a
-> Cloudflare en la política, el texto lo redacta y lo aprueba JC.
+Categoría `analytics`. Carga `https://static.cloudflareinsights.com/beacon.min.js` con
+el token del site y mide visitas y rendimiento de las páginas. Desde el 13-nov-2026
+**espera al consentimiento de analítica** como GA4 y Clarity; antes cargaba sin esperar
+al banner por una decisión del theme (el beacon no escribe en el dispositivo ni identifica
+al visitante) que **nunca se verificó** contra la documentación de Cloudflare ni contra la
+ley, y por eso se retiró: solo se mantiene exento lo que lo está por ley.
+El párrafo de la política del theme lista los datos que SE VIERON enviar el 13-nov-2026
+(POST a `cloudflareinsights.com/cdn-cgi/rum` desde un Chrome limpio: URL, motor/versión del
+navegador y del SO, memoria de JS, tiempos, id de la carga y token del site; sin `Set-Cookie`).
+*[Sin verificar contra Cloudflare: si el beacon usa almacenamiento en otras condiciones, la
+retención y dónde se procesan los datos; el párrafo no lo afirma. Texto final: JC.]*
 
-- **Qué hace el código:** carga `https://static.cloudflareinsights.com/beacon.min.js`
-  **sin esperar al banner** y con el token de `tracking.cloudflareWebAnalytics` (o,
-  como respaldo, `analytics.cloudflareWebAnalytics.token`). No carga en una vista
-  previa de borrador ni en `localhost`, `127.0.0.1`, `*.saastro.test`, `*.local` ni
-  en `*.saastro.io` salvo el host propio del site.
-- **Por qué está exento (decisión técnica anterior al catálogo, tal cual la dejó
-  el theme):** el beacon no escribe nada en el dispositivo del visitante ni lo
-  identifica. **No está verificado aquí contra la documentación vigente de
-  Cloudflare**, y si deja de ser cierto la exención cae. El motivo literal vive en
-  `exemptReason`, en el catálogo.
-- **Qué NO hace por ser exento:** no entra en la versión del consentimiento (no
-  vuelve a preguntar a quien ya consintió), no marca que haya un tracker vivo (retirar
-  el consentimiento no recarga por él) y no recibe los eventos de conversión.
-- **Qué hace el checker:** el invariante `tracking-legal` (8e) **no exige** su ancla.
-  La exención exige las DOS cosas en el catálogo (`category: "none"` y un
-  `exemptReason` no vacío); si falta el motivo, el proveedor se trata como uno que
-  pide ancla. Si JC decide nombrarlo igualmente, no hay ancla ni marcador previstos:
-  habría que añadirlos al catálogo a propósito.
+## `cf_clearance` (Cloudflare, seguridad): declarada como esencial, SIN VERIFICAR del todo
+
+La zona `saastro.io` tiene Bot Fight Mode y las detecciones de JavaScript de Cloudflare
+activas; estas escriben `cf_clearance` antes del banner. La política la lista entre las
+cookies **esenciales** (sin ancla `data-legal`: no es un proveedor del catálogo) y el theme
+no la carga ni la bloquea: la pone Cloudflare en el borde.
+
+**Es una interpretación, no una certeza.** A favor: Cloudflare la declara «strictly
+necessary» (docs de cookies, 13-nov-2026), la Guía AEPD 2024 admite elementos de seguridad
+durante la navegación y la FAQ 17 de la CNIL (29-abr-2026) exime un anti-robot cuya única
+finalidad sea la seguridad. En contra: no hay resolución de la AEPD, el informe lo valora
+con confianza media-baja para JSD en todas las visitas, y el Addendum de Turnstile dice que
+Cloudflare trata algunas señales como responsable propio (no verificado si alcanza a JSD).
+Duración: la doc de Cloudflare no la indica; en saastro.io se midió 1 año. Un site fuera de
+Cloudflare, o sin esa protección, debe quitar la línea de su política. Si JC o su asesor
+prefieren no depender de la exención, la salida es apagar Bot Fight Mode y las detecciones
+JS de la zona (la API exige apagar los dos).

@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import '@/lib/forms-consent';
 import { HubForm, parseGlobModules } from '@saastro/forms';
 import type { LandingNotConfiguredCopy } from '@/lib/lp';
 import { onLeadSuccess, type TrackWindow } from '@/lib/lead-conversion';

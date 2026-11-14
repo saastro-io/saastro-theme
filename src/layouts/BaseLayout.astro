@@ -90,7 +90,8 @@ const pwa = resolvePwa(settings);
 // Studio preview + local dev, mirroring the CF Web Analytics guard in Analytics.astro.
 const genWorkspaceId = noindex ? '' : (settings.gen?.workspaceId ?? '');
 const genVertical = settings.gen?.vertical || 'default';
-const genConsent = settings.gen?.consent === 'required' ? 'required' : 'none';
+// Por defecto el beacon espera al banner; solo un «none» explícito lo salta.
+const genConsent = settings.gen?.consent === 'none' ? 'none' : 'required';
 // Brand name for og:site_name — from i18n `meta.siteName` (Hub-editable),
 // falling back to the build-time settings value.
 const siteName = resolveSiteName(Astro.locals);
@@ -165,11 +166,11 @@ const xDefaultHref = hreflangEntries.find((e) => e.locale === defaultLocale)?.hr
     <slot name="head" />
 
     {/* Cloudflare Web Analytics ya NO se carga aquí: es un proveedor más del catálogo
-        (`cloudflareWebAnalytics`, categoría `none` = exento de consentimiento, con su
-        motivo escrito en tracking-providers.json) y lo carga el ÚNICO cargador,
-        Analytics.astro, con el mismo bloqueo de hosts y el mismo shim de siempre. */}
+        (`cloudflareWebAnalytics`, categoría `analytics`: espera al consentimiento del banner,
+        como GA4 y Clarity) y lo carga el ÚNICO cargador, Analytics.astro, con el mismo
+        bloqueo de hosts y el mismo shim de siempre. */}
 
-    {/* SAASTRO Gen lead attribution — cookieless page-view beacon + visitor id
+    {/* SAASTRO Gen lead attribution — page-view beacon (waits for the banner by default) + visitor id
         on form submits. Off unless settings.gen.workspaceId is set (the Hub's
         per-site "Gen tracking" toggle writes it). */}
     {genWorkspaceId && (

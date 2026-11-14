@@ -72,8 +72,7 @@ analytics:
     token: ""
 
 tracking:
-  # Píxeles de medición y anuncios. Vacío = apagado. Todos (salvo Cloudflare Web
-  # Analytics, exento: ver abajo) esperan al consentimiento del banner (analytics: GA4, Clarity · marketing: Google Ads, Meta, TikTok,
+  # Píxeles de medición y anuncios. Vacío = apagado. TODOS esperan al consentimiento del banner (analytics: GA4, Clarity, Cloudflare Web Analytics · marketing: Google Ads, Meta, TikTok,
   # LinkedIn · GTM con cualquiera de las dos) y NINGUNO carga en una vista previa.
   # Encender uno añade un tratamiento: la política de cookies debe declararlo
   # (ancla <div data-legal="tracking-…"></div>, ver docs/legal-marketing.md) o
@@ -87,7 +86,7 @@ tracking:
   tiktokPixel: "" # id del Pixel de TikTok
   linkedinPartnerId: "" # Partner ID del Insight Tag
   clarity: "" # id del proyecto de Microsoft Clarity
-  # Cloudflare Web Analytics: EXENTO de consentimiento (el catálogo lo dice con su motivo).
+  # Cloudflare Web Analytics: pide consentimiento de analítica, como GA4 y Clarity.
   # Si está vacío se lee analytics.cloudflareWebAnalytics.token (ruta vieja); si hay
   # valor aquí, gana. 32 caracteres hexadecimales.
   cloudflareWebAnalytics: ""
@@ -103,17 +102,18 @@ forms:
   contactFormSlug: "contact"
 
 gen:
-  # SAASTRO Gen lead-attribution beacon (GenTracking): one cookieless page-view
-  # per load → gen.saastro.io/collect, and the anonymous visitor id rides along
-  # on form submits so Gen links each lead to its pre-conversion journey.
+  # SAASTRO Gen lead-attribution beacon (GenTracking): one page-view per load →
+  # gen.saastro.io/collect, and the anonymous visitor id (sessionStorage) rides
+  # along on form submits so Gen links each lead to its pre-conversion journey.
   # `workspaceId` = your Gen workspace (the Platform team id). EMPTY = OFF.
   # Toggled per site from Hub → Site → Settings, which writes this block
   # (same mechanism as forms.siteId). Host-blocked on previews/local dev.
   workspaceId: ""
   vertical: "default"
-  # "none" = cookieless, tracks immediately (no banner needed).
-  # "required" = waits until localStorage['gen-consent'] === 'granted'.
-  consent: "none"
+  # "required" = (default) no id, no form field and no request until the visitor
+  #   accepts the `analytics` category of the cookie banner.
+  # "none" = tracks immediately. Only if the site owner has decided it is exempt.
+  consent: "required"
 
 measure:
   # Medición render-vs-JS: cuántas visitas se quedan SIN formulario utilizable.

@@ -1,7 +1,7 @@
 ---
 title: Política de Cookies
 description: Cómo usamos las cookies en este sitio.
-lastUpdated: 2026-11-02
+lastUpdated: 2026-11-14
 ---
 
 ## ¿Qué son las cookies?
@@ -13,6 +13,7 @@ Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo c
 Son necesarias para que el sitio funcione correctamente. No se pueden desactivar.
 
 - **cookie_consent** — almacena tus preferencias de cookies (1 año)
+- **cf_clearance** — la coloca Cloudflare, el proveedor que protege este sitio frente a tráfico automatizado y ataques. Guarda el resultado de las comprobaciones de seguridad para no repetirlas en cada página. Para este sitio solo cumple una función de seguridad: no se usa para medir ni para publicidad. Su duración la fija Cloudflare. Solo aparece si el sitio tiene activa esa protección.
 
 ## Cookies analíticas
 
@@ -39,6 +40,14 @@ Herramienta de Microsoft que registra cómo se usa el sitio: grabaciones de sesi
 - `_clsk` — agrupa las páginas vistas de una misma sesión.
 
 Más información: [declaración de privacidad de Microsoft](https://www.microsoft.com/privacy/privacystatement).
+
+### Cloudflare Web Analytics
+
+<div data-legal="tracking-cloudflare"></div>
+
+Servicio de analítica de Cloudflare. Mide qué páginas se visitan y el rendimiento del sitio. Se carga desde `static.cloudflareinsights.com` y envía a `cloudflareinsights.com` la dirección de la página, el motor y la versión del navegador y del sistema operativo, el uso de memoria de JavaScript, los tiempos de carga, un identificador de esa carga de página y el token del sitio. Como cualquier servidor, Cloudflare recibe además tu dirección IP y los datos de la conexión.
+
+Más información: [política de privacidad de Cloudflare](https://www.cloudflare.com/privacypolicy/).
 
 ## Cookies de personalización
 

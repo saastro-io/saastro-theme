@@ -911,6 +911,18 @@
       ".ac"
     ]
   },
+  "legalHashes": {
+    "es/legal/cookies/index.html": {
+      "tracking-ga4": "ee02b59891819910bc1eaf8dfc370289336590a03f48d34510fd4c962c88f2f5",
+      "tracking-clarity": "8672aa570ea2cea40fec3f586d9fd7009d00eedae980bf3e780dd4b7bfa3b553",
+      "tracking-cloudflare": "8363d97b9e84fe85d7788eee2174bf7bf015bea35a107215a9e644e82c3c6ddb"
+    },
+    "legal/cookies/index.html": {
+      "tracking-ga4": "1eae01885bf4c00917cfcd3ceb8b615ff00af01a6ea3236d6128dc6e5d0b6746",
+      "tracking-clarity": "e8d9804ac7edb04f252ceeefb11309dea61db4fc0dff4da1a369169cae8f72cc",
+      "tracking-cloudflare": "a785569eed2d91bacd9366a173a3352f60151f8703e61f412364dc15ff368f58"
+    }
+  },
   "formPrimitiveExports": {
     "src/components/ui/form.tsx": [
       "Form",
@@ -940,7 +952,7 @@
     "saastrocms.config.ts": "sha256:24b6495895d4c2ef8bac2895e6658857029196e5aa888d9225fe849650250e3a",
     "scripts/lib/default-locale.mjs": "sha256:2c521599575001ca836c8bdfe52ac3eb5c0007f5d8312f52f4a1683333c6dc6f",
     "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
-    "scripts/studio-contract-check.mjs": "sha256:c61b169cd247ad1dd705c364b8af4211d6f05bd11e0e9f878f1a0ca415ee1f35",
+    "scripts/studio-contract-check.mjs": "sha256:664905ebfe97c5855f32ed1eb935b04739a0a28c180425b2836df1d6067e3ae4",
     "src/content.config.ts": "sha256:7ec1a6b813ed9ce2e42d9ea32e0b2529c59c64ce8654401c5a73d10d6fafb73b",
     "src/env.d.ts": "sha256:bb1e41a6a461c5abc2adc3c4dd8fa81fc9f39e4d18cc93220f76c476739fa169",
     "src/i18n/config.ts": "sha256:2f483b77c012454f290460c5d85b28f95a4381cbb3d1d977f08199aeb1a96d73",
@@ -950,7 +962,7 @@
     "src/i18n/types.ts": "sha256:00efa5a466f772b9f60626d5599d1e15903c18e216bb09f80aa1831314cea10c",
     "src/i18n/utils.ts": "sha256:8b712cdcefd159caeffdcf311a7c21b2338c83e2d1e4501bacb88a62db6f7e97",
     "src/integrations/strip-studio-meta-middleware.ts": "sha256:012405e52443b3de3775cb9575eb0d9494c28b8a7202fab3b43246733c109abe",
-    "src/lib/settings.ts": "sha256:60d5472eb2d5332fde248ce3712361d3f4947f36926ae2e049a29456b454aa30",
+    "src/lib/settings.ts": "sha256:77f84b020b1c5dac10611ad4902214c7afa4789c28849bb7b661ad48f76f4fbb",
     "src/middleware.ts": "sha256:8305bcec3c310597f2fdf0918cb182a840c4ed785afdb41a966aa83de254d2ce"
   }
 }

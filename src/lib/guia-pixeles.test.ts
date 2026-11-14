@@ -57,12 +57,14 @@ describe('docs/guia-pixeles.md ↔ tracking-providers.json', () => {
     expect(guia).toContain('`PUBLIC_TRACKING_GOOGLE_ADS_CONVERSION_LABEL`');
     expect(guia).toContain('`PUBLIC_WHATSAPP_NUMBER`');
   });
-  it('documenta la excepción de consentimiento y que el exento no exige ancla (sin inventar texto legal)', () => {
-    expect(guia).toMatch(/Nada carga sin consentimiento, salvo el proveedor exento/);
-    expect(guia).toMatch(/no exige ancla/);
+  it('documenta que HOY no hay proveedor exento y que Cloudflare pide consentimiento y ancla (sin inventar texto legal)', () => {
+    expect(guia).toMatch(/Nada carga sin consentimiento\./);
+    expect(guia).toMatch(/no hay ningún proveedor exento/);
+    expect(guia).toMatch(/Cloudflare Web Analytics[^\n]*categoría `analytics`/);
     const legal = readFileSync(new URL('docs/legal-marketing.md', raiz), 'utf8');
-    expect(legal).toMatch(/Cloudflare Web Analytics \(exento de consentimiento/);
-    expect(legal).toMatch(/Esto no es texto legal/);
+    expect(legal).toMatch(/data-legal="tracking-cloudflare"/);
+    expect(legal).toMatch(/Texto final: JC/);
+    expect(legal).not.toMatch(/exento de consentimiento, SIN ancla/);
   });
   it('documenta los varios ids (tope, Clarity) y el override por landing con su contrato', () => {
     expect(guia).toMatch(/separados\s+por comas/);
