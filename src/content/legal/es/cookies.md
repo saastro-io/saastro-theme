@@ -1,7 +1,7 @@
 ---
 title: Política de Cookies
 description: Cómo usamos las cookies en este sitio.
-lastUpdated: 2026-11-02
+lastUpdated: 2026-11-14
 ---
 
 ## ¿Qué son las cookies?
