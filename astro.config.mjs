@@ -157,6 +157,13 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    // El commit que se construye (Workers Builds lo inyecta), para `/health.json`. Se lee AQUÍ,
+    // en Node: el código prerenderizado corre en workerd y no ve `process.env`. Vacío fuera de
+    // Workers Builds: `buildInfo` lo trata como «sin dato», no inventa un sha.
+    define: {
+      'import.meta.env.BUILD_SHA': JSON.stringify(process.env.WORKERS_CI_COMMIT_SHA ?? ''),
+      'import.meta.env.BUILD_BRANCH': JSON.stringify(process.env.WORKERS_CI_BRANCH ?? ''),
+    },
     server: {
       // When Saastro Studio proxies this dev server under hub.saastro.test:4901,
       // the iframe needs CORS to read the page. Dev-only; harmless standalone.

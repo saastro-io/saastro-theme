@@ -947,14 +947,14 @@
     ]
   },
   "architectureHashes": {
-    "astro.config.mjs": "sha256:c20eeaa88505bc0f207562eedf59f673e4687fcf15b60fc5815ac0e5def0cf8a",
+    "astro.config.mjs": "sha256:05068e2555eac310ee4b3a463214a499a96c025ede095fd438516bc875522dc6",
     "saastro.template.json": "sha256:2c9a01844156c58f4bb98dbfc53ea89c269e640c8fdcd9352459a09070878156",
     "saastrocms.config.ts": "sha256:24b6495895d4c2ef8bac2895e6658857029196e5aa888d9225fe849650250e3a",
     "scripts/lib/default-locale.mjs": "sha256:2c521599575001ca836c8bdfe52ac3eb5c0007f5d8312f52f4a1683333c6dc6f",
     "scripts/studio-check.mjs": "sha256:0ce75f4f0e28098423c8b907a76c44d0fd74dc192beccbdeed990415b2202b38",
     "scripts/studio-contract-check.mjs": "sha256:664905ebfe97c5855f32ed1eb935b04739a0a28c180425b2836df1d6067e3ae4",
     "src/content.config.ts": "sha256:7ec1a6b813ed9ce2e42d9ea32e0b2529c59c64ce8654401c5a73d10d6fafb73b",
-    "src/env.d.ts": "sha256:bb1e41a6a461c5abc2adc3c4dd8fa81fc9f39e4d18cc93220f76c476739fa169",
+    "src/env.d.ts": "sha256:41de5913cf32cc951df10fcd1e0c30526ae396319c20f2bd55df65b6536f28f1",
     "src/i18n/config.ts": "sha256:2f483b77c012454f290460c5d85b28f95a4381cbb3d1d977f08199aeb1a96d73",
     "src/i18n/index.ts": "sha256:09b6e214338654d36d2d5740f89bb714015088b30331b455a1a633a7681cabe4",
     "src/i18n/meta.ts": "sha256:74fda56fd5279a8454d01bc559bf5e0843f6fc44b7251db94d064700810006b1",
